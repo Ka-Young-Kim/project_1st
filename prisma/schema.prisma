@@ -21,6 +21,8 @@ model Todo {
 model InvestmentLog {
   id        String      @id @default(cuid())
   tradeDate DateTime
+  portfolioId String?
+  portfolio Portfolio? @relation(fields: [portfolioId], references: [id], onDelete: SetNull)
   investmentItemId String?
   investmentItem InvestmentItem? @relation(fields: [investmentItemId], references: [id], onDelete: SetNull)
   symbol    String
@@ -35,8 +37,10 @@ model InvestmentLog {
 
 model InvestmentItem {
   id           String          @id @default(cuid())
+  portfolioId  String?
+  portfolio    Portfolio?      @relation(fields: [portfolioId], references: [id], onDelete: SetNull)
   name         String
-  code         String          @unique
+  code         String
   category     String?
   industry     String?
   notes        String?
@@ -44,6 +48,19 @@ model InvestmentItem {
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
   logs         InvestmentLog[]
+
+  @@unique([portfolioId, code])
+}
+
+model Portfolio {
+  id          String           @id @default(cuid())
+  name        String
+  description String?
+  active      Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  items       InvestmentItem[]
+  logs        InvestmentLog[]
 }
 
 model AppSettings {

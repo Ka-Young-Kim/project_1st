@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 export async function createInvestmentItem(input: InvestmentItemInput) {
   await prisma.investmentItem.create({
     data: {
+      portfolioId: input.portfolioId,
       name: input.name,
       code: input.code,
       category: input.category || null,

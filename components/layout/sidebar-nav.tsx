@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 import { NAV_ITEMS } from "@/lib/constants";
 import { cx } from "@/lib/utils";
@@ -57,6 +57,8 @@ function NavIcon({ href, active }: Readonly<{ href: string; active: boolean }>) 
 
 export function SidebarNav() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const portfolioId = searchParams.get("portfolio");
 
   return (
     <nav className="space-y-1.5">
@@ -66,7 +68,11 @@ export function SidebarNav() {
         return (
           <Link
             key={item.href}
-            href={item.href}
+            href={
+              portfolioId
+                ? `${item.href}?${new URLSearchParams({ portfolio: portfolioId }).toString()}`
+                : item.href
+            }
             className={cx(
               "group flex items-center gap-3 rounded-[1rem] px-3 py-3 transition",
               isActive

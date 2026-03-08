@@ -4,7 +4,11 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { createInvestmentItemAction } from "@/features/investment-items/actions/create-investment-item";
 
-export function InvestmentItemForm() {
+export function InvestmentItemForm({
+  portfolioId,
+}: Readonly<{
+  portfolioId: string;
+}>) {
   const fieldClassName =
     "appearance-none border-white/12 !bg-[rgba(255,255,255,0.04)] !text-white placeholder:!text-[#6f83aa] shadow-none [color-scheme:dark] focus:border-[#6ea8fe] focus:ring-[rgba(110,168,254,0.16)]";
 
@@ -25,6 +29,7 @@ export function InvestmentItemForm() {
       </div>
 
       <form action={createInvestmentItemAction} className="mt-6 space-y-4">
+        <input type="hidden" name="portfolioId" value={portfolioId} />
         <div className="grid gap-4 md:grid-cols-2">
           <label className="space-y-1.5">
             <span className="text-sm font-medium text-white/88">항목명</span>

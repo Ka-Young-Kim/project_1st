@@ -7,8 +7,10 @@ import { updateInvestmentItem } from "@/features/investment-items/services/inves
 import { logger } from "@/lib/logger";
 
 export async function updateInvestmentItemAction(formData: FormData) {
+  const portfolioId = String(formData.get("portfolioId") ?? "");
   const parsed = investmentItemUpdateSchema.safeParse({
     id: formData.get("id"),
+    portfolioId,
     name: formData.get("name"),
     code: formData.get("code"),
     category: formData.get("category"),
@@ -19,9 +21,9 @@ export async function updateInvestmentItemAction(formData: FormData) {
 
   if (!parsed.success) {
     logger.warn("investment_item.update.validation_failed", parsed.error.flatten());
-    redirect("/items?status=item-invalid");
+    redirect(`/items?status=item-invalid${portfolioId ? `&portfolio=${portfolioId}` : ""}`);
   }
 
   await updateInvestmentItem(parsed.data);
-  redirect("/items?status=item-updated");
+  redirect(`/items?status=item-updated${portfolioId ? `&portfolio=${portfolioId}` : ""}`);
 }

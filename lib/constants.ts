@@ -65,6 +65,26 @@ const STATUS_MESSAGES = {
     tone: "error",
     message: "연결된 투자일지가 있는 항목은 삭제할 수 없습니다.",
   },
+  "portfolio-created": {
+    tone: "success",
+    message: "포트폴리오가 저장되었습니다.",
+  },
+  "portfolio-updated": {
+    tone: "success",
+    message: "포트폴리오가 업데이트되었습니다.",
+  },
+  "portfolio-deleted": {
+    tone: "success",
+    message: "포트폴리오가 삭제되었습니다.",
+  },
+  "portfolio-invalid": {
+    tone: "error",
+    message: "포트폴리오 입력값이 올바르지 않습니다.",
+  },
+  "portfolio-linked": {
+    tone: "error",
+    message: "항목 또는 일지가 연결된 포트폴리오는 삭제할 수 없습니다.",
+  },
   "settings-updated": {
     tone: "success",
     message: "브랜드와 운영 설정이 저장되었습니다.",

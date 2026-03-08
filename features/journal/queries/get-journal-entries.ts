@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 
-export async function getJournalEntries() {
+export async function getJournalEntries(portfolioId?: string) {
   const entries = await prisma.investmentLog.findMany({
+    where: portfolioId ? { portfolioId } : undefined,
     include: {
       investmentItem: true,
     },

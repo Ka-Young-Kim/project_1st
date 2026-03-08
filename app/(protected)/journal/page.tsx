@@ -4,6 +4,7 @@ import { JournalCalendar } from "@/features/journal/components/journal-calendar"
 import { JournalForm } from "@/features/journal/components/journal-form";
 import { JournalList } from "@/features/journal/components/journal-list";
 import { getInvestmentItems } from "@/features/investment-items/queries/get-investment-items";
+import { resolvePortfolioId } from "@/features/portfolios/queries/get-portfolios";
 import { getJournalEntries } from "@/features/journal/queries/get-journal-entries";
 import { getStatusMessage } from "@/lib/constants";
 import { formatDateInput, formatDisplayDate, formatWon } from "@/lib/utils";
@@ -20,10 +21,14 @@ export default async function JournalPage(props: {
   const selectedMonth = Array.isArray(searchParams.month)
     ? searchParams.month[0]
     : searchParams.month;
+  const portfolioId = Array.isArray(searchParams.portfolio)
+    ? searchParams.portfolio[0]
+    : searchParams.portfolio;
   const banner = getStatusMessage(statusParam);
+  const { activePortfolio } = await resolvePortfolioId(portfolioId);
   const [entries, itemOptions] = await Promise.all([
-    getJournalEntries(),
-    getInvestmentItems({ activeOnly: true }),
+    getJournalEntries(activePortfolio?.id),
+    getInvestmentItems({ activeOnly: true, portfolioId: activePortfolio?.id }),
   ]);
   const currentMonth = selectedMonth ?? formatDateInput(new Date()).slice(0, 7);
   const selectedYear = Number(currentMonth.slice(0, 4));
@@ -83,7 +88,9 @@ export default async function JournalPage(props: {
         </p>
         <h1 className="text-3xl font-bold tracking-tight">투자일지</h1>
         <p className="text-sm text-[var(--muted)]">
-          매수·매도 거래와 투자 이유, 회고를 같은 기록으로 남깁니다.
+          {activePortfolio
+            ? `${activePortfolio.name} 포트폴리오의 매수·매도 거래와 회고를 기록합니다.`
+            : "포트폴리오를 먼저 생성하세요."}
         </p>
       </div>
 
@@ -128,6 +135,7 @@ export default async function JournalPage(props: {
         <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
           <JournalCalendar
             activeMonth={selectedMonth}
+            portfolioId={activePortfolio?.id}
             entries={entries.map((entry) => ({
               id: entry.id,
               tradeDate: formatDateInput(entry.tradeDate),
@@ -144,15 +152,19 @@ export default async function JournalPage(props: {
               name: item.name,
               code: item.code,
             }))}
+            portfolioId={activePortfolio?.id ?? ""}
           />
         </div>
-        <JournalForm
-          items={itemOptions.map((item) => ({
-            id: item.id,
-            name: item.name,
-            code: item.code,
-          }))}
-        />
+        {activePortfolio ? (
+          <JournalForm
+            items={itemOptions.map((item) => ({
+              id: item.id,
+              name: item.name,
+              code: item.code,
+            }))}
+            portfolioId={activePortfolio.id}
+          />
+        ) : null}
       </div>
     </div>
   );

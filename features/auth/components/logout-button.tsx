@@ -3,9 +3,9 @@ import { logout } from "@/features/auth/actions/logout";
 
 export function LogoutButton() {
   return (
-    <form action={logout} className="pt-1">
+    <form action={logout} className="w-full">
       <SubmitButton
-        className="w-full bg-white !text-[#0b1020] hover:bg-[#dbe4f3]"
+        className="h-11 w-full rounded-[1rem] border border-white/10 bg-white/4 px-4 py-0 !text-white hover:bg-white/8"
         pendingLabel="로그아웃 중..."
       >
         로그아웃

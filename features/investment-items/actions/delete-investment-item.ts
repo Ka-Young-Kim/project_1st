@@ -6,16 +6,17 @@ import { deleteInvestmentItem } from "@/features/investment-items/services/inves
 
 export async function deleteInvestmentItemAction(formData: FormData) {
   const id = String(formData.get("id") ?? "");
+  const portfolioId = String(formData.get("portfolioId") ?? "");
 
   if (!id) {
-    redirect("/items?status=item-invalid");
+    redirect(`/items?status=item-invalid${portfolioId ? `&portfolio=${portfolioId}` : ""}`);
   }
 
   const result = await deleteInvestmentItem(id);
 
   if (!result.ok) {
-    redirect("/items?status=item-linked");
+    redirect(`/items?status=item-linked${portfolioId ? `&portfolio=${portfolioId}` : ""}`);
   }
 
-  redirect("/items?status=item-deleted");
+  redirect(`/items?status=item-deleted${portfolioId ? `&portfolio=${portfolioId}` : ""}`);
 }

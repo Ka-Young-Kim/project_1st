@@ -2,6 +2,8 @@ import Image from "next/image";
 
 import { LogoutButton } from "@/features/auth/components/logout-button";
 import { SidebarSummary } from "@/features/dashboard/components/sidebar-summary";
+import { PortfolioSwitcher } from "@/features/portfolios/components/portfolio-switcher";
+import { getPortfolios } from "@/features/portfolios/queries/get-portfolios";
 import { getDashboardSummary } from "@/features/dashboard/queries/get-dashboard-summary";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { SettingsDialog } from "@/features/settings/components/settings-dialog";
@@ -12,7 +14,10 @@ export async function AppShell({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const settings = await getAppSettings();
-  const summary = await getDashboardSummary();
+  const [summary, portfolios] = await Promise.all([
+    getDashboardSummary(),
+    getPortfolios(),
+  ]);
   const brandInitial = settings.brandName.trim().charAt(0) || "₩";
 
   return (
@@ -82,12 +87,19 @@ export async function AppShell({
 
             <div className="mt-auto space-y-3 pt-2">
               <SidebarSummary summary={summary} />
-              <LogoutButton />
+              <div className="rounded-[18px] border border-[var(--border)] bg-white/3 p-3">
+                <LogoutButton />
+              </div>
             </div>
           </div>
         </aside>
 
-        <main className="space-y-6 p-6">{children}</main>
+        <main className="space-y-6 p-6">
+          <div className="flex justify-end">
+            <PortfolioSwitcher portfolios={portfolios} compact />
+          </div>
+          {children}
+        </main>
       </div>
     </div>
   );

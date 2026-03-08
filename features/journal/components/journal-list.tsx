@@ -16,9 +16,11 @@ import { formatCurrency, formatDateInput, formatDisplayDate } from "@/lib/utils"
 export function JournalList({
   entries,
   items,
+  portfolioId,
 }: Readonly<{
   entries: JournalListItem[];
   items: Array<{ id: string; name: string; code: string }>;
+  portfolioId: string;
 }>) {
   const fieldClassName =
     "appearance-none border-white/12 !bg-[rgba(255,255,255,0.04)] !text-white placeholder:!text-[#6f83aa] shadow-none [color-scheme:dark] focus:border-[#6ea8fe] focus:ring-[rgba(110,168,254,0.16)]";
@@ -63,6 +65,7 @@ export function JournalList({
 
                           <form action={updateJournal} className="mt-6 space-y-4">
                             <input type="hidden" name="id" value={entry.id} />
+                            <input type="hidden" name="portfolioId" value={portfolioId} />
 
                             <div className="grid gap-4 md:grid-cols-2">
                               <label className="space-y-2">
@@ -162,6 +165,7 @@ export function JournalList({
 
                           <form action={deleteJournal} className="mt-3">
                             <input type="hidden" name="id" value={entry.id} />
+                            <input type="hidden" name="portfolioId" value={portfolioId} />
                             <ConfirmSubmitButton
                               confirmMessage="이 투자일지를 완전히 삭제하시겠습니까?"
                               className="w-full rounded-2xl border border-rose-300/30 bg-rose-400/10 px-4 py-3 text-sm font-semibold text-rose-100 transition hover:bg-rose-400/20"

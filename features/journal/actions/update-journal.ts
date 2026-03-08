@@ -7,6 +7,7 @@ import { updateJournalEntry } from "@/features/journal/services/journal-service"
 import { logger } from "@/lib/logger";
 
 export async function updateJournal(formData: FormData) {
+  const portfolioId = String(formData.get("portfolioId") ?? "");
   const parsed = journalUpdateSchema.safeParse({
     id: formData.get("id"),
     tradeDate: formData.get("tradeDate"),
@@ -20,9 +21,9 @@ export async function updateJournal(formData: FormData) {
 
   if (!parsed.success) {
     logger.warn("journal.update.validation_failed", parsed.error.flatten());
-    redirect("/journal?status=journal-invalid");
+    redirect(`/journal?status=journal-invalid${portfolioId ? `&portfolio=${portfolioId}` : ""}`);
   }
 
   await updateJournalEntry(parsed.data);
-  redirect("/journal?status=journal-updated");
+  redirect(`/journal?status=journal-updated${portfolioId ? `&portfolio=${portfolioId}` : ""}`);
 }

@@ -7,7 +7,9 @@ import { createInvestmentItem } from "@/features/investment-items/services/inves
 import { logger } from "@/lib/logger";
 
 export async function createInvestmentItemAction(formData: FormData) {
+  const portfolioId = String(formData.get("portfolioId") ?? "");
   const parsed = investmentItemInputSchema.safeParse({
+    portfolioId,
     name: formData.get("name"),
     code: formData.get("code"),
     category: formData.get("category"),
@@ -18,9 +20,9 @@ export async function createInvestmentItemAction(formData: FormData) {
 
   if (!parsed.success) {
     logger.warn("investment_item.create.validation_failed", parsed.error.flatten());
-    redirect("/items?status=item-invalid");
+    redirect(`/items?status=item-invalid${portfolioId ? `&portfolio=${portfolioId}` : ""}`);
   }
 
   await createInvestmentItem(parsed.data);
-  redirect("/items?status=item-created");
+  redirect(`/items?status=item-created${portfolioId ? `&portfolio=${portfolioId}` : ""}`);
 }

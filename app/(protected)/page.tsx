@@ -1,8 +1,18 @@
 import { HoldingsList } from "@/features/dashboard/components/holdings-list";
 import { getDashboardSummary } from "@/features/dashboard/queries/get-dashboard-summary";
+import { resolvePortfolioId } from "@/features/portfolios/queries/get-portfolios";
 
-export default async function DashboardPage() {
-  const summary = await getDashboardSummary();
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+export default async function DashboardPage(props: {
+  searchParams?: SearchParams;
+}) {
+  const searchParams = props.searchParams ? await props.searchParams : {};
+  const portfolioId = Array.isArray(searchParams.portfolio)
+    ? searchParams.portfolio[0]
+    : searchParams.portfolio;
+  const { activePortfolio } = await resolvePortfolioId(portfolioId);
+  const summary = await getDashboardSummary(activePortfolio?.id);
   const completionRate =
     summary.totalTodoCount === 0
       ? 0
@@ -27,6 +37,11 @@ export default async function DashboardPage() {
           <h1 className="mt-4 text-3xl font-bold tracking-tight md:text-4xl">
             오늘의 재태크
           </h1>
+          {activePortfolio ? (
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--muted)] md:text-base">
+              현재 포트폴리오: {activePortfolio.name}
+            </p>
+          ) : null}
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <div className="rounded-[16px] border border-[var(--border)] bg-white/3 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">

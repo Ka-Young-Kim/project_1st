@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -14,11 +16,54 @@ type JournalFormItemOption = {
 
 export function JournalForm({
   items,
+  portfolioId,
 }: Readonly<{
   items: JournalFormItemOption[];
+  portfolioId: string;
 }>) {
   const fieldClassName =
     "appearance-none border-white/12 !bg-[rgba(255,255,255,0.04)] !text-white placeholder:!text-[#6f83aa] shadow-none [color-scheme:dark] focus:border-[#6ea8fe] focus:ring-[rgba(110,168,254,0.16)]";
+  const itemsHref = `/items?${new URLSearchParams({ portfolio: portfolioId }).toString()}`;
+
+  if (items.length === 0) {
+    return (
+      <Card className="h-fit bg-[linear-gradient(180deg,rgba(20,29,53,.96),rgba(17,26,48,.96))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
+              Composer
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+              새 투자일지 추가
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-[#93a4c7]">
+              투자일지는 등록된 항목을 기준으로 작성합니다.
+            </p>
+          </div>
+
+          <div className="inline-flex h-10 items-center rounded-full border border-[rgba(110,168,254,0.22)] bg-[rgba(110,168,254,0.1)] px-4 text-sm font-semibold text-[#cfe1ff]">
+            Quick Log
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-[1.4rem] border border-dashed border-white/10 bg-black/10 px-5 py-6">
+          <h3 className="text-lg font-semibold text-white">
+            먼저 투자 항목을 추가하세요
+          </h3>
+          <p className="mt-2 text-sm leading-6 text-[#93a4c7]">
+            현재 포트폴리오에 선택할 항목이 없습니다. 투자 항목을 먼저 등록하면
+            거래 로그를 바로 연결할 수 있습니다.
+          </p>
+          <Link
+            href={itemsHref}
+            className="mt-4 inline-flex h-11 items-center rounded-full border border-[rgba(110,168,254,0.28)] bg-[rgba(110,168,254,0.12)] px-5 text-sm font-semibold text-[#cfe1ff] transition hover:bg-[rgba(110,168,254,0.18)]"
+          >
+            투자 항목 관리로 이동
+          </Link>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="h-fit bg-[linear-gradient(180deg,rgba(20,29,53,.96),rgba(17,26,48,.96))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
@@ -41,6 +86,7 @@ export function JournalForm({
       </div>
 
       <form action={createJournal} className="mt-6 space-y-4.5">
+        <input type="hidden" name="portfolioId" value={portfolioId} />
         <div className="grid gap-4 md:grid-cols-2">
           <label className="space-y-1.5">
             <span className="text-sm font-medium text-white/88">거래일</span>

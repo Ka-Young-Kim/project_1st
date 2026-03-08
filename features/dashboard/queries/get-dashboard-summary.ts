@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentMonthRangeInSeoul, getTodayRangeInSeoul } from "@/lib/utils";
 
-export async function getDashboardSummary() {
+export async function getDashboardSummary(portfolioId?: string) {
   const todayRange = getTodayRangeInSeoul();
   const monthRange = getCurrentMonthRangeInSeoul();
 
@@ -26,6 +26,7 @@ export async function getDashboardSummary() {
     }),
     prisma.investmentLog.count({
       where: {
+        ...(portfolioId ? { portfolioId } : {}),
         tradeDate: {
           gte: monthRange.start,
           lt: monthRange.end,
@@ -39,6 +40,7 @@ export async function getDashboardSummary() {
       take: 5,
     }),
     prisma.investmentLog.findMany({
+      where: portfolioId ? { portfolioId } : undefined,
       include: {
         investmentItem: true,
       },
@@ -46,6 +48,7 @@ export async function getDashboardSummary() {
       take: 5,
     }),
     prisma.investmentLog.findMany({
+      where: portfolioId ? { portfolioId } : undefined,
       include: {
         investmentItem: true,
       },

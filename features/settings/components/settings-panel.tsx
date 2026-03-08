@@ -21,15 +21,17 @@ export function SettingsPanel({
   settings,
   mode,
 }: Readonly<SettingsPanelProps>) {
+  const fieldClassName =
+    "border-white/10 !bg-[rgba(255,255,255,0.04)] !text-white placeholder:!text-[#7083aa] shadow-none [color-scheme:dark] focus:border-[#6ea8fe] focus:ring-[rgba(110,168,254,0.16)]";
   const isBrandMode = mode === "brand";
   const isPrincipleMode = mode === "principle";
   const title = isBrandMode
-    ? "브랜드 설정"
+    ? "사용자 설정"
     : isPrincipleMode
       ? "이번 달 원칙"
       : "대시보드 인사이트";
   const description = isBrandMode
-    ? "이름, 보조 설명, 이미지 경로를 수정할 수 있습니다."
+    ? "이름, 한 줄 소개, 프로필 이미지 경로를 수정할 수 있습니다."
     : isPrincipleMode
       ? "사이드바에 보이는 문구를 바로 수정할 수 있습니다."
       : "대시보드 인사이트 문구를 줄바꿈 기준으로 직접 수정할 수 있습니다.";
@@ -37,7 +39,7 @@ export function SettingsPanel({
   return (
     <Card
       className={cx(
-        "w-full rounded-[22px] p-4 sm:p-6",
+        "w-full rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(20,29,53,.98),rgba(17,26,48,.98))] p-5 sm:p-6",
         "max-h-[85vh] overflow-y-auto",
       )}
     >
@@ -59,25 +61,32 @@ export function SettingsPanel({
         {isBrandMode ? (
           <>
             <label className="space-y-2">
-              <span className="text-sm font-medium">브랜드 이름</span>
-              <Input name="brandName" defaultValue={settings.brandName} required />
-            </label>
-
-            <label className="space-y-2">
-              <span className="text-sm font-medium">보조 설명</span>
+              <span className="text-sm font-medium">이름</span>
               <Input
-                name="brandSubtitle"
-                defaultValue={settings.brandSubtitle}
+                name="brandName"
+                defaultValue={settings.brandName}
                 required
+                className={fieldClassName}
               />
             </label>
 
             <label className="space-y-2">
-              <span className="text-sm font-medium">이미지 URL 또는 내부 경로</span>
+              <span className="text-sm font-medium">한 줄 소개</span>
+              <Input
+                name="brandSubtitle"
+                defaultValue={settings.brandSubtitle}
+                required
+                className={fieldClassName}
+              />
+            </label>
+
+            <label className="space-y-2">
+              <span className="text-sm font-medium">프로필 이미지 경로</span>
               <Input
                 name="brandImageUrl"
                 defaultValue={settings.brandImageUrl}
                 placeholder={DEFAULT_APP_SETTINGS.brandImageUrl || "/globe.svg"}
+                className={fieldClassName}
               />
               <p className="text-xs leading-5 text-[var(--muted)]">
                 예: `/globe.svg`, `/next.svg`, 또는 외부 이미지 주소
@@ -118,7 +127,7 @@ export function SettingsPanel({
                 name="monthlyPrinciple"
                 defaultValue={settings.monthlyPrinciple}
                 required
-                className="min-h-40"
+                className={`${fieldClassName} min-h-40`}
               />
             </label>
           </>
@@ -146,7 +155,7 @@ export function SettingsPanel({
                 name="dashboardInsights"
                 defaultValue={settings.dashboardInsights}
                 required
-                className="min-h-48"
+                className={`${fieldClassName} min-h-48`}
               />
               <p className="text-xs leading-5 text-[var(--muted)]">
                 한 줄이 인사이트 한 문장으로 표시됩니다.

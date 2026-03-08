@@ -7,6 +7,7 @@ import { createJournalEntry } from "@/features/journal/services/journal-service"
 import { logger } from "@/lib/logger";
 
 export async function createJournal(formData: FormData) {
+  const portfolioId = String(formData.get("portfolioId") ?? "");
   const parsed = journalInputSchema.safeParse({
     tradeDate: formData.get("tradeDate"),
     investmentItemId: formData.get("investmentItemId"),
@@ -19,9 +20,9 @@ export async function createJournal(formData: FormData) {
 
   if (!parsed.success) {
     logger.warn("journal.create.validation_failed", parsed.error.flatten());
-    redirect("/journal?status=journal-invalid");
+    redirect(`/journal?status=journal-invalid${portfolioId ? `&portfolio=${portfolioId}` : ""}`);
   }
 
   await createJournalEntry(parsed.data);
-  redirect("/journal?status=journal-created");
+  redirect(`/journal?status=journal-created${portfolioId ? `&portfolio=${portfolioId}` : ""}`);
 }

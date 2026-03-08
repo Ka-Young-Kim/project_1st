@@ -21,6 +21,7 @@ export async function createJournalEntry(input: JournalInput) {
     data: {
       tradeDate: new Date(`${input.tradeDate}T00:00:00+09:00`),
       investmentItemId: item.id,
+      portfolioId: item.portfolioId,
       symbol: item.code,
       action: input.action,
       quantity: toDecimal(input.quantity),
@@ -48,6 +49,7 @@ export async function updateJournalEntry(input: JournalUpdateInput) {
     data: {
       tradeDate: new Date(`${input.tradeDate}T00:00:00+09:00`),
       investmentItemId: item.id,
+      portfolioId: item.portfolioId,
       symbol: item.code,
       action: input.action,
       quantity: toDecimal(input.quantity),

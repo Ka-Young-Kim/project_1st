@@ -19,11 +19,13 @@ type JournalCalendarPreviewItem = {
 
 type JournalCalendarProps = {
   activeMonth?: string;
+  portfolioId?: string;
   entries: JournalCalendarPreviewItem[];
 };
 
 export function JournalCalendar({
   activeMonth,
+  portfolioId,
   entries,
 }: Readonly<JournalCalendarProps>) {
   const referenceDate = activeMonth
@@ -75,7 +77,11 @@ export function JournalCalendar({
         </div>
 
         <Link
-          href="/journal"
+          href={
+            portfolioId
+              ? `/journal?${new URLSearchParams({ portfolio: portfolioId }).toString()}`
+              : "/journal"
+          }
           className="inline-flex h-10 items-center rounded-full border border-[rgba(110,168,254,0.28)] bg-[rgba(110,168,254,0.12)] px-4 text-sm font-semibold text-[#cfe1ff] transition hover:bg-[rgba(110,168,254,0.18)]"
         >
           전체 보기

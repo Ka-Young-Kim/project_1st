@@ -12,6 +12,7 @@ import { formatDisplayDate } from "@/lib/utils";
 
 type InvestmentItemListEntry = {
   id: string;
+  portfolioId: string | null;
   name: string;
   code: string;
   category: string | null;
@@ -24,8 +25,10 @@ type InvestmentItemListEntry = {
 
 export function InvestmentItemList({
   items,
+  portfolioName,
 }: Readonly<{
   items: InvestmentItemListEntry[];
+  portfolioName?: string;
 }>) {
   const fieldClassName =
     "appearance-none border-white/12 !bg-[rgba(255,255,255,0.04)] !text-white placeholder:!text-[#6f83aa] shadow-none [color-scheme:dark] focus:border-[#6ea8fe] focus:ring-[rgba(110,168,254,0.16)]";
@@ -47,7 +50,11 @@ export function InvestmentItemList({
         {items.length === 0 ? (
           <EmptyState
             title="등록된 투자 항목이 없습니다"
-            description="아래에서 첫 항목을 추가하면 투자일지와 대시보드에서 함께 사용합니다."
+            description={
+              portfolioName
+                ? `${portfolioName} 포트폴리오에 첫 항목을 추가하면 투자일지와 대시보드에서 함께 사용합니다.`
+                : "아래에서 첫 항목을 추가하면 투자일지와 대시보드에서 함께 사용합니다."
+            }
           />
         ) : (
           items.map((item) => (
@@ -81,6 +88,7 @@ export function InvestmentItemList({
 
                           <form action={updateInvestmentItemAction} className="mt-6 space-y-4">
                             <input type="hidden" name="id" value={item.id} />
+                            <input type="hidden" name="portfolioId" value={item.portfolioId ?? ""} />
 
                             <div className="grid gap-4 md:grid-cols-2">
                               <label className="space-y-1.5">
@@ -148,6 +156,7 @@ export function InvestmentItemList({
 
                           <form action={deleteInvestmentItemAction} className="mt-3">
                             <input type="hidden" name="id" value={item.id} />
+                            <input type="hidden" name="portfolioId" value={item.portfolioId ?? ""} />
                             <ConfirmSubmitButton
                               confirmMessage="이 투자 항목을 삭제하시겠습니까? 연결된 투자일지가 있으면 삭제되지 않습니다."
                               className="w-full rounded-2xl border border-rose-300/30 bg-rose-400/10 px-4 py-3 text-sm font-semibold text-rose-100 transition hover:bg-rose-400/20"
