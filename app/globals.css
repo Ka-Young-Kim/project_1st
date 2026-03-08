@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f4efe2;
+  --foreground: #162218;
+  --panel: rgba(255, 252, 245, 0.86);
+  --accent: #1f6b45;
+  --accent-strong: #0d4a2d;
+  --accent-soft: #dcefdc;
+  --border: rgba(22, 34, 24, 0.12);
+  --muted: #566357;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+body {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  background-image:
+    radial-gradient(circle at top left, rgba(31, 107, 69, 0.12), transparent 30%),
+    radial-gradient(circle at right 20%, rgba(183, 106, 23, 0.1), transparent 25%),
+    linear-gradient(180deg, #f7f0df 0%, #f4efe2 100%);
+  font-family: var(--font-sans), sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.glass-panel {
+  background: var(--panel);
+  backdrop-filter: blur(18px);
+  border: 1px solid var(--border);
+  box-shadow: 0 24px 80px rgba(40, 48, 36, 0.08);
+}
+
+.page-shell {
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.page-container {
+  margin: 0 auto;
+  max-width: 1280px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

@@ -1,0 +1,46 @@
+{
+  "name": "project_1st",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0",
+    "dev:webpack": "next dev --webpack --hostname 0.0.0.0",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "NEXT_DIST_DIR=.next-types next typegen && tsc --noEmit",
+    "test": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:push": "node scripts/prisma-db-push.mjs",
+    "db:reset:e2e": "node scripts/reset-e2e-db.mjs"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.16.2",
+    "jose": "^6.2.0",
+    "next": "16.1.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^5.1.4",
+    "@vitest/coverage-v8": "^4.0.18",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "magicast": "^0.3.5",
+    "playwright": "^1.58.2",
+    "prettier": "^3.8.1",
+    "prisma": "^6.16.2",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^4.0.18"
+  }
+}
