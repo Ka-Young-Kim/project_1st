@@ -23,7 +23,7 @@ export async function createTodo(
     notes: string;
   },
 ) {
-  await page.goto("/todos");
+  await page.getByRole("link", { name: /할 일 관리/ }).click();
   await expect(page).toHaveURL(/\/todos$/);
 
   const form = page.locator("form").filter({ hasText: "TODO 저장" }).first();
@@ -50,14 +50,20 @@ export async function createJournal(
     review: string;
   },
 ) {
-  await page.goto("/journal");
+  await page
+    .locator("nav")
+    .first()
+    .getByRole("link", {
+      name: "3 투자일지 매매 기록과 투자 이유, 회고를 남깁니다.",
+    })
+    .click();
   await expect(page).toHaveURL(/\/journal$/);
 
   const form = page.locator("form").filter({ hasText: "투자일지 저장" }).first();
 
   await form.getByLabel("거래일").fill(input.tradeDate);
   await form.getByLabel("종목 코드").fill(input.symbol);
-  await form.getByLabel("매매 유형").selectOption(input.action);
+  await form.getByLabel(input.action === "buy" ? "Buy" : "Sell").check();
   await form.getByLabel("수량").fill(input.quantity);
   await form.getByLabel(/가격 \(KRW\)/).fill(input.price);
   await form.getByLabel("투자 이유").fill(input.reason);

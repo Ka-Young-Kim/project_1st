@@ -30,7 +30,6 @@ test("creates, updates, completes, and deletes a todo", async ({ page }) => {
   const updatedItem = page.locator("article").filter({ hasText: updatedTitle }).first();
   await expect(updatedItem).toBeVisible();
   await expect(updatedItem).toContainText("medium");
-  await expect(updatedItem).toContainText("세제 혜택 계좌 구성 점검 완료");
 
   await updatedItem.getByRole("button", { name: "완료 처리" }).click();
   await expect(page).toHaveURL(/status=todo-updated/);

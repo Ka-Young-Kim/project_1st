@@ -9,7 +9,7 @@ import { logger } from "@/lib/logger";
 export async function createJournal(formData: FormData) {
   const parsed = journalInputSchema.safeParse({
     tradeDate: formData.get("tradeDate"),
-    symbol: formData.get("symbol"),
+    investmentItemId: formData.get("investmentItemId"),
     action: formData.get("action"),
     quantity: formData.get("quantity"),
     price: formData.get("price"),

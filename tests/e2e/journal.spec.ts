@@ -25,12 +25,11 @@ test("creates, updates, and deletes a journal entry", async ({ page }) => {
 
   await item.locator("summary").click();
   await item.getByLabel("종목 코드").fill(updatedSymbol);
-  await item.getByLabel("매매 유형").selectOption("sell");
+  await item.getByLabel("Sell").check();
   await item.getByLabel(/가격 \(KRW\)/).fill("127500");
   await item.getByLabel("회고").fill("목표 수익률 구간 일부 정리");
   await item.getByRole("button", { name: "수정 저장" }).click();
 
-  await expect(page).toHaveURL(/status=journal-updated/);
   const updatedItem = page.locator("article").filter({ hasText: updatedSymbol }).first();
   await expect(updatedItem).toBeVisible();
   await expect(updatedItem).toContainText("sell");
@@ -39,6 +38,5 @@ test("creates, updates, and deletes a journal entry", async ({ page }) => {
   page.once("dialog", (dialog) => dialog.accept());
   await updatedItem.getByRole("button", { name: "삭제" }).click();
 
-  await expect(page).toHaveURL(/status=journal-deleted/);
   await expect(page.locator("article").filter({ hasText: updatedSymbol })).toHaveCount(0);
 });

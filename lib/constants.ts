@@ -14,6 +14,11 @@ export const NAV_ITEMS = [
     label: "투자일지",
     description: "매매 기록과 투자 이유, 회고를 남깁니다.",
   },
+  {
+    href: "/items",
+    label: "투자 항목 관리",
+    description: "등록 항목과 기본 정보를 관리합니다.",
+  },
 ] as const;
 
 const STATUS_MESSAGES = {
@@ -39,6 +44,34 @@ const STATUS_MESSAGES = {
   "journal-invalid": {
     tone: "error",
     message: "투자일지 입력값이 올바르지 않습니다.",
+  },
+  "item-created": {
+    tone: "success",
+    message: "투자 항목이 저장되었습니다.",
+  },
+  "item-updated": {
+    tone: "success",
+    message: "투자 항목이 업데이트되었습니다.",
+  },
+  "item-deleted": {
+    tone: "success",
+    message: "투자 항목이 삭제되었습니다.",
+  },
+  "item-invalid": {
+    tone: "error",
+    message: "투자 항목 입력값이 올바르지 않습니다.",
+  },
+  "item-linked": {
+    tone: "error",
+    message: "연결된 투자일지가 있는 항목은 삭제할 수 없습니다.",
+  },
+  "settings-updated": {
+    tone: "success",
+    message: "브랜드와 운영 설정이 저장되었습니다.",
+  },
+  "settings-invalid": {
+    tone: "error",
+    message: "설정 입력값이 올바르지 않습니다.",
   },
 } as const;
 

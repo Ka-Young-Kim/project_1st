@@ -13,11 +13,21 @@ if (process.env.DATABASE_URL?.startsWith("file:./")) {
   )}`;
 }
 
-export const prisma =
-  globalThis.prismaGlobal ??
-  new PrismaClient({
+function createPrismaClient() {
+  return new PrismaClient({
     log: ["error", "warn"],
   });
+}
+
+function hasAppSettingsModel(client: PrismaClient | undefined) {
+  return Boolean(client && "appSettings" in client);
+}
+
+const prismaClient = hasAppSettingsModel(globalThis.prismaGlobal)
+  ? globalThis.prismaGlobal!
+  : createPrismaClient();
+
+export const prisma: PrismaClient = prismaClient;
 
 if (process.env.NODE_ENV !== "production") {
   globalThis.prismaGlobal = prisma;

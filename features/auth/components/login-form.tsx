@@ -4,14 +4,14 @@ import { login } from "@/features/auth/actions/login";
 
 export function LoginForm({ error }: Readonly<{ error?: boolean }>) {
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">
-          Locked Access
+    <div className="space-y-7">
+      <div className="space-y-3 text-center">
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">
+          Secure Access
         </p>
         <h2 className="text-3xl font-bold tracking-tight">앱 잠금 해제</h2>
         <p className="text-sm leading-6 text-[var(--muted)]">
-          단일 비밀번호 방식으로 대시보드에 접근합니다.
+          비밀번호를 입력해 대시보드에 접속합니다.
         </p>
       </div>
 

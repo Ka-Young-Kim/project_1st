@@ -1,6 +1,8 @@
 export type JournalListItem = {
   id: string;
   tradeDate: Date;
+  investmentItemId: string | null;
+  itemName: string | null;
   symbol: string;
   action: "buy" | "sell";
   quantity: string;

@@ -10,7 +10,7 @@ export default defineConfig({
   webServer: {
     command: "npm run db:reset:e2e && npm run dev:webpack",
     url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     env: {
       DATABASE_URL: "file:./prisma/e2e.db",
       APP_PASSWORD: "changeme1234",

@@ -4,12 +4,7 @@ import { decimalInputSchema, seoulDateSchema } from "@/lib/validation";
 
 export const journalInputSchema = z.object({
   tradeDate: seoulDateSchema,
-  symbol: z
-    .string()
-    .trim()
-    .min(1, "종목 코드를 입력하세요.")
-    .max(20, "종목 코드는 20자 이하여야 합니다.")
-    .transform((value) => value.toUpperCase()),
+  investmentItemId: z.string().trim().min(1, "투자 항목을 선택하세요."),
   action: z.enum(["buy", "sell"]),
   quantity: decimalInputSchema,
   price: decimalInputSchema,

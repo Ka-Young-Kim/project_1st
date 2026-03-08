@@ -21,6 +21,8 @@ model Todo {
 model InvestmentLog {
   id        String      @id @default(cuid())
   tradeDate DateTime
+  investmentItemId String?
+  investmentItem InvestmentItem? @relation(fields: [investmentItemId], references: [id], onDelete: SetNull)
   symbol    String
   action    TradeAction
   quantity  Decimal
@@ -29,6 +31,30 @@ model InvestmentLog {
   review    String?
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+}
+
+model InvestmentItem {
+  id           String          @id @default(cuid())
+  name         String
+  code         String          @unique
+  category     String?
+  industry     String?
+  notes        String?
+  active       Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  logs         InvestmentLog[]
+}
+
+model AppSettings {
+  id               String   @id
+  brandName        String
+  brandSubtitle    String
+  brandImageUrl    String?
+  monthlyPrinciple String
+  dashboardInsights String   @default("오늘 마감 TODO는 없어 계획 정리나 회고에 시간을 쓸 수 있습니다.\n이번 달 거래 0건으로 비교적 안정적인 기록 흐름입니다.\n완료율 0%로 열린 항목 정리가 더 필요합니다.")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 enum Priority {

@@ -1,55 +1,93 @@
-import Link from "next/link";
+import Image from "next/image";
 
 import { LogoutButton } from "@/features/auth/components/logout-button";
-import { NAV_ITEMS } from "@/lib/constants";
+import { SidebarSummary } from "@/features/dashboard/components/sidebar-summary";
+import { getDashboardSummary } from "@/features/dashboard/queries/get-dashboard-summary";
+import { SidebarNav } from "@/components/layout/sidebar-nav";
+import { SettingsDialog } from "@/features/settings/components/settings-dialog";
+import { SettingsPanel } from "@/features/settings/components/settings-panel";
+import { getAppSettings } from "@/features/settings/services/settings-service";
 
-export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) {
+export async function AppShell({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  const settings = await getAppSettings();
+  const summary = await getDashboardSummary();
+  const brandInitial = settings.brandName.trim().charAt(0) || "₩";
+
   return (
-    <div className="page-shell">
-      <div className="page-container grid gap-6 lg:grid-cols-[270px_minmax(0,1fr)]">
-        <aside className="glass-panel h-fit rounded-[2rem] p-5 lg:sticky lg:top-6">
-          <div className="space-y-5">
-            <div className="rounded-[1.5rem] bg-[linear-gradient(135deg,#214f39,#103120)] p-5 text-[#f8f2e6]">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/70">
-                Finance Command
-              </p>
-              <h1 className="mt-3 text-2xl font-bold">Project 1st</h1>
-              <p className="mt-2 text-sm leading-6 text-white/74">
-                할 일과 투자 판단을 같은 기록 체계로 관리합니다.
-              </p>
-            </div>
-
-            <nav className="space-y-2">
-              {NAV_ITEMS.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="block rounded-2xl border border-[var(--border)] bg-white/65 px-4 py-3 text-sm font-medium transition hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
+    <div className="page-shell admin-shell">
+      <div className="page-container grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+        <aside className="admin-sidebar h-fit rounded-[22px] p-5 lg:sticky lg:top-0 lg:h-screen lg:rounded-none lg:border-r lg:border-[var(--border)]">
+          <div className="flex h-full flex-col gap-6">
+            <SettingsDialog
+              trigger={
+                <button
+                  type="button"
+                  className="flex w-full flex-col items-center rounded-[24px] border border-[var(--border)] bg-white/3 px-4 py-6 text-center transition hover:bg-white/5"
                 >
-                  <span className="block">{item.label}</span>
-                  <span className="mt-1 block text-xs text-[var(--muted)]">
-                    {item.description}
-                  </span>
-                </Link>
-              ))}
-            </nav>
+                  {settings.brandImageUrl ? (
+                    <div className="overflow-hidden rounded-full shadow-[0_14px_40px_rgba(0,0,0,.28)]">
+                      <Image
+                        src={settings.brandImageUrl}
+                        alt={`${settings.brandName} 로고`}
+                        className="h-14 w-14 rounded-full object-cover"
+                        width={56}
+                        height={56}
+                      />
+                    </div>
+                  ) : (
+                    <div className="grid h-14 w-14 place-items-center rounded-full bg-[linear-gradient(135deg,#6ea8fe,#7cf2c9)] text-xl font-extrabold text-[#08111f] shadow-[0_14px_40px_rgba(0,0,0,.28)]">
+                      {brandInitial}
+                    </div>
+                  )}
+                  <div className="mt-4">
+                    <h1 className="text-xl font-semibold leading-tight">
+                      {settings.brandName}
+                    </h1>
+                    <p className="mt-1 text-sm text-[var(--muted)]">
+                      {settings.brandSubtitle}
+                    </p>
+                  </div>
+                </button>
+              }
+            >
+              <SettingsPanel settings={settings} mode="brand" />
+            </SettingsDialog>
 
-            <div className="rounded-[1.5rem] border border-dashed border-[var(--border)] p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
-                Rules
+            <div>
+              <p className="px-3 text-xs uppercase tracking-[0.08em] text-[var(--muted)]">
+                Main
               </p>
-              <ul className="mt-3 space-y-2 text-sm text-[var(--muted)]">
-                <li>Timezone: Asia/Seoul</li>
-                <li>Currency: KRW</li>
-                <li>Delete policy: hard delete</li>
-              </ul>
+              <div className="mt-3">
+                <SidebarNav />
+              </div>
             </div>
 
-            <LogoutButton />
+            <SettingsDialog
+              trigger={
+                <button
+                  type="button"
+                  className="w-full rounded-[18px] border border-[var(--border)] bg-white/3 p-4 text-left transition hover:bg-white/5"
+                >
+                  <h4 className="text-sm font-semibold text-white/90">이번 달 원칙</h4>
+                  <p className="mt-2 line-clamp-4 text-sm leading-6 text-[var(--muted)]">
+                    {settings.monthlyPrinciple}
+                  </p>
+                </button>
+              }
+            >
+              <SettingsPanel settings={settings} mode="principle" />
+            </SettingsDialog>
+
+            <div className="mt-auto space-y-3 pt-2">
+              <SidebarSummary summary={summary} />
+              <LogoutButton />
+            </div>
           </div>
         </aside>
 
-        <main className="space-y-6">{children}</main>
+        <main className="space-y-6 p-6">{children}</main>
       </div>
     </div>
   );

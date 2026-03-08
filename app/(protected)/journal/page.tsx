@@ -1,8 +1,12 @@
-import { Banner } from "@/components/ui/banner";
+import { StatusToast } from "@/components/ui/status-toast";
+import { BuySellStatsDialog } from "@/features/journal/components/buy-sell-stats-dialog";
+import { JournalCalendar } from "@/features/journal/components/journal-calendar";
 import { JournalForm } from "@/features/journal/components/journal-form";
 import { JournalList } from "@/features/journal/components/journal-list";
+import { getInvestmentItems } from "@/features/investment-items/queries/get-investment-items";
 import { getJournalEntries } from "@/features/journal/queries/get-journal-entries";
 import { getStatusMessage } from "@/lib/constants";
+import { formatDateInput, formatDisplayDate, formatWon } from "@/lib/utils";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -13,8 +17,63 @@ export default async function JournalPage(props: {
   const statusParam = Array.isArray(searchParams.status)
     ? searchParams.status[0]
     : searchParams.status;
+  const selectedMonth = Array.isArray(searchParams.month)
+    ? searchParams.month[0]
+    : searchParams.month;
   const banner = getStatusMessage(statusParam);
-  const entries = await getJournalEntries();
+  const [entries, itemOptions] = await Promise.all([
+    getJournalEntries(),
+    getInvestmentItems({ activeOnly: true }),
+  ]);
+  const currentMonth = selectedMonth ?? formatDateInput(new Date()).slice(0, 7);
+  const selectedYear = Number(currentMonth.slice(0, 4));
+  const monthlyEntries = entries.filter(
+    (entry) => formatDateInput(entry.tradeDate).slice(0, 7) === currentMonth,
+  );
+  const buyCount = monthlyEntries.filter((entry) => entry.action === "buy").length;
+  const sellCount = monthlyEntries.length - buyCount;
+  const monthlyBuyAmount = monthlyEntries
+    .filter((entry) => entry.action === "buy")
+    .reduce((total, entry) => total + Number(entry.quantity) * Number(entry.price), 0);
+  const monthlySellAmount = monthlyEntries
+    .filter((entry) => entry.action === "sell")
+    .reduce((total, entry) => total + Number(entry.quantity) * Number(entry.price), 0);
+  const monthlyTurnover = monthlyEntries.reduce((total, entry) => {
+    return total + Number(entry.quantity) * Number(entry.price);
+  }, 0);
+  const lastTradeDate = entries[0]?.tradeDate ?? null;
+  const availableYears = Array.from(
+    new Set([
+      selectedYear,
+      ...entries.map((entry) => Number(formatDateInput(entry.tradeDate).slice(0, 4))),
+    ]),
+  ).sort((left, right) => right - left);
+  const seriesByYear = availableYears.map((year) => ({
+    year,
+    months: Array.from({ length: 12 }, (_, index) => {
+      const key = `${year}-${String(index + 1).padStart(2, "0")}`;
+      const bucket = entries.filter(
+        (entry) => formatDateInput(entry.tradeDate).slice(0, 7) === key,
+      );
+
+      return {
+        key,
+        label: `${index + 1}월`,
+        buy: bucket
+          .filter((entry) => entry.action === "buy")
+          .reduce(
+            (total, entry) => total + Number(entry.quantity) * Number(entry.price),
+            0,
+          ),
+        sell: bucket
+          .filter((entry) => entry.action === "sell")
+          .reduce(
+            (total, entry) => total + Number(entry.quantity) * Number(entry.price),
+            0,
+          ),
+      };
+    }),
+  }));
 
   return (
     <div className="space-y-6">
@@ -28,11 +87,72 @@ export default async function JournalPage(props: {
         </p>
       </div>
 
-      {banner ? <Banner tone={banner.tone}>{banner.message}</Banner> : null}
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="glass-panel rounded-[20px] p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
+            이번 달 기록
+          </p>
+          <p className="mt-3 text-3xl font-semibold tracking-tight">
+            {monthlyEntries.length}
+          </p>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            {currentMonth.replace("-", ".")} 기준 거래 로그 수
+          </p>
+        </div>
 
-      <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-        <JournalForm />
-        <JournalList entries={entries} />
+        <BuySellStatsDialog
+          buyCount={buyCount}
+          sellCount={sellCount}
+          monthlyBuyAmount={monthlyBuyAmount}
+          monthlySellAmount={monthlySellAmount}
+          initialYear={selectedYear}
+          seriesByYear={seriesByYear}
+        />
+
+        <div className="glass-panel rounded-[20px] p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
+            최근 거래일
+          </p>
+          <p className="mt-3 text-2xl font-semibold tracking-tight">
+            {lastTradeDate ? formatDisplayDate(lastTradeDate) : "-"}
+          </p>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            월 누적 거래금액 {formatWon(String(monthlyTurnover))}
+          </p>
+        </div>
+      </div>
+
+      {banner ? <StatusToast tone={banner.tone}>{banner.message}</StatusToast> : null}
+
+      <div className="grid gap-6">
+        <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+          <JournalCalendar
+            activeMonth={selectedMonth}
+            entries={entries.map((entry) => ({
+              id: entry.id,
+              tradeDate: formatDateInput(entry.tradeDate),
+              symbol: entry.itemName ?? entry.symbol,
+              action: entry.action,
+              quantity: entry.quantity,
+              price: entry.price,
+            }))}
+          />
+          <JournalList
+            entries={entries}
+            items={itemOptions.map((item) => ({
+              id: item.id,
+              name: item.name,
+              code: item.code,
+            }))}
+          />
+        </div>
+        <JournalForm
+          items={itemOptions.map((item) => ({
+            id: item.id,
+            name: item.name,
+            code: item.code,
+          }))}
+        />
       </div>
     </div>
   );

@@ -1,49 +1,58 @@
-import { Banner } from "@/components/ui/banner";
-import { SummaryCards } from "@/features/dashboard/components/summary-cards";
-import { UpcomingTodos } from "@/features/dashboard/components/upcoming-todos";
-import { RecentTrades } from "@/features/dashboard/components/recent-trades";
+import { HoldingsList } from "@/features/dashboard/components/holdings-list";
 import { getDashboardSummary } from "@/features/dashboard/queries/get-dashboard-summary";
-import { getStatusMessage } from "@/lib/constants";
 
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
-
-export default async function DashboardPage(props: {
-  searchParams?: SearchParams;
-}) {
-  const searchParams = props.searchParams ? await props.searchParams : {};
-  const statusParam = Array.isArray(searchParams.status)
-    ? searchParams.status[0]
-    : searchParams.status;
-  const banner = getStatusMessage(statusParam);
+export default async function DashboardPage() {
   const summary = await getDashboardSummary();
+  const completionRate =
+    summary.totalTodoCount === 0
+      ? 0
+      : Math.round(
+          ((summary.totalTodoCount - summary.incompleteTodoCount) /
+            summary.totalTodoCount) *
+            100,
+        );
+  const focusMessage =
+    summary.dueTodayCount > 0
+      ? `오늘 마감 ${summary.dueTodayCount}건을 우선 처리하세요.`
+      : "오늘 마감 TODO는 없습니다. 중장기 항목을 정리할 시간입니다.";
 
   return (
     <div className="space-y-6">
-      <section className="flex flex-col gap-3">
-        <p className="status-badge bg-[var(--accent-soft)] text-[var(--accent-strong)]">
-          Seoul / KRW / Personal Vault
-        </p>
-        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              오늘의 재무 루틴
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-              미완료 TODO, 최근 거래 기록, 월간 활동량을 한 화면에서
-              확인합니다.
-            </p>
+      <section className="glass-panel relative overflow-hidden rounded-[22px] p-6 md:p-8">
+        <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top_left,rgba(110,168,254,0.12),transparent_45%),radial-gradient(circle_at_top_right,rgba(124,242,201,0.1),transparent_35%)]" />
+        <div className="relative">
+          <p className="status-badge border border-[rgba(110,168,254,0.22)] bg-[rgba(110,168,254,0.12)] text-[#cfe1ff]">
+            Today
+          </p>
+          <h1 className="mt-4 text-3xl font-bold tracking-tight md:text-4xl">
+            오늘의 재태크
+          </h1>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            <div className="rounded-[16px] border border-[var(--border)] bg-white/3 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">
+                Focus
+              </p>
+              <p className="mt-3 text-lg font-semibold">{focusMessage}</p>
+            </div>
+            <div className="rounded-[16px] border border-[var(--border)] bg-white/3 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">
+                Completion
+              </p>
+              <p className="mt-3 text-3xl font-bold">{completionRate}%</p>
+              <p className="mt-2 text-sm text-[var(--muted)]">완료된 TODO 비중</p>
+            </div>
+            <div className="rounded-[16px] border border-[var(--border)] bg-white/3 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">
+                Activity
+              </p>
+              <p className="mt-3 text-3xl font-bold">{summary.monthlyTradeCount}</p>
+              <p className="mt-2 text-sm text-[var(--muted)]">이번 달 거래 로그</p>
+            </div>
           </div>
         </div>
       </section>
 
-      {banner ? <Banner tone={banner.tone}>{banner.message}</Banner> : null}
-
-      <SummaryCards summary={summary} />
-
-      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-        <UpcomingTodos items={summary.upcomingTodos} />
-        <RecentTrades items={summary.recentTrades} />
-      </div>
+      <HoldingsList items={summary.holdings} />
     </div>
   );
 }

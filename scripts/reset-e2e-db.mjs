@@ -22,3 +22,10 @@ execFileSync("npx", ["prisma", "db", "push", "--skip-generate"], {
     DATABASE_URL: `file:${databasePath}`,
   },
 });
+
+execFileSync("npx", ["prisma", "generate"], {
+  stdio: "inherit",
+  env: {
+    ...process.env,
+  },
+});

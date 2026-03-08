@@ -31,10 +31,11 @@ test("shows newly created todo and journal data on the dashboard", async ({
     review: "분할 매수 계획 유지",
   });
 
-  await page.goto("/");
+  await page.getByRole("link", { name: /대시보드/ }).click();
+  await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("heading", { name: "오늘의 재무 루틴" })).toBeVisible();
-  await expect(page.getByText("다가오는 TODO")).toBeVisible();
-  await expect(page.getByText("최근 투자일지")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "다가오는 TODO" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "최근 투자일지" })).toBeVisible();
 
   const todoCard = page.locator("article").filter({ hasText: todoTitle }).first();
   await expect(todoCard).toBeVisible();

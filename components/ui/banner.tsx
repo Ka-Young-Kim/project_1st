@@ -1,9 +1,11 @@
 import { cx } from "@/lib/utils";
 
 const toneStyles = {
-  success: "border-emerald-200 bg-emerald-50 text-emerald-800",
-  error: "border-rose-200 bg-rose-50 text-rose-800",
-  info: "border-amber-200 bg-amber-50 text-amber-800",
+  success:
+    "border-[rgba(124,242,201,0.18)] bg-[rgba(124,242,201,0.08)] text-[#bdf6e4]",
+  error:
+    "border-[rgba(255,125,125,0.2)] bg-[rgba(255,125,125,0.08)] text-[#ffc3c3]",
+  info: "border-[rgba(255,203,107,0.18)] bg-[rgba(255,203,107,0.08)] text-[#ffe0a3]",
 } as const;
 
 export function Banner({
@@ -16,7 +18,7 @@ export function Banner({
   return (
     <div
       className={cx(
-        "rounded-2xl border px-4 py-3 text-sm font-medium",
+        "inline-flex max-w-fit items-center rounded-full border px-3 py-2 text-sm font-medium shadow-[0_10px_30px_rgba(0,0,0,.12)] backdrop-blur-sm",
         toneStyles[tone],
       )}
     >
