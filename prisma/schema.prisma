@@ -41,6 +41,9 @@ model InvestmentItem {
   portfolio    Portfolio?      @relation(fields: [portfolioId], references: [id], onDelete: SetNull)
   name         String
   code         String
+  quoteSymbol  String?
+  exchange     String?
+  currency     String?
   category     String?
   industry     String?
   notes        String?

@@ -3,7 +3,10 @@
 import { redirect } from "next/navigation";
 
 import { investmentItemUpdateSchema } from "@/features/investment-items/schemas/investment-item";
-import { updateInvestmentItem } from "@/features/investment-items/services/investment-item-service";
+import {
+  DuplicateInvestmentItemError,
+  updateInvestmentItem,
+} from "@/features/investment-items/services/investment-item-service";
 import { logger } from "@/lib/logger";
 
 export async function updateInvestmentItemAction(formData: FormData) {
@@ -13,10 +16,12 @@ export async function updateInvestmentItemAction(formData: FormData) {
     portfolioId,
     name: formData.get("name"),
     code: formData.get("code"),
+    quoteSymbol: getOptionalFormValue(formData, "quoteSymbol"),
+    exchange: getOptionalFormValue(formData, "exchange"),
+    currency: getOptionalFormValue(formData, "currency"),
     category: formData.get("category"),
     industry: formData.get("industry"),
-    notes: formData.get("notes"),
-    active: formData.get("active") === "on",
+    active: formData.get("active") !== "off",
   });
 
   if (!parsed.success) {
@@ -24,6 +29,23 @@ export async function updateInvestmentItemAction(formData: FormData) {
     redirect(`/items?status=item-invalid${portfolioId ? `&portfolio=${portfolioId}` : ""}`);
   }
 
-  await updateInvestmentItem(parsed.data);
+  try {
+    await updateInvestmentItem(parsed.data);
+  } catch (error) {
+    if (error instanceof DuplicateInvestmentItemError) {
+      const status =
+        error.field === "code" ? "item-duplicate-code" : "item-duplicate-name";
+      redirect(`/items?status=${status}${portfolioId ? `&portfolio=${portfolioId}` : ""}`);
+    }
+
+    throw error;
+  }
+
   redirect(`/items?status=item-updated${portfolioId ? `&portfolio=${portfolioId}` : ""}`);
+}
+
+function getOptionalFormValue(formData: FormData, key: string) {
+  const value = formData.get(key);
+
+  return typeof value === "string" ? value : undefined;
 }

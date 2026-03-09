@@ -94,3 +94,25 @@ cp prisma/dev.db.backup prisma/dev.db
 - `DATABASE_URL`
 - `APP_PASSWORD`
 - `SESSION_SECRET`
+- `MARKET_DATA_PROVIDER`
+- `MARKET_DATA_CACHE_SECONDS`
+- `TWELVE_DATA_API_KEY`
+
+### 실시간 시세 연동
+
+실시간 시세는 기본적으로 네이버 금융 HTML 스크래핑을 먼저 시도합니다. 네이버 조회가 실패하고 `TWELVE_DATA_API_KEY`가 있으면 Twelve Data로 재시도합니다. 둘 다 실패하면 대시보드 현재가는 마지막 거래가를 사용합니다.
+
+```bash
+MARKET_DATA_CACHE_SECONDS="30"
+TWELVE_DATA_API_KEY=""
+```
+
+투자 항목에 아래 값을 함께 저장하면 대시보드 보유 항목에서 실시간 가격을 우선 사용합니다.
+
+- `code`: 내부 관리 코드
+- `quoteSymbol`: 외부 시세 조회 심볼
+- `exchange`: 거래소 코드 예: `KRX`, `NASDAQ`
+- `currency`: 통화 코드 예: `KRW`, `USD`
+
+네이버 금융 스크래핑은 현재 6자리 한국 주식 코드 기준으로 동작합니다. 예: `005930`
+해당 형식이 아니거나 네이버 조회가 실패하면 Twelve Data API 키가 있을 때만 대체 조회합니다.

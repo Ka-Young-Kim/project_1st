@@ -90,6 +90,37 @@ textarea {
   backdrop-filter: blur(10px);
 }
 
+.admin-shell,
+.admin-shell * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(143, 176, 236, 0.55) transparent;
+}
+
+.admin-shell ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.admin-shell ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-shell ::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(143, 176, 236, 0.72), rgba(84, 116, 182, 0.78));
+  background-clip: padding-box;
+}
+
+.admin-shell ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(173, 198, 245, 0.84), rgba(100, 134, 206, 0.88));
+  background-clip: padding-box;
+}
+
+.admin-shell ::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 .status-badge {
   display: inline-flex;
   align-items: center;

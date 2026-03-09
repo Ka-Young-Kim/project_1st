@@ -61,6 +61,14 @@ const STATUS_MESSAGES = {
     tone: "error",
     message: "투자 항목 입력값이 올바르지 않습니다.",
   },
+  "item-duplicate-code": {
+    tone: "error",
+    message: "같은 포트폴리오에 이미 등록된 코드입니다.",
+  },
+  "item-duplicate-name": {
+    tone: "error",
+    message: "같은 포트폴리오에 이미 등록된 항목명입니다.",
+  },
   "item-linked": {
     tone: "error",
     message: "연결된 투자일지가 있는 항목은 삭제할 수 없습니다.",

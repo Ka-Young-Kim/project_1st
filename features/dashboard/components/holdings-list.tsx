@@ -1,12 +1,16 @@
-import { cx, formatWon } from "@/lib/utils";
+import { cx, formatDisplayDate, formatMoney } from "@/lib/utils";
 import { HoldingDetailDialog } from "@/features/dashboard/components/holding-detail-dialog";
 
 type HoldingItem = {
-  symbol: string;
+  code: string;
+  name: string;
   averagePrice: string;
   currentPrice: string;
   quantity: string;
   profitRate: string;
+  currency: string;
+  priceSource: "last-trade" | "live";
+  priceUpdatedAt: string | null;
   entries: Array<{
     id: string;
     tradeDate: string;
@@ -59,20 +63,27 @@ export function HoldingsList({ items }: Readonly<HoldingsListProps>) {
 
               return (
                 <div
-                  key={item.symbol}
+                  key={item.code}
                   className="grid grid-cols-[1.2fr_.8fr_1fr_1fr_.8fr_32px] items-center gap-3 border-b border-[var(--border)] px-4 py-3 text-sm last:border-b-0"
                 >
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-[var(--foreground)]">
-                      {item.symbol}
+                      {item.name}
+                    </p>
+                    <p className="mt-1 truncate text-[11px] text-[var(--muted)]">
+                      {item.code}
+                      {item.priceSource === "live" ? " · live" : " · last trade"}
+                      {item.priceUpdatedAt
+                        ? ` · ${formatDisplayDate(new Date(item.priceUpdatedAt))}`
+                        : ""}
                     </p>
                   </div>
                   <span className="text-[var(--foreground)]">{item.quantity}</span>
                   <span className="text-[var(--foreground)]">
-                    {formatWon(item.averagePrice)}
+                    {formatMoney(item.averagePrice, item.currency)}
                   </span>
                   <span className="text-[var(--foreground)]">
-                    {formatWon(item.currentPrice)}
+                    {formatMoney(item.currentPrice, item.currency)}
                   </span>
                   <span
                     className={cx(
@@ -88,7 +99,8 @@ export function HoldingsList({ items }: Readonly<HoldingsListProps>) {
                   </span>
                   <div className="flex justify-end">
                     <HoldingDetailDialog
-                      symbol={item.symbol}
+                      symbol={item.name}
+                      currency={item.currency}
                       entries={item.entries}
                     />
                   </div>

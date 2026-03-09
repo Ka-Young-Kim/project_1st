@@ -2,7 +2,7 @@
 
 import { SettingsDialog } from "@/features/settings/components/settings-dialog";
 import { Badge } from "@/components/ui/badge";
-import { formatDisplayDate, formatWon } from "@/lib/utils";
+import { formatDisplayDate, formatMoney } from "@/lib/utils";
 
 type HoldingEntry = {
   id: string;
@@ -16,11 +16,13 @@ type HoldingEntry = {
 
 type HoldingDetailDialogProps = {
   symbol: string;
+  currency: string;
   entries: HoldingEntry[];
 };
 
 export function HoldingDetailDialog({
   symbol,
+  currency,
   entries,
 }: Readonly<HoldingDetailDialogProps>) {
   return (
@@ -66,7 +68,7 @@ export function HoldingDetailDialog({
                       </p>
                       <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[#93a4c7]">
                         <span>{entry.quantity}주</span>
-                        <span>{formatWon(entry.price)}</span>
+                        <span>{formatMoney(entry.price, currency)}</span>
                       </div>
                     </div>
                     <Badge tone={entry.action} compact>

@@ -23,8 +23,8 @@ export async function AppShell({
   return (
     <div className="page-shell admin-shell">
       <div className="page-container grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-        <aside className="admin-sidebar h-fit rounded-[22px] p-5 lg:sticky lg:top-0 lg:h-screen lg:rounded-none lg:border-r lg:border-[var(--border)]">
-          <div className="flex h-full flex-col gap-6">
+        <aside className="admin-sidebar h-fit rounded-[22px] p-5 lg:sticky lg:top-6 lg:h-[calc(100vh-48px)] lg:overflow-y-auto lg:rounded-[22px] lg:border lg:border-[var(--border)]">
+          <div className="flex min-h-full flex-col gap-6">
             <SettingsDialog
               trigger={
                 <button

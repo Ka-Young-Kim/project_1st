@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getLatestQuotes } from "@/lib/market-data/quote-service";
 import { getCurrentMonthRangeInSeoul, getTodayRangeInSeoul } from "@/lib/utils";
 
 export async function getDashboardSummary(portfolioId?: string) {
@@ -60,12 +61,15 @@ export async function getDashboardSummary(portfolioId?: string) {
     string,
     {
       id: string;
-      symbol: string;
+      code: string;
       name: string;
       quantity: number;
       costBasis: number;
       averagePrice: number;
       currentPrice: number;
+      currency: string;
+      priceSource: "last-trade" | "live";
+      priceUpdatedAt: string | null;
       updatedAt: number;
       entries: Array<{
         id: string;
@@ -86,12 +90,15 @@ export async function getDashboardSummary(portfolioId?: string) {
     const existing =
       holdingsMap.get(key) ?? {
         id: key,
-        symbol: entry.symbol,
+        code: entry.investmentItem?.code ?? entry.symbol,
         name: entry.investmentItem?.name ?? entry.symbol,
         quantity: 0,
         costBasis: 0,
         averagePrice: 0,
         currentPrice: price,
+        currency: entry.investmentItem?.currency ?? "KRW",
+        priceSource: "last-trade" as const,
+        priceUpdatedAt: entry.tradeDate.toISOString(),
         updatedAt: entry.tradeDate.getTime(),
         entries: [],
       };
@@ -126,21 +133,42 @@ export async function getDashboardSummary(portfolioId?: string) {
     holdingsMap.set(key, existing);
   });
 
+  const quoteByCode = await getLatestQuotes(
+    Array.from(holdingsMap.values())
+      .filter((item) => item.quantity > 0)
+      .map((item) => ({
+        code: item.code,
+        quoteSymbol:
+          allTrades.find((entry) => (entry.investmentItemId ?? entry.symbol) === item.id)
+            ?.investmentItem?.quoteSymbol ?? item.code,
+        exchange:
+          allTrades.find((entry) => (entry.investmentItemId ?? entry.symbol) === item.id)
+            ?.investmentItem?.exchange ?? null,
+        currency: item.currency,
+      })),
+  );
+
   const holdings = Array.from(holdingsMap.values())
     .filter((item) => item.quantity > 0)
     .sort((left, right) => right.updatedAt - left.updatedAt)
     .map((item) => {
+      const liveQuote = quoteByCode.get(item.code);
+      const currentPrice = liveQuote?.price ?? item.currentPrice;
       const profitRate =
         item.averagePrice > 0
-          ? ((item.currentPrice - item.averagePrice) / item.averagePrice) * 100
+          ? ((currentPrice - item.averagePrice) / item.averagePrice) * 100
           : 0;
 
       return {
-        symbol: item.name,
+        code: item.code,
+        name: item.name,
         averagePrice: item.averagePrice.toFixed(2).replace(/\.?0+$/, ""),
-        currentPrice: item.currentPrice.toFixed(2).replace(/\.?0+$/, ""),
+        currentPrice: currentPrice.toFixed(2).replace(/\.?0+$/, ""),
         quantity: item.quantity.toFixed(2).replace(/\.?0+$/, ""),
         profitRate: profitRate.toFixed(2).replace(/\.?0+$/, ""),
+        currency: liveQuote?.currency ?? item.currency,
+        priceSource: liveQuote?.source ?? item.priceSource,
+        priceUpdatedAt: liveQuote?.asOf ?? item.priceUpdatedAt,
         entries: item.entries
           .sort(
             (left, right) =>
