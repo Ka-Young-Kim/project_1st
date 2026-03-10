@@ -45,6 +45,78 @@ function ProfitTone({
   );
 }
 
+function AccountDetailTable({
+  account,
+}: Readonly<{
+  account: PortfolioManagementData["accounts"][number];
+}>) {
+  const hasCash = account.cashTrackingEnabled && account.cashBalance > 0;
+  const hasRows = account.items.length > 0 || hasCash;
+
+  if (!hasRows) {
+    return null;
+  }
+
+  return (
+    <div className="mt-4 overflow-hidden rounded-[1rem] border border-white/8 bg-black/15">
+      <div className="flex items-center justify-between border-b border-white/8 px-4 py-3">
+        <p className="text-sm font-semibold text-[#dce7ff]">계좌별 상세</p>
+        <span className="text-xs text-[#93a4c7]">
+          보유 종목 {account.items.length}개
+        </span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-sm">
+          <thead className="bg-black/20 text-[#9cb0d8]">
+            <tr>
+              <th className="px-3 py-2.5 text-left font-semibold">종목명</th>
+              <th className="px-3 py-2.5 text-left font-semibold">자산군</th>
+              <th className="px-3 py-2.5 text-right font-semibold">수량</th>
+              <th className="px-3 py-2.5 text-right font-semibold">투자금</th>
+              <th className="px-3 py-2.5 text-right font-semibold">평가금</th>
+              <th className="px-3 py-2.5 text-right font-semibold">수익률</th>
+            </tr>
+          </thead>
+          <tbody>
+            {account.items.map((item) => (
+              <tr key={`${account.id}-${item.code}`} className="border-t border-white/8">
+                <td className="px-3 py-3">
+                  <div>
+                    <p className="font-medium text-white">{item.name}</p>
+                    <p className="mt-1 text-xs text-[#93a4c7]">{item.code}</p>
+                  </div>
+                </td>
+                <td className="px-3 py-3 text-[#cfe1ff]">{item.groupName}</td>
+                <td className="px-3 py-3 text-right">{item.quantity}</td>
+                <td className="px-3 py-3 text-right">{formatWon(String(item.investedAmount))}</td>
+                <td className="px-3 py-3 text-right">{formatWon(String(item.marketValue))}</td>
+                <td className="px-3 py-3 text-right">
+                  <ProfitTone value={item.profitRate} />
+                </td>
+              </tr>
+            ))}
+            {hasCash ? (
+              <tr className="border-t border-white/8 bg-white/[0.03]">
+                <td className="px-3 py-3">
+                  <div>
+                    <p className="font-medium text-white">현금</p>
+                    <p className="mt-1 text-xs text-[#93a4c7]">Cash balance</p>
+                  </div>
+                </td>
+                <td className="px-3 py-3 text-[#cfe1ff]">현금</td>
+                <td className="px-3 py-3 text-right">-</td>
+                <td className="px-3 py-3 text-right">{formatWon(String(account.cashBalance))}</td>
+                <td className="px-3 py-3 text-right">{formatWon(String(account.cashBalance))}</td>
+                <td className="px-3 py-3 text-right">0%</td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 export function PortfolioManagementBoard({
   data,
 }: Readonly<{
@@ -213,6 +285,8 @@ export function PortfolioManagementBoard({
                     <MetricItem label="투자금" value={formatWon(String(account.investedAmount))} />
                     <MetricItem label="현재비중" value={formatPercent(account.currentWeight)} />
                   </div>
+
+                  <AccountDetailTable account={account} />
                 </article>
               ))
             )}

@@ -427,16 +427,29 @@ export async function getPortfolioManagementData(portfolioId: string) {
           resolvedCurrency,
           usdToKrwRate,
         );
+        const accountInvestedAmount = round2(
+          toKrw(bucket.costBasis, resolvedCurrency, usdToKrwRate),
+        );
+        const accountProfitAmount = round2(accountMarketValue - accountInvestedAmount);
+        const accountProfitRate =
+          accountInvestedAmount > 0
+            ? (accountProfitAmount / accountInvestedAmount) * 100
+            : 0;
+        const accountAveragePrice =
+          bucket.quantity > 0 ? bucket.costBasis / bucket.quantity : 0;
 
         return {
           id: bucket.accountId ?? "__unassigned__",
           name: account?.name ?? "미지정 계좌",
           displayId: account?.displayId ?? "",
           quantity: round2(bucket.quantity),
-          investedAmount: round2(
-            toKrw(bucket.costBasis, resolvedCurrency, usdToKrwRate),
-          ),
+          averagePrice: round2(accountAveragePrice),
+          currentPrice: round2(currentPrice),
+          currency: resolvedCurrency,
+          investedAmount: accountInvestedAmount,
           marketValue: round2(accountMarketValue),
+          profitAmount: accountProfitAmount,
+          profitRate: round2(accountProfitRate),
         };
       });
 
@@ -559,6 +572,7 @@ export async function getPortfolioManagementData(portfolioId: string) {
             ...bucket,
             code: item.code,
             name: item.name,
+            groupName: item.groupName,
           })),
       );
       const investedAmount =
@@ -588,6 +602,7 @@ export async function getPortfolioManagementData(portfolioId: string) {
             ...bucket,
             code: item.code,
             name: item.name,
+            groupName: item.groupName,
           })),
       );
 
