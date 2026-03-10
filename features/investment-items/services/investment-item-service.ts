@@ -110,6 +110,10 @@ function inferCurrency(code: string, exchange: string | null) {
     return "KRW";
   }
 
+  if (/^[A-Z]+$/.test(code)) {
+    return "USD";
+  }
+
   return null;
 }
 

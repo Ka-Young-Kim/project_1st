@@ -12,7 +12,7 @@ export type ResolvedQuote = {
   currency: string;
   price: number;
   asOf: string | null;
-  source: "live";
+  source: "live" | "delayed";
 };
 
 type TwelveDataQuoteResponse = {
@@ -29,6 +29,7 @@ type TwelveDataQuoteResponse = {
 
 const TWELVE_DATA_QUOTE_URL = "https://api.twelvedata.com/quote";
 const NAVER_FINANCE_QUOTE_URL = "https://finance.naver.com/item/sise.naver";
+const STOOQ_QUOTE_URL = "https://stooq.com/q/l/";
 
 export async function getLatestQuotes(inputs: QuoteLookupInput[]) {
   const uniqueInputs = new Map<string, QuoteLookupInput>();
@@ -55,12 +56,27 @@ export async function getLatestQuotes(inputs: QuoteLookupInput[]) {
   }, new Map<string, ResolvedQuote>());
 }
 
+export async function getUsdToKrwRate() {
+  const [, , , , , , close] = await getStooqCsvRow("usdkrw");
+  const rate = Number(close);
+
+  if (!Number.isFinite(rate)) {
+    throw new Error("USDKRW rate is invalid");
+  }
+
+  return rate;
+}
+
 async function getQuoteWithFallback(input: QuoteLookupInput) {
   try {
     return await getNaverFinanceQuote(input);
-  } catch (error) {
-    if (!env.TWELVE_DATA_API_KEY) {
-      throw error;
+  } catch {
+    try {
+      return await getStooqQuote(input);
+    } catch (error) {
+      if (!env.TWELVE_DATA_API_KEY) {
+        throw error;
+      }
     }
   }
 
@@ -154,11 +170,88 @@ async function getNaverFinanceQuote(input: QuoteLookupInput) {
   };
 }
 
+async function getStooqQuote(input: QuoteLookupInput) {
+  const symbol = resolveStooqSymbol(input);
+
+  if (!symbol) {
+    throw new Error("Stooq symbol could not be resolved");
+  }
+
+  const [, date, time, , , , close] = await getStooqCsvRow(symbol);
+  const price = Number(close);
+
+  if (!date || date === "N/D" || !Number.isFinite(price)) {
+    throw new Error("Stooq returned an invalid price");
+  }
+
+  const asOf =
+    time && time !== "N/D"
+      ? `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}T${time.slice(0, 2)}:${time.slice(2, 4)}:${time.slice(4, 6)}Z`
+      : `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}T00:00:00Z`;
+
+  return {
+    code: input.code,
+    currency: inferCurrencyFromStooqSymbol(symbol) || input.currency || "USD",
+    price,
+    asOf,
+    source: "delayed" as const,
+  };
+}
+
+async function getStooqCsvRow(symbol: string) {
+  const url = new URL(STOOQ_QUOTE_URL);
+  url.searchParams.set("s", symbol);
+  url.searchParams.set("i", "d");
+
+  const response = await fetch(url, {
+    headers: {
+      Accept: "text/plain,text/csv",
+      "User-Agent":
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    },
+    next: {
+      revalidate: env.MARKET_DATA_CACHE_SECONDS,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Stooq request failed with ${response.status}`);
+  }
+
+  return (await response.text()).trim().split(",");
+}
+
 function resolveNaverFinanceCode(input: QuoteLookupInput) {
   const candidate = (input.quoteSymbol || input.code).trim();
 
   if (/^\d{6}$/.test(candidate)) {
     return candidate;
+  }
+
+  return null;
+}
+
+function resolveStooqSymbol(input: QuoteLookupInput) {
+  const candidate = (input.quoteSymbol || input.code).trim().toLowerCase();
+
+  if (!candidate) {
+    return null;
+  }
+
+  if (candidate.includes(".")) {
+    return candidate;
+  }
+
+  if (/^[a-z]+$/.test(candidate)) {
+    return `${candidate}.us`;
+  }
+
+  return null;
+}
+
+function inferCurrencyFromStooqSymbol(symbol: string) {
+  if (symbol.endsWith(".us")) {
+    return "USD";
   }
 
   return null;

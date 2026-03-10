@@ -4,8 +4,8 @@ type TradeActionToggleProps = {
 };
 
 const ACTIONS = [
-  { value: "buy", label: "Buy", icon: "B", tone: "peer-checked:border-emerald-300/40 peer-checked:bg-emerald-400/12 peer-checked:text-emerald-100" },
-  { value: "sell", label: "Sell", icon: "S", tone: "peer-checked:border-sky-300/40 peer-checked:bg-sky-400/12 peer-checked:text-sky-100" },
+  { value: "buy", label: "매수", icon: "B", tone: "peer-checked:border-emerald-300/40 peer-checked:bg-emerald-400/12 peer-checked:text-emerald-100" },
+  { value: "sell", label: "매도", icon: "S", tone: "peer-checked:border-sky-300/40 peer-checked:bg-sky-400/12 peer-checked:text-sky-100" },
 ] as const;
 
 export function TradeActionToggle({

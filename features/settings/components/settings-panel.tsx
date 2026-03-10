@@ -28,7 +28,7 @@ export function SettingsPanel({
   const title = isBrandMode
     ? "사용자 설정"
     : isPrincipleMode
-      ? "이번 달 원칙"
+      ? "오늘의 원칙"
       : "대시보드 인사이트";
   const description = isBrandMode
     ? "이름, 한 줄 소개, 프로필 이미지 경로를 수정할 수 있습니다."
@@ -122,7 +122,7 @@ export function SettingsPanel({
               value={settings.dashboardInsights}
             />
             <label className="space-y-2">
-              <span className="text-sm font-medium">이번 달 원칙</span>
+              <span className="text-sm font-medium">오늘의 원칙</span>
               <Textarea
                 name="monthlyPrinciple"
                 defaultValue={settings.monthlyPrinciple}

@@ -16,7 +16,7 @@ export const appSettingsSchema = z.object({
   monthlyPrinciple: z
     .string()
     .trim()
-    .min(1, "이번 달 원칙을 입력하세요.")
+    .min(1, "오늘의 원칙을 입력하세요.")
     .max(500),
   dashboardInsights: z
     .string()

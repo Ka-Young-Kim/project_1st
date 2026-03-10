@@ -104,8 +104,8 @@ export function InvestmentItemList({
               title="등록된 투자 항목이 없습니다"
               description={
                 portfolioName
-                  ? `${portfolioName} 포트폴리오에 첫 항목을 추가하면 투자일지와 대시보드에서 함께 사용합니다.`
-                  : "아래에서 첫 항목을 추가하면 투자일지와 대시보드에서 함께 사용합니다."
+                  ? `${portfolioName} 포트폴리오에서 관리할 첫 항목을 추가하면 투자일지와 대시보드에서 함께 사용합니다.`
+                  : "공통으로 사용할 첫 항목을 추가하면 투자일지와 대시보드에서 함께 사용합니다."
               }
             />
           </div>

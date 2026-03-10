@@ -2,7 +2,12 @@
 
 import { SettingsDialog } from "@/features/settings/components/settings-dialog";
 import { Badge } from "@/components/ui/badge";
-import { formatDisplayDate, formatMoney } from "@/lib/utils";
+import {
+  formatDisplayDate,
+  formatMoney,
+  formatTradeActionLabel,
+  formatWon,
+} from "@/lib/utils";
 
 type HoldingEntry = {
   id: string;
@@ -17,14 +22,30 @@ type HoldingEntry = {
 type HoldingDetailDialogProps = {
   symbol: string;
   currency: string;
+  usdToKrwRate: number | null;
   entries: HoldingEntry[];
 };
 
 export function HoldingDetailDialog({
   symbol,
   currency,
+  usdToKrwRate,
   entries,
 }: Readonly<HoldingDetailDialogProps>) {
+  function getKrwConversion(value: string) {
+    if (currency !== "USD" || !usdToKrwRate) {
+      return null;
+    }
+
+    const krwValue = Number(value) * usdToKrwRate;
+
+    if (!Number.isFinite(krwValue)) {
+      return null;
+    }
+
+    return formatWon(String(krwValue));
+  }
+
   return (
     <SettingsDialog
       trigger={
@@ -56,35 +77,46 @@ export function HoldingDetailDialog({
             {entries.length === 0 ? (
               <p className="text-sm text-[#93a4c7]">해당 항목의 기록이 없습니다.</p>
             ) : (
-              entries.map((entry) => (
-                <article
-                  key={entry.id}
-                  className="rounded-[16px] border border-white/8 bg-white/4 p-4"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-white">
-                        {formatDisplayDate(new Date(entry.tradeDate))}
-                      </p>
-                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[#93a4c7]">
-                        <span>{entry.quantity}주</span>
-                        <span>{formatMoney(entry.price, currency)}</span>
+              entries.map((entry) => {
+                const priceKrw = getKrwConversion(entry.price);
+
+                return (
+                  <article
+                    key={entry.id}
+                    className="rounded-[16px] border border-white/8 bg-white/4 p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-white">
+                          {formatDisplayDate(new Date(entry.tradeDate))}
+                        </p>
+                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[#93a4c7]">
+                          <span>{entry.quantity}주</span>
+                          <div>
+                            <p>{formatMoney(entry.price, currency)}</p>
+                            {priceKrw ? (
+                              <p className="mt-1 text-[11px] text-white/50">
+                                {priceKrw}
+                              </p>
+                            ) : null}
+                          </div>
+                        </div>
                       </div>
+                      <Badge tone={entry.action} compact>
+                        {formatTradeActionLabel(entry.action)}
+                      </Badge>
                     </div>
-                    <Badge tone={entry.action} compact>
-                      {entry.action}
-                    </Badge>
-                  </div>
-                  <p className="mt-3 text-sm leading-6 text-[#dbe7ff]">
-                    {entry.reason}
-                  </p>
-                  {entry.review ? (
-                    <p className="mt-2 text-sm leading-6 text-white/55">
-                      회고: {entry.review}
+                    <p className="mt-3 text-sm leading-6 text-[#dbe7ff]">
+                      {entry.reason}
                     </p>
-                  ) : null}
-                </article>
-              ))
+                    {entry.review ? (
+                      <p className="mt-2 text-sm leading-6 text-white/55">
+                        회고: {entry.review}
+                      </p>
+                    ) : null}
+                  </article>
+                );
+              })
             )}
           </div>
         </div>

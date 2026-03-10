@@ -25,6 +25,7 @@ export function TodoCalendarMonthPicker({
       "month",
       `${nextYear}-${String(nextMonth).padStart(2, "0")}`,
     );
+    params.delete("date");
     router.push(`${pathname}?${params.toString()}`);
   }
 

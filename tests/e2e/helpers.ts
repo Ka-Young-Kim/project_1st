@@ -63,10 +63,10 @@ export async function createJournal(
 
   await form.getByLabel("거래일").fill(input.tradeDate);
   await form.getByLabel("종목 코드").fill(input.symbol);
-  await form.getByLabel(input.action === "buy" ? "Buy" : "Sell").check();
+  await form.getByLabel(input.action === "buy" ? "매수" : "매도").check();
   await form.getByLabel("수량").fill(input.quantity);
-  await form.getByLabel(/가격 \(KRW\)/).fill(input.price);
-  await form.getByLabel("투자 이유").fill(input.reason);
+  await form.getByLabel("가격").fill(input.price);
+  await form.getByLabel("매매 이유").fill(input.reason);
   await form.getByLabel("회고").fill(input.review);
   await form.getByRole("button", { name: "투자일지 저장" }).click();
 

@@ -7,7 +7,14 @@ import { NAV_ITEMS } from "@/lib/constants";
 import { cx } from "@/lib/utils";
 
 function NavIcon({ href, active }: Readonly<{ href: string; active: boolean }>) {
-  const tone = active ? "#6ea8fe" : "#93a4c7";
+  const tone =
+    href === "/todos"
+      ? active
+        ? "#ffcb6b"
+        : "#d9b766"
+      : active
+        ? "#6ea8fe"
+        : "#93a4c7";
 
   if (href === "/") {
     return (
@@ -64,19 +71,23 @@ export function SidebarNav() {
     <nav className="space-y-1.5">
       {NAV_ITEMS.map((item) => {
         const isActive = pathname === item.href;
+        const isGlobalMenu = item.href === "/todos";
+        const href = isGlobalMenu
+          ? item.href
+          : portfolioId
+            ? `${item.href}?${new URLSearchParams({ portfolio: portfolioId }).toString()}`
+            : item.href;
 
         return (
           <Link
             key={item.href}
-            href={
-              portfolioId
-                ? `${item.href}?${new URLSearchParams({ portfolio: portfolioId }).toString()}`
-                : item.href
-            }
+            href={href}
             className={cx(
               "group flex items-center gap-3 rounded-[1rem] px-3 py-3 transition",
               isActive
-                ? "bg-[rgba(110,168,254,0.12)] text-white"
+                ? isGlobalMenu
+                  ? "bg-[rgba(255,203,107,0.12)] text-white"
+                  : "bg-[rgba(110,168,254,0.12)] text-white"
                 : "text-[#b3bfdc] hover:bg-white/4 hover:text-white",
             )}
           >
@@ -84,7 +95,11 @@ export function SidebarNav() {
               className={cx(
                 "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
                 isActive
-                  ? "bg-[rgba(110,168,254,0.16)]"
+                  ? isGlobalMenu
+                    ? "bg-[rgba(255,203,107,0.16)]"
+                    : "bg-[rgba(110,168,254,0.16)]"
+                  : isGlobalMenu
+                    ? "bg-[rgba(255,203,107,0.08)]"
                   : "bg-transparent",
               )}
             >

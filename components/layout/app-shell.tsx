@@ -75,7 +75,7 @@ export async function AppShell({
                   type="button"
                   className="w-full rounded-[18px] border border-[var(--border)] bg-white/3 p-4 text-left transition hover:bg-white/5"
                 >
-                  <h4 className="text-sm font-semibold text-white/90">이번 달 원칙</h4>
+                  <h4 className="text-sm font-semibold text-white/90">오늘의 원칙</h4>
                   <p className="mt-2 line-clamp-4 text-sm leading-6 text-[var(--muted)]">
                     {settings.monthlyPrinciple}
                   </p>

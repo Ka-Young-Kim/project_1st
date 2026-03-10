@@ -20,12 +20,14 @@ type JournalCalendarPreviewItem = {
 type JournalCalendarProps = {
   activeMonth?: string;
   portfolioId?: string;
+  selectedDate?: string;
   entries: JournalCalendarPreviewItem[];
 };
 
 export function JournalCalendar({
   activeMonth,
   portfolioId,
+  selectedDate,
   entries,
 }: Readonly<JournalCalendarProps>) {
   const referenceDate = activeMonth
@@ -55,12 +57,27 @@ export function JournalCalendar({
   }, [entries, monthValue]);
 
   const today = getTodayDateInputInSeoul();
-  const initialDate =
+  const fallbackDate =
     today.startsWith(monthValue)
       ? today
       : Array.from(entryMap.keys()).sort()[0] ?? `${monthValue}-01`;
+  const initialDate =
+    selectedDate && selectedDate.startsWith(monthValue)
+      ? selectedDate
+      : fallbackDate;
   const [previewDate, setPreviewDate] = useState(initialDate);
   const previewItems = entryMap.get(previewDate) ?? [];
+  const baseParams = useMemo(() => {
+    const params = new URLSearchParams();
+
+    if (portfolioId) {
+      params.set("portfolio", portfolioId);
+    }
+
+    params.set("month", monthValue);
+
+    return params;
+  }, [monthValue, portfolioId]);
 
   useEffect(() => {
     setPreviewDate(initialDate);
@@ -77,11 +94,7 @@ export function JournalCalendar({
         </div>
 
         <Link
-          href={
-            portfolioId
-              ? `/journal?${new URLSearchParams({ portfolio: portfolioId }).toString()}`
-              : "/journal"
-          }
+          href={`/journal?${baseParams.toString()}`}
           className="inline-flex h-10 items-center rounded-full border border-[rgba(110,168,254,0.28)] bg-[rgba(110,168,254,0.12)] px-4 text-sm font-semibold text-[#cfe1ff] transition hover:bg-[rgba(110,168,254,0.18)]"
         >
           전체 보기
@@ -106,17 +119,22 @@ export function JournalCalendar({
           const day = index + 1;
           const date = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
           const isPreview = previewDate === date;
+          const isSelected = selectedDate === date;
           const count = entryMap.get(date)?.length ?? 0;
+          const params = new URLSearchParams(baseParams.toString());
+          params.set("date", date);
 
           return (
-            <button
+            <Link
               key={date}
-              type="button"
+              href={`/journal?${params.toString()}`}
               onMouseEnter={() => setPreviewDate(date)}
               onFocus={() => setPreviewDate(date)}
               className={cx(
                 "relative flex h-11 items-center justify-center rounded-[0.95rem] border text-sm font-semibold transition",
-                isPreview
+                isSelected
+                  ? "border-[rgba(110,168,254,0.45)] bg-[rgba(110,168,254,0.18)] text-[var(--foreground)] shadow-[0_0_0_1px_rgba(110,168,254,0.08)]"
+                  : isPreview
                   ? "border-[rgba(110,168,254,0.35)] bg-[rgba(110,168,254,0.14)] text-[var(--foreground)]"
                   : "border-[var(--border)] bg-white/4 text-[var(--muted)] hover:bg-white/8 hover:text-[var(--foreground)]",
               )}
@@ -125,7 +143,7 @@ export function JournalCalendar({
               {count > 0 ? (
                 <span className="absolute bottom-1 right-1 h-1.5 w-1.5 rounded-full bg-[#6ea8fe]" />
               ) : null}
-            </button>
+            </Link>
           );
         })}
       </div>

@@ -1,15 +1,24 @@
 import { prisma } from "@/lib/prisma";
-import { getLatestQuotes } from "@/lib/market-data/quote-service";
+import { getLatestQuotes, getUsdToKrwRate } from "@/lib/market-data/quote-service";
 import { getCurrentMonthRangeInSeoul, getTodayRangeInSeoul } from "@/lib/utils";
 
 export async function getDashboardSummary(portfolioId?: string) {
   const todayRange = getTodayRangeInSeoul();
   const monthRange = getCurrentMonthRangeInSeoul();
+  const monthLabel = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+  })
+    .format(new Date())
+    .replace("-", " / ");
 
   const [
     incompleteTodoCount,
     dueTodayCount,
     monthlyTradeCount,
+    monthlyBuyCount,
+    monthlySellCount,
     totalTodoCount,
     upcomingTodos,
     recentTrades,
@@ -28,6 +37,26 @@ export async function getDashboardSummary(portfolioId?: string) {
     prisma.investmentLog.count({
       where: {
         ...(portfolioId ? { portfolioId } : {}),
+        tradeDate: {
+          gte: monthRange.start,
+          lt: monthRange.end,
+        },
+      },
+    }),
+    prisma.investmentLog.count({
+      where: {
+        ...(portfolioId ? { portfolioId } : {}),
+        action: "buy",
+        tradeDate: {
+          gte: monthRange.start,
+          lt: monthRange.end,
+        },
+      },
+    }),
+    prisma.investmentLog.count({
+      where: {
+        ...(portfolioId ? { portfolioId } : {}),
+        action: "sell",
         tradeDate: {
           gte: monthRange.start,
           lt: monthRange.end,
@@ -68,7 +97,7 @@ export async function getDashboardSummary(portfolioId?: string) {
       averagePrice: number;
       currentPrice: number;
       currency: string;
-      priceSource: "last-trade" | "live";
+      priceSource: "last-trade" | "live" | "delayed";
       priceUpdatedAt: string | null;
       updatedAt: number;
       entries: Array<{
@@ -147,6 +176,15 @@ export async function getDashboardSummary(portfolioId?: string) {
         currency: item.currency,
       })),
   );
+  const needsUsdToKrw = Array.from(holdingsMap.values()).some((item) => {
+    if (item.quantity <= 0) {
+      return false;
+    }
+
+    const resolvedCurrency = quoteByCode.get(item.code)?.currency ?? item.currency;
+    return resolvedCurrency === "USD";
+  });
+  const usdToKrwRate = needsUsdToKrw ? await getUsdToKrwRate().catch(() => null) : null;
 
   const holdings = Array.from(holdingsMap.values())
     .filter((item) => item.quantity > 0)
@@ -167,6 +205,7 @@ export async function getDashboardSummary(portfolioId?: string) {
         quantity: item.quantity.toFixed(2).replace(/\.?0+$/, ""),
         profitRate: profitRate.toFixed(2).replace(/\.?0+$/, ""),
         currency: liveQuote?.currency ?? item.currency,
+        usdToKrwRate,
         priceSource: liveQuote?.source ?? item.priceSource,
         priceUpdatedAt: liveQuote?.asOf ?? item.priceUpdatedAt,
         entries: item.entries
@@ -188,9 +227,12 @@ export async function getDashboardSummary(portfolioId?: string) {
     });
 
   return {
+    monthLabel,
     incompleteTodoCount,
     dueTodayCount,
     monthlyTradeCount,
+    monthlyBuyCount,
+    monthlySellCount,
     totalTodoCount,
     upcomingTodos: upcomingTodos.map((todo) => ({
       id: todo.id,

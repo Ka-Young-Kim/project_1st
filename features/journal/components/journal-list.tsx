@@ -11,7 +11,12 @@ import { deleteJournal } from "@/features/journal/actions/delete-journal";
 import { TradeActionToggle } from "@/features/journal/components/trade-action-toggle";
 import { updateJournal } from "@/features/journal/actions/update-journal";
 import { JournalListItem } from "@/features/journal/types";
-import { formatCurrency, formatDateInput, formatDisplayDate } from "@/lib/utils";
+import {
+  formatCurrency,
+  formatDateInput,
+  formatDisplayDate,
+  formatTradeActionLabel,
+} from "@/lib/utils";
 
 export function JournalList({
   entries,
@@ -35,24 +40,52 @@ export function JournalList({
           />
         ) : (
           entries.map((entry) => (
-            <article
+            <SettingsDialog
               key={entry.id}
-              className="rounded-[1.25rem] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(22,32,58,.96),rgba(20,29,53,.96))] px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,.18)]"
+              trigger={
+                <article className="rounded-[1.25rem] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(22,32,58,.96),rgba(20,29,53,.96))] shadow-[0_10px_30px_rgba(0,0,0,.18)] transition hover:border-[#8fb6ff]/25 hover:bg-[linear-gradient(180deg,rgba(24,35,63,.98),rgba(20,29,53,.98))]">
+                  <div className="cursor-pointer px-4 py-3 text-left">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="whitespace-nowrap text-[1.05rem] font-semibold leading-snug tracking-tight text-white transition hover:text-[#8fb0ec]">
+                              {entry.itemName ?? entry.symbol}
+                            </p>
+
+                            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-[#93a4c7]">
+                              <span className="shrink-0">{formatDisplayDate(entry.tradeDate)}</span>
+                              <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+                                {entry.itemName ? (
+                                  <span className="shrink-0">{entry.symbol}</span>
+                                ) : null}
+                                <span className="shrink-0">{entry.quantity}주</span>
+                                <span className="shrink-0">{formatCurrency(entry.price)}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="shrink-0 pt-0.5">
+                            <Badge tone={entry.action} compact>
+                              {formatTradeActionLabel(entry.action)}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        <div className="mt-2 space-y-2">
+                          <p className="text-sm leading-6 text-[#8fb0ec]">{entry.reason}</p>
+                          {entry.review ? (
+                            <p className="text-sm leading-6 text-white/55">
+                              회고: {entry.review}
+                            </p>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              }
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <SettingsDialog
-                        trigger={
-                          <button
-                            type="button"
-                            className="cursor-pointer text-left text-[1.05rem] font-semibold leading-snug tracking-tight text-white transition hover:text-[#8fb0ec]"
-                          >
-                            {entry.itemName ?? entry.symbol}
-                          </button>
-                        }
-                      >
                         <Card className="rounded-[22px] bg-[linear-gradient(180deg,rgba(20,29,53,.98),rgba(17,26,48,.98))] p-5 text-white shadow-[0_14px_40px_rgba(0,0,0,.28)] sm:p-6">
                           <div>
                             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
@@ -123,7 +156,7 @@ export function JournalList({
                                 />
                               </label>
                               <label className="space-y-2">
-                                <span className="text-sm font-medium">가격 (KRW)</span>
+                                <span className="text-sm font-medium">가격</span>
                                 <Input
                                   name="price"
                                   type="number"
@@ -137,7 +170,7 @@ export function JournalList({
                             </div>
 
                             <label className="space-y-2">
-                              <span className="text-sm font-medium">투자 이유</span>
+                              <span className="text-sm font-medium">매매 이유</span>
                               <Textarea
                                 name="reason"
                                 defaultValue={entry.reason}
@@ -174,34 +207,7 @@ export function JournalList({
                             </ConfirmSubmitButton>
                           </form>
                         </Card>
-                      </SettingsDialog>
-
-                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-[#93a4c7]">
-                        <span>{formatDisplayDate(entry.tradeDate)}</span>
-                        {entry.itemName ? <span>{entry.symbol}</span> : null}
-                        <span>{entry.quantity}주</span>
-                        <span>{formatCurrency(entry.price)}</span>
-                      </div>
-                    </div>
-
-                    <div className="shrink-0 pt-0.5">
-                      <Badge tone={entry.action} compact>
-                        {entry.action}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div className="mt-2 space-y-2">
-                    <p className="text-sm leading-6 text-[#8fb0ec]">{entry.reason}</p>
-                    {entry.review ? (
-                      <p className="text-sm leading-6 text-white/55">
-                        회고: {entry.review}
-                      </p>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            </article>
+            </SettingsDialog>
           ))
         )}
       </div>

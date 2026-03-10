@@ -39,7 +39,7 @@ export function BuySellStatsDialog({
     x: number;
     y: number;
     label: string;
-    kind: "Buy" | "Sell";
+    kind: "매수" | "매도";
     value: number;
   } | null>(null);
   const activeSeries = useMemo(
@@ -109,7 +109,7 @@ export function BuySellStatsDialog({
           className="glass-panel block w-full rounded-[20px] p-4 text-left transition hover:bg-white/6"
         >
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
-            Buy / Sell
+            매수 / 매도
           </p>
           <p className="mt-3 text-3xl font-semibold tracking-tight">
             {buyCount} / {sellCount}
@@ -131,7 +131,7 @@ export function BuySellStatsDialog({
               Monthly Stats
             </p>
             <h3 className="mt-2 text-2xl font-semibold tracking-tight">
-              Buy / Sell 추이
+              매수 / 매도 추이
             </h3>
             <p className="mt-2 text-sm leading-6 text-[#93a4c7]">
               선택한 연도 기준 매수와 매도 거래금액을 월별 꺾은선으로 비교합니다.
@@ -165,11 +165,11 @@ export function BuySellStatsDialog({
           <div className="flex flex-wrap items-center gap-4 text-xs font-semibold uppercase tracking-[0.12em]">
             <span className="inline-flex items-center gap-2 text-emerald-200">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-300" />
-              Buy
+              매수
             </span>
             <span className="inline-flex items-center gap-2 text-sky-200">
               <span className="h-2.5 w-2.5 rounded-full bg-sky-300" />
-              Sell
+              매도
             </span>
           </div>
           <div className="mt-4 overflow-x-auto">
@@ -196,7 +196,7 @@ export function BuySellStatsDialog({
                 viewBox={`0 0 ${chartWidth} ${chartHeight}`}
                 className="min-w-[640px]"
                 role="img"
-                aria-label={`${activeSeries?.year ?? selectedYear}년 Buy Sell line chart`}
+                aria-label={`${activeSeries?.year ?? selectedYear}년 매수 매도 추이 차트`}
                 onMouseLeave={() => setHoveredPoint(null)}
               >
                 {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
@@ -254,7 +254,7 @@ export function BuySellStatsDialog({
                             x,
                             y: buyY,
                             label: item.label,
-                            kind: "Buy",
+                            kind: "매수",
                             value: item.buy,
                           })
                         }
@@ -263,7 +263,7 @@ export function BuySellStatsDialog({
                             x,
                             y: buyY,
                             label: item.label,
-                            kind: "Buy",
+                            kind: "매수",
                             value: item.buy,
                           })
                         }
@@ -279,7 +279,7 @@ export function BuySellStatsDialog({
                             x,
                             y: sellY,
                             label: item.label,
-                            kind: "Sell",
+                            kind: "매도",
                             value: item.sell,
                           })
                         }
@@ -288,7 +288,7 @@ export function BuySellStatsDialog({
                             x,
                             y: sellY,
                             label: item.label,
-                            kind: "Sell",
+                            kind: "매도",
                             value: item.sell,
                           })
                         }
@@ -320,8 +320,8 @@ export function BuySellStatsDialog({
           <div className="mt-4 overflow-hidden rounded-[18px] border border-white/8">
             <div className="grid grid-cols-[90px_1fr_1fr] bg-white/6 px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#93a4c7]">
               <span>월</span>
-              <span>Buy</span>
-              <span>Sell</span>
+              <span>매수</span>
+              <span>매도</span>
             </div>
             <div className="max-h-[16.5rem] divide-y divide-white/8 overflow-y-auto">
               {monthSeries.map((item) => (

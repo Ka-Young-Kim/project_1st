@@ -24,7 +24,7 @@ export default async function PortfoliosPage(props: {
         </p>
         <h1 className="text-3xl font-bold tracking-tight">포트폴리오 관리</h1>
         <p className="text-sm text-[var(--muted)]">
-          투자 항목과 투자일지를 포트폴리오 단위로 나눠 관리합니다.
+          포트폴리오별로 관리되는 항목과 공통 항목을 구분해 관리합니다.
         </p>
       </div>
       {banner ? <StatusToast tone={banner.tone}>{banner.message}</StatusToast> : null}

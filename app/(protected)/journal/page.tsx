@@ -21,6 +21,9 @@ export default async function JournalPage(props: {
   const selectedMonth = Array.isArray(searchParams.month)
     ? searchParams.month[0]
     : searchParams.month;
+  const selectedDate = Array.isArray(searchParams.date)
+    ? searchParams.date[0]
+    : searchParams.date;
   const portfolioId = Array.isArray(searchParams.portfolio)
     ? searchParams.portfolio[0]
     : searchParams.portfolio;
@@ -31,6 +34,9 @@ export default async function JournalPage(props: {
     getInvestmentItems({ activeOnly: true, portfolioId: activePortfolio?.id }),
   ]);
   const currentMonth = selectedMonth ?? formatDateInput(new Date()).slice(0, 7);
+  const visibleEntries = selectedDate
+    ? entries.filter((entry) => formatDateInput(entry.tradeDate) === selectedDate)
+    : entries;
   const selectedYear = Number(currentMonth.slice(0, 4));
   const monthlyEntries = entries.filter(
     (entry) => formatDateInput(entry.tradeDate).slice(0, 7) === currentMonth,
@@ -136,6 +142,7 @@ export default async function JournalPage(props: {
           <JournalCalendar
             activeMonth={selectedMonth}
             portfolioId={activePortfolio?.id}
+            selectedDate={selectedDate}
             entries={entries.map((entry) => ({
               id: entry.id,
               tradeDate: formatDateInput(entry.tradeDate),
@@ -146,7 +153,7 @@ export default async function JournalPage(props: {
             }))}
           />
           <JournalList
-            entries={entries}
+            entries={visibleEntries}
             items={itemOptions.map((item) => ({
               id: item.id,
               name: item.name,

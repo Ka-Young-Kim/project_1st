@@ -8,7 +8,7 @@ export const journalInputSchema = z.object({
   action: z.enum(["buy", "sell"]),
   quantity: decimalInputSchema,
   price: decimalInputSchema,
-  reason: z.string().trim().min(1, "투자 이유를 입력하세요.").max(2000),
+  reason: z.string().trim().min(1, "매매 이유를 입력하세요.").max(2000),
   review: z.string().trim().max(2000).optional().transform((value) => value || ""),
 });
 

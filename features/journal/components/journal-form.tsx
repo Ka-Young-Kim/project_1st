@@ -7,6 +7,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { createJournal } from "@/features/journal/actions/create-journal";
 import { TradeActionToggle } from "@/features/journal/components/trade-action-toggle";
+import { getTodayDateInputInSeoul } from "@/lib/utils";
 
 type JournalFormItemOption = {
   id: string;
@@ -21,6 +22,7 @@ export function JournalForm({
   items: JournalFormItemOption[];
   portfolioId: string;
 }>) {
+  const today = getTodayDateInputInSeoul();
   const fieldClassName =
     "appearance-none border-white/12 !bg-[rgba(255,255,255,0.04)] !text-white placeholder:!text-[#6f83aa] shadow-none [color-scheme:dark] focus:border-[#6ea8fe] focus:ring-[rgba(110,168,254,0.16)]";
   const itemsHref = `/items?${new URLSearchParams({ portfolio: portfolioId }).toString()}`;
@@ -76,7 +78,7 @@ export function JournalForm({
             새 투자일지 추가
           </h2>
           <p className="mt-2 text-sm leading-6 text-[#93a4c7]">
-            거래일과 종목, 수량만 먼저 기록하고 이유와 회고는 필요한 만큼만 남기세요.
+            종목별 투자 일지를 작성해주세요.
           </p>
         </div>
 
@@ -93,6 +95,7 @@ export function JournalForm({
             <Input
               name="tradeDate"
               type="date"
+              defaultValue={today}
               required
               className={`${fieldClassName} py-2`}
             />
@@ -134,7 +137,7 @@ export function JournalForm({
             />
           </label>
           <label className="space-y-1.5">
-            <span className="text-sm font-medium text-white/88">가격 (KRW)</span>
+            <span className="text-sm font-medium text-white/88">가격</span>
             <Input
               name="price"
               type="number"
@@ -147,10 +150,10 @@ export function JournalForm({
         </div>
 
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-white/88">투자 이유</span>
+          <span className="text-sm font-medium text-white/88">매매 이유</span>
           <Textarea
             name="reason"
-            placeholder="왜 이 거래를 했는지 기록하세요"
+            placeholder="왜 이 매매를 했는지 기록하세요"
             required
             className={`${fieldClassName} min-h-24 py-2.5`}
           />

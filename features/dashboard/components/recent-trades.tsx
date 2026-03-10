@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { formatCurrency, formatDisplayDate } from "@/lib/utils";
+import { formatCurrency, formatDisplayDate, formatTradeActionLabel } from "@/lib/utils";
 
 type RecentTrade = {
   id: string;
@@ -49,7 +49,7 @@ export function RecentTrades({ items }: Readonly<{ items: RecentTrade[] }>) {
                     <h3 className="text-lg font-semibold text-[#0f172a]">
                       {item.symbol}
                     </h3>
-                    <Badge tone={item.action}>{item.action}</Badge>
+                    <Badge tone={item.action}>{formatTradeActionLabel(item.action)}</Badge>
                   </div>
                   <p className="mt-2 text-sm text-[#64748b]">
                     {formatDisplayDate(item.tradeDate)} · {item.quantity}주 ·{" "}

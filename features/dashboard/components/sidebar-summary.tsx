@@ -1,17 +1,22 @@
 type SidebarSummaryProps = {
   summary: {
-    incompleteTodoCount: number;
-    dueTodayCount: number;
-    monthlyTradeCount: number;
-    totalTodoCount: number;
+    monthLabel: string;
+    monthlyBuyCount: number;
+    monthlySellCount: number;
   };
 };
 
 const items = (summary: SidebarSummaryProps["summary"]) => [
-  { label: "미완료", value: summary.incompleteTodoCount, tone: "text-white" },
-  { label: "오늘 마감", value: summary.dueTodayCount, tone: "text-[#ffcb6b]" },
-  { label: "이번 달 거래", value: summary.monthlyTradeCount, tone: "text-[#7cf2c9]" },
-  { label: "전체 TODO", value: summary.totalTodoCount, tone: "text-[#cfe1ff]" },
+  {
+    label: "매수",
+    value: summary.monthlyBuyCount,
+    tone: "text-[#cfe1ff]",
+  },
+  {
+    label: "매도",
+    value: summary.monthlySellCount,
+    tone: "text-[#ffcb6b]",
+  },
 ];
 
 export function SidebarSummary({ summary }: Readonly<SidebarSummaryProps>) {
@@ -20,11 +25,14 @@ export function SidebarSummary({ summary }: Readonly<SidebarSummaryProps>) {
       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
         Quick Stats
       </p>
+      <p className="mt-3 text-sm font-semibold text-white/88">{summary.monthLabel}</p>
       <div className="mt-3 grid grid-cols-2 gap-2">
-        {items(summary).map((item) => (
+        {items(summary).map((item, index, array) => (
           <div
             key={item.label}
-            className="rounded-[14px] border border-[var(--border)] bg-black/10 px-3 py-2.5"
+            className={`rounded-[14px] border border-[var(--border)] bg-black/10 px-3 py-2.5 ${
+              array.length % 2 === 1 && index === array.length - 1 ? "col-span-2" : ""
+            }`}
           >
             <p className="text-[11px] font-medium text-[var(--muted)]">
               {item.label}

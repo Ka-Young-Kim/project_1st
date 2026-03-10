@@ -2,6 +2,7 @@ import { StatusToast } from "@/components/ui/status-toast";
 import { TodoCalendar } from "@/features/todos/components/todo-calendar";
 import { TodoForm } from "@/features/todos/components/todo-form";
 import { TodoList } from "@/features/todos/components/todo-list";
+import { TodoStats } from "@/features/todos/components/todo-stats";
 import { getTodos } from "@/features/todos/queries/get-todos";
 import { getStatusMessage } from "@/lib/constants";
 import { formatDateInput } from "@/lib/utils";
@@ -18,6 +19,13 @@ export default async function TodosPage(props: { searchParams?: SearchParams }) 
     : searchParams.month;
   const banner = getStatusMessage(statusParam);
   const todos = await getTodos();
+  const currentMonth = selectedMonth ?? formatDateInput(new Date()).slice(0, 7);
+  const monthLabel = currentMonth.replace("-", " / ");
+  const monthlyTodos = todos.filter(
+    (todo) => todo.dueDate && formatDateInput(todo.dueDate).slice(0, 7) === currentMonth,
+  );
+  const completedTodoCount = monthlyTodos.filter((todo) => todo.completed).length;
+  const remainingTodoCount = monthlyTodos.length - completedTodoCount;
 
   return (
     <div className="space-y-6">
@@ -32,6 +40,14 @@ export default async function TodosPage(props: { searchParams?: SearchParams }) 
       {banner ? <StatusToast tone={banner.tone}>{banner.message}</StatusToast> : null}
 
       <div className="grid gap-6">
+        <TodoStats
+          summary={{
+            monthLabel,
+            registeredTodoCount: monthlyTodos.length,
+            completedTodoCount,
+            remainingTodoCount,
+          }}
+        />
         <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
           <TodoCalendar
             activeMonth={selectedMonth}

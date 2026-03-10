@@ -1,4 +1,4 @@
-import { cx, formatDisplayDate, formatMoney } from "@/lib/utils";
+import { cx, formatDisplayDate, formatMoney, formatWon } from "@/lib/utils";
 import { HoldingDetailDialog } from "@/features/dashboard/components/holding-detail-dialog";
 
 type HoldingItem = {
@@ -9,7 +9,8 @@ type HoldingItem = {
   quantity: string;
   profitRate: string;
   currency: string;
-  priceSource: "last-trade" | "live";
+  usdToKrwRate: number | null;
+  priceSource: "last-trade" | "live" | "delayed";
   priceUpdatedAt: string | null;
   entries: Array<{
     id: string;
@@ -27,15 +28,38 @@ type HoldingsListProps = {
 };
 
 export function HoldingsList({ items }: Readonly<HoldingsListProps>) {
+  const usdToKrwRate = items.find((item) => item.usdToKrwRate)?.usdToKrwRate ?? null;
+
+  function getKrwConversion(value: string, currency: string, usdToKrwRate: number | null) {
+    if (currency !== "USD" || !usdToKrwRate) {
+      return null;
+    }
+
+    const krwValue = Number(value) * usdToKrwRate;
+
+    if (!Number.isFinite(krwValue)) {
+      return null;
+    }
+
+    return formatWon(String(krwValue));
+  }
+
   return (
     <section className="rounded-[18px] border border-[var(--border)] bg-white/3 p-4 md:p-5">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">
-          Holdings
-        </p>
-        <h2 className="mt-2 text-xl font-semibold tracking-tight">
-          보유항목
-        </h2>
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">
+            Holdings
+          </p>
+          <h2 className="mt-2 text-xl font-semibold tracking-tight">
+            보유항목
+          </h2>
+        </div>
+        {usdToKrwRate ? (
+          <p className="text-[11px] font-medium text-[var(--muted)]">
+            1달러 = {formatWon(String(usdToKrwRate))}
+          </p>
+        ) : null}
       </div>
 
       <div className="mt-4 overflow-hidden rounded-[16px] border border-[var(--border)] bg-black/10">
@@ -60,6 +84,16 @@ export function HoldingsList({ items }: Readonly<HoldingsListProps>) {
                 profitValue > 0
                   ? `+${item.profitRate}%`
                   : `${item.profitRate}%`;
+              const averagePriceKrw = getKrwConversion(
+                item.averagePrice,
+                item.currency,
+                item.usdToKrwRate,
+              );
+              const currentPriceKrw = getKrwConversion(
+                item.currentPrice,
+                item.currency,
+                item.usdToKrwRate,
+              );
 
               return (
                 <div
@@ -72,19 +106,33 @@ export function HoldingsList({ items }: Readonly<HoldingsListProps>) {
                     </p>
                     <p className="mt-1 truncate text-[11px] text-[var(--muted)]">
                       {item.code}
-                      {item.priceSource === "live" ? " · live" : " · last trade"}
+                      {item.priceSource === "live"
+                        ? " · live"
+                        : item.priceSource === "delayed"
+                          ? " · delayed"
+                          : " · last trade"}
                       {item.priceUpdatedAt
                         ? ` · ${formatDisplayDate(new Date(item.priceUpdatedAt))}`
                         : ""}
                     </p>
                   </div>
                   <span className="text-[var(--foreground)]">{item.quantity}</span>
-                  <span className="text-[var(--foreground)]">
-                    {formatMoney(item.averagePrice, item.currency)}
-                  </span>
-                  <span className="text-[var(--foreground)]">
-                    {formatMoney(item.currentPrice, item.currency)}
-                  </span>
+                  <div>
+                    <p className="text-[var(--foreground)]">
+                      {formatMoney(item.averagePrice, item.currency)}
+                    </p>
+                    {averagePriceKrw ? (
+                      <p className="mt-1 text-[11px] text-[var(--muted)]">{averagePriceKrw}</p>
+                    ) : null}
+                  </div>
+                  <div>
+                    <p className="text-[var(--foreground)]">
+                      {formatMoney(item.currentPrice, item.currency)}
+                    </p>
+                    {currentPriceKrw ? (
+                      <p className="mt-1 text-[11px] text-[var(--muted)]">{currentPriceKrw}</p>
+                    ) : null}
+                  </div>
                   <span
                     className={cx(
                       "font-semibold",
@@ -101,6 +149,7 @@ export function HoldingsList({ items }: Readonly<HoldingsListProps>) {
                     <HoldingDetailDialog
                       symbol={item.name}
                       currency={item.currency}
+                      usdToKrwRate={item.usdToKrwRate}
                       entries={item.entries}
                     />
                   </div>

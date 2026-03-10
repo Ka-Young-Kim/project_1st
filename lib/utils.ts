@@ -21,6 +21,10 @@ export function formatCurrency(value: string) {
   return formatMoney(value, "KRW");
 }
 
+export function formatTradeActionLabel(action: "buy" | "sell") {
+  return action === "buy" ? "매수" : "매도";
+}
+
 export function formatWon(value: string) {
   const amount = Number(value);
 
