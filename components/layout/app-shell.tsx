@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Suspense } from "react";
 
 import { LogoutButton } from "@/features/auth/components/logout-button";
 import { SidebarSummary } from "@/features/dashboard/components/sidebar-summary";
@@ -65,7 +66,9 @@ export async function AppShell({
                 Main
               </p>
               <div className="mt-3">
-                <SidebarNav />
+                <Suspense fallback={null}>
+                  <SidebarNav />
+                </Suspense>
               </div>
             </div>
 
@@ -96,7 +99,9 @@ export async function AppShell({
 
         <main className="space-y-6 p-6">
           <div className="flex justify-end">
-            <PortfolioSwitcher portfolios={portfolios} compact />
+            <Suspense fallback={null}>
+              <PortfolioSwitcher portfolios={portfolios} compact />
+            </Suspense>
           </div>
           {children}
         </main>

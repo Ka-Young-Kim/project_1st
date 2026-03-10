@@ -7,6 +7,7 @@ const badgeStyles = {
   buy: "bg-emerald-100 text-emerald-800",
   sell: "bg-sky-100 text-sky-800",
   done: "bg-emerald-100 text-emerald-800",
+  info: "bg-amber-100 text-amber-800",
   open: "bg-zinc-100 text-zinc-700",
   overdue: "bg-zinc-200 text-zinc-700",
 } as const;

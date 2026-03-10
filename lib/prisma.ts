@@ -2,6 +2,8 @@ import path from "node:path";
 
 import { PrismaClient } from "@prisma/client";
 
+import { logger } from "@/lib/logger";
+
 declare global {
   var prismaGlobal: PrismaClient | undefined;
 }
@@ -19,13 +21,37 @@ function createPrismaClient() {
   });
 }
 
-function hasAppSettingsModel(client: PrismaClient | undefined) {
-  return Boolean(client && "appSettings" in client);
+function hasRequiredModels(client: PrismaClient | undefined) {
+  return Boolean(
+    client &&
+      "appSettings" in client &&
+      "portfolioAccount" in client &&
+      "portfolioAssetGroup" in client &&
+      "portfolioHolding" in client &&
+      "portfolioSnapshot" in client,
+  );
 }
 
-const prismaClient = hasAppSettingsModel(globalThis.prismaGlobal)
-  ? globalThis.prismaGlobal!
-  : createPrismaClient();
+function getOrCreatePrismaClient(client: PrismaClient | undefined): PrismaClient {
+  if (client && hasRequiredModels(client)) {
+    return client;
+  }
+
+  if (client) {
+    logger.warn("prisma.client.stale_model_cache", {
+      hasAppSettings: "appSettings" in client,
+      hasPortfolioAccount: "portfolioAccount" in client,
+      hasPortfolioAssetGroup: "portfolioAssetGroup" in client,
+      hasPortfolioHolding: "portfolioHolding" in client,
+      hasPortfolioSnapshot: "portfolioSnapshot" in client,
+    });
+    void client.$disconnect().catch(() => undefined);
+  }
+
+  return createPrismaClient();
+}
+
+const prismaClient = getOrCreatePrismaClient(globalThis.prismaGlobal);
 
 export const prisma: PrismaClient = prismaClient;
 

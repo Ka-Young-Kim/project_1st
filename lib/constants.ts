@@ -5,6 +5,11 @@ export const NAV_ITEMS = [
     description: "오늘 마감 TODO와 최근 거래를 확인합니다.",
   },
   {
+    href: "/portfolios",
+    label: "포트폴리오 관리",
+    description: "다계좌 포트폴리오와 리밸런싱을 관리합니다.",
+  },
+  {
     href: "/journal",
     label: "투자일지",
     description: "매매 기록과 투자 이유, 회고를 남깁니다.",
@@ -92,6 +97,66 @@ const STATUS_MESSAGES = {
   "portfolio-linked": {
     tone: "error",
     message: "항목 또는 일지가 연결된 포트폴리오는 삭제할 수 없습니다.",
+  },
+  "portfolio-account-created": {
+    tone: "success",
+    message: "계좌가 저장되었습니다.",
+  },
+  "portfolio-account-updated": {
+    tone: "success",
+    message: "계좌가 업데이트되었습니다.",
+  },
+  "portfolio-account-deleted": {
+    tone: "success",
+    message: "계좌가 삭제되었습니다.",
+  },
+  "portfolio-account-invalid": {
+    tone: "error",
+    message: "계좌 입력값이 올바르지 않습니다.",
+  },
+  "portfolio-asset-group-created": {
+    tone: "success",
+    message: "자산군이 저장되었습니다.",
+  },
+  "portfolio-asset-group-updated": {
+    tone: "success",
+    message: "자산군이 업데이트되었습니다.",
+  },
+  "portfolio-asset-group-deleted": {
+    tone: "success",
+    message: "자산군이 삭제되었습니다.",
+  },
+  "portfolio-asset-group-invalid": {
+    tone: "error",
+    message: "자산군 입력값이 올바르지 않습니다.",
+  },
+  "portfolio-targets-updated": {
+    tone: "success",
+    message: "자산군 목표 비율이 저장되었습니다.",
+  },
+  "portfolio-targets-invalid": {
+    tone: "error",
+    message: "자산군 목표 비율 합계를 100%로 맞춰주세요.",
+  },
+  "portfolio-holding-linked": {
+    tone: "success",
+    message: "투자 항목이 포트폴리오에 연결되었습니다.",
+  },
+  "portfolio-holding-unlinked": {
+    tone: "success",
+    message: "투자 항목 연결이 해제되었습니다.",
+  },
+  "portfolio-holding-invalid": {
+    tone: "error",
+    message: "포트폴리오 항목 연결 정보가 올바르지 않습니다.",
+  },
+  "portfolio-snapshot-recorded": {
+    tone: "success",
+    message: "포트폴리오 스냅샷이 기록되었습니다.",
+  },
+  "portfolio-snapshot-invalid": {
+    tone: "error",
+    message: "포트폴리오 스냅샷을 기록할 수 없습니다.",
   },
   "settings-updated": {
     tone: "success",

@@ -11,6 +11,7 @@ export async function updateJournal(formData: FormData) {
   const parsed = journalUpdateSchema.safeParse({
     id: formData.get("id"),
     tradeDate: formData.get("tradeDate"),
+    portfolioAccountId: formData.get("portfolioAccountId"),
     investmentItemId: formData.get("investmentItemId"),
     action: formData.get("action"),
     quantity: formData.get("quantity"),

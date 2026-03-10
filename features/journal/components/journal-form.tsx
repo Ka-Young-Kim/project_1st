@@ -15,11 +15,19 @@ type JournalFormItemOption = {
   code: string;
 };
 
+type JournalFormAccountOption = {
+  id: string;
+  name: string;
+  displayId: string;
+};
+
 export function JournalForm({
   items,
+  accounts,
   portfolioId,
 }: Readonly<{
   items: JournalFormItemOption[];
+  accounts: JournalFormAccountOption[];
   portfolioId: string;
 }>) {
   const today = getTodayDateInputInSeoul();
@@ -89,7 +97,7 @@ export function JournalForm({
 
       <form action={createJournal} className="mt-6 space-y-4.5">
         <input type="hidden" name="portfolioId" value={portfolioId} />
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-3">
           <label className="space-y-1.5">
             <span className="text-sm font-medium text-white/88">거래일</span>
             <Input
@@ -99,6 +107,23 @@ export function JournalForm({
               required
               className={`${fieldClassName} py-2`}
             />
+          </label>
+          <label className="space-y-1.5">
+            <span className="text-sm font-medium text-white/88">계좌</span>
+            <Select
+              name="portfolioAccountId"
+              required
+              className={`${fieldClassName} py-2.5`}
+              defaultValue={accounts[0]?.id ?? ""}
+            >
+              {accounts.map((account) => (
+                <option key={account.id} value={account.id} className="bg-[#141d35] text-white">
+                  {account.displayId
+                    ? `${account.name} (${account.displayId})`
+                    : account.name}
+                </option>
+              ))}
+            </Select>
           </label>
           <label className="space-y-1.5">
             <span className="text-sm font-medium text-white/88">투자 항목</span>

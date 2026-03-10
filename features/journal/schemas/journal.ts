@@ -4,6 +4,7 @@ import { decimalInputSchema, seoulDateSchema } from "@/lib/validation";
 
 export const journalInputSchema = z.object({
   tradeDate: seoulDateSchema,
+  portfolioAccountId: z.string().trim().min(1, "계좌를 선택하세요."),
   investmentItemId: z.string().trim().min(1, "투자 항목을 선택하세요."),
   action: z.enum(["buy", "sell"]),
   quantity: decimalInputSchema,

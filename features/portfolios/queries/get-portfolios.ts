@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { ensurePortfolioAccounts } from "@/features/portfolios/services/portfolio-management-service";
 
 export async function getPortfolios() {
   let portfolios = await prisma.portfolio.findMany({
@@ -83,6 +84,8 @@ export async function getPortfolios() {
       orderBy: [{ active: "desc" }, { updatedAt: "desc" }],
     });
   }
+
+  await Promise.all(portfolios.map((portfolio) => ensurePortfolioAccounts(portfolio.id)));
 
   return portfolios.map((portfolio) => ({
     id: portfolio.id,

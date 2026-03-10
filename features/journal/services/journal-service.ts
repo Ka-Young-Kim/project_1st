@@ -9,12 +9,21 @@ function toDecimal(value: string) {
 }
 
 export async function createJournalEntry(input: JournalInput) {
-  const item = await prisma.investmentItem.findUnique({
-    where: { id: input.investmentItemId },
-  });
+  const [item, account] = await Promise.all([
+    prisma.investmentItem.findUnique({
+      where: { id: input.investmentItemId },
+    }),
+    prisma.portfolioAccount.findUnique({
+      where: { id: input.portfolioAccountId },
+    }),
+  ]);
 
   if (!item) {
     throw new Error(`Investment item not found: ${input.investmentItemId}`);
+  }
+
+  if (!account || account.portfolioId !== item.portfolioId) {
+    throw new Error(`Portfolio account not found: ${input.portfolioAccountId}`);
   }
 
   await prisma.investmentLog.create({
@@ -22,6 +31,7 @@ export async function createJournalEntry(input: JournalInput) {
       tradeDate: new Date(`${input.tradeDate}T00:00:00+09:00`),
       investmentItemId: item.id,
       portfolioId: item.portfolioId,
+      portfolioAccountId: account.id,
       symbol: item.code,
       action: input.action,
       quantity: toDecimal(input.quantity),
@@ -36,12 +46,21 @@ export async function createJournalEntry(input: JournalInput) {
 }
 
 export async function updateJournalEntry(input: JournalUpdateInput) {
-  const item = await prisma.investmentItem.findUnique({
-    where: { id: input.investmentItemId },
-  });
+  const [item, account] = await Promise.all([
+    prisma.investmentItem.findUnique({
+      where: { id: input.investmentItemId },
+    }),
+    prisma.portfolioAccount.findUnique({
+      where: { id: input.portfolioAccountId },
+    }),
+  ]);
 
   if (!item) {
     throw new Error(`Investment item not found: ${input.investmentItemId}`);
+  }
+
+  if (!account || account.portfolioId !== item.portfolioId) {
+    throw new Error(`Portfolio account not found: ${input.portfolioAccountId}`);
   }
 
   await prisma.investmentLog.update({
@@ -50,6 +69,7 @@ export async function updateJournalEntry(input: JournalUpdateInput) {
       tradeDate: new Date(`${input.tradeDate}T00:00:00+09:00`),
       investmentItemId: item.id,
       portfolioId: item.portfolioId,
+      portfolioAccountId: account.id,
       symbol: item.code,
       action: input.action,
       quantity: toDecimal(input.quantity),

@@ -21,10 +21,12 @@ import {
 export function JournalList({
   entries,
   items,
+  accounts,
   portfolioId,
 }: Readonly<{
   entries: JournalListItem[];
   items: Array<{ id: string; name: string; code: string }>;
+  accounts: Array<{ id: string; name: string; displayId: string }>;
   portfolioId: string;
 }>) {
   const fieldClassName =
@@ -56,6 +58,9 @@ export function JournalList({
                             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-[#93a4c7]">
                               <span className="shrink-0">{formatDisplayDate(entry.tradeDate)}</span>
                               <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+                                {entry.portfolioAccountName ? (
+                                  <span className="shrink-0">{entry.portfolioAccountName}</span>
+                                ) : null}
                                 {entry.itemName ? (
                                   <span className="shrink-0">{entry.symbol}</span>
                                 ) : null}
@@ -100,7 +105,7 @@ export function JournalList({
                             <input type="hidden" name="id" value={entry.id} />
                             <input type="hidden" name="portfolioId" value={portfolioId} />
 
-                            <div className="grid gap-4 md:grid-cols-2">
+                            <div className="grid gap-4 md:grid-cols-3">
                               <label className="space-y-2">
                                 <span className="text-sm font-medium">거래일</span>
                                 <Input
@@ -110,6 +115,27 @@ export function JournalList({
                                   required
                                   className={`${fieldClassName} py-2`}
                                 />
+                              </label>
+                              <label className="space-y-2">
+                                <span className="text-sm font-medium">계좌</span>
+                                <Select
+                                  name="portfolioAccountId"
+                                  required
+                                  defaultValue={entry.portfolioAccountId ?? accounts[0]?.id ?? ""}
+                                  className={`${fieldClassName} py-2.5`}
+                                >
+                                  {accounts.map((account) => (
+                                    <option
+                                      key={account.id}
+                                      value={account.id}
+                                      className="bg-[#141d35] text-white"
+                                    >
+                                      {account.displayId
+                                        ? `${account.name} (${account.displayId})`
+                                        : account.name}
+                                    </option>
+                                  ))}
+                                </Select>
                               </label>
                               <label className="space-y-2">
                                 <span className="text-sm font-medium">투자 항목</span>

@@ -19,26 +19,28 @@ model Todo {
 }
 
 model InvestmentLog {
-  id        String      @id @default(cuid())
-  tradeDate DateTime
-  portfolioId String?
-  portfolio Portfolio? @relation(fields: [portfolioId], references: [id], onDelete: SetNull)
+  id               String             @id @default(cuid())
+  tradeDate        DateTime
+  portfolioId      String?
+  portfolio        Portfolio?         @relation(fields: [portfolioId], references: [id], onDelete: SetNull)
+  portfolioAccountId String?
+  portfolioAccount PortfolioAccount?  @relation(fields: [portfolioAccountId], references: [id], onDelete: SetNull)
   investmentItemId String?
-  investmentItem InvestmentItem? @relation(fields: [investmentItemId], references: [id], onDelete: SetNull)
-  symbol    String
-  action    TradeAction
-  quantity  Decimal
-  price     Decimal
-  reason    String
-  review    String?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  investmentItem   InvestmentItem?    @relation(fields: [investmentItemId], references: [id], onDelete: SetNull)
+  symbol           String
+  action           TradeAction
+  quantity         Decimal
+  price            Decimal
+  reason           String
+  review           String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 }
 
 model InvestmentItem {
-  id           String          @id @default(cuid())
+  id           String             @id @default(cuid())
   portfolioId  String?
-  portfolio    Portfolio?      @relation(fields: [portfolioId], references: [id], onDelete: SetNull)
+  portfolio    Portfolio?         @relation(fields: [portfolioId], references: [id], onDelete: SetNull)
   name         String
   code         String
   quoteSymbol  String?
@@ -47,23 +49,149 @@ model InvestmentItem {
   category     String?
   industry     String?
   notes        String?
-  active       Boolean         @default(true)
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  active       Boolean            @default(true)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
   logs         InvestmentLog[]
+  holdings     PortfolioHolding[]
 
   @@unique([portfolioId, code])
 }
 
 model Portfolio {
-  id          String           @id @default(cuid())
+  id            String                @id @default(cuid())
+  name          String
+  description   String?
+  active        Boolean               @default(true)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  items         InvestmentItem[]
+  logs          InvestmentLog[]
+  accounts      PortfolioAccount[]
+  assetGroups   PortfolioAssetGroup[]
+  holdings      PortfolioHolding[]
+  snapshots     PortfolioSnapshot[]
+}
+
+model PortfolioAccount {
+  id                 String                @id @default(cuid())
+  portfolioId        String
+  portfolio          Portfolio             @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  name               String
+  displayId          String?
+  sortOrder          Int                   @default(0)
+  cashTrackingEnabled Boolean              @default(false)
+  cashBalance        Decimal               @default(0)
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  logs               InvestmentLog[]
+  snapshots          PortfolioAccountSnapshot[]
+
+  @@unique([portfolioId, name])
+}
+
+model PortfolioAssetGroup {
+  id          String                       @id @default(cuid())
+  portfolioId String
+  portfolio   Portfolio                    @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
   name        String
-  description String?
-  active      Boolean          @default(true)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  items       InvestmentItem[]
-  logs        InvestmentLog[]
+  targetWeight Decimal
+  sortOrder   Int                          @default(0)
+  createdAt   DateTime                     @default(now())
+  updatedAt   DateTime                     @updatedAt
+  holdings    PortfolioHolding[]
+  snapshots   PortfolioAssetGroupSnapshot[]
+  holdingSnapshots PortfolioHoldingSnapshot[]
+
+  @@unique([portfolioId, name])
+}
+
+model PortfolioHolding {
+  id                   String              @id @default(cuid())
+  portfolioId          String
+  portfolio            Portfolio           @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  investmentItemId     String
+  investmentItem       InvestmentItem      @relation(fields: [investmentItemId], references: [id], onDelete: Cascade)
+  portfolioAssetGroupId String?
+  portfolioAssetGroup  PortfolioAssetGroup? @relation(fields: [portfolioAssetGroupId], references: [id], onDelete: SetNull)
+  active               Boolean             @default(true)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  snapshots            PortfolioHoldingSnapshot[]
+
+  @@unique([portfolioId, investmentItemId])
+}
+
+model PortfolioSnapshot {
+  id             String                     @id @default(cuid())
+  portfolioId    String
+  portfolio      Portfolio                  @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  snapshotDate   DateTime
+  investedAmount Decimal
+  marketValue    Decimal
+  profitAmount   Decimal
+  profitRate     Decimal
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+  assetGroups    PortfolioAssetGroupSnapshot[]
+  holdings       PortfolioHoldingSnapshot[]
+  accounts       PortfolioAccountSnapshot[]
+
+  @@unique([portfolioId, snapshotDate])
+}
+
+model PortfolioAssetGroupSnapshot {
+  id                 String                @id @default(cuid())
+  portfolioSnapshotId String
+  portfolioSnapshot  PortfolioSnapshot     @relation(fields: [portfolioSnapshotId], references: [id], onDelete: Cascade)
+  portfolioAssetGroupId String?
+  portfolioAssetGroup PortfolioAssetGroup? @relation(fields: [portfolioAssetGroupId], references: [id], onDelete: SetNull)
+  name               String
+  targetWeight       Decimal
+  currentWeight      Decimal
+  investedAmount     Decimal
+  marketValue        Decimal
+  profitAmount       Decimal
+  profitRate         Decimal
+  buyAmount          Decimal
+  sellAmount         Decimal
+  createdAt          DateTime              @default(now())
+}
+
+model PortfolioHoldingSnapshot {
+  id                 String                @id @default(cuid())
+  portfolioSnapshotId String
+  portfolioSnapshot  PortfolioSnapshot     @relation(fields: [portfolioSnapshotId], references: [id], onDelete: Cascade)
+  portfolioHoldingId String?
+  portfolioHolding   PortfolioHolding?     @relation(fields: [portfolioHoldingId], references: [id], onDelete: SetNull)
+  portfolioAssetGroupId String?
+  portfolioAssetGroup PortfolioAssetGroup? @relation(fields: [portfolioAssetGroupId], references: [id], onDelete: SetNull)
+  investmentItemId   String?
+  code               String
+  name               String
+  quantity           Decimal
+  averagePrice       Decimal
+  currentPrice       Decimal
+  currency           String
+  investedAmount     Decimal
+  marketValue        Decimal
+  profitAmount       Decimal
+  profitRate         Decimal
+  createdAt          DateTime              @default(now())
+}
+
+model PortfolioAccountSnapshot {
+  id                 String                @id @default(cuid())
+  portfolioSnapshotId String
+  portfolioSnapshot  PortfolioSnapshot     @relation(fields: [portfolioSnapshotId], references: [id], onDelete: Cascade)
+  portfolioAccountId String?
+  portfolioAccount   PortfolioAccount?     @relation(fields: [portfolioAccountId], references: [id], onDelete: SetNull)
+  name               String
+  displayId          String?
+  investedAmount     Decimal
+  marketValue        Decimal
+  cashValue          Decimal
+  createdAt          DateTime              @default(now())
 }
 
 model AppSettings {

@@ -10,6 +10,7 @@ export async function createJournal(formData: FormData) {
   const portfolioId = String(formData.get("portfolioId") ?? "");
   const parsed = journalInputSchema.safeParse({
     tradeDate: formData.get("tradeDate"),
+    portfolioAccountId: formData.get("portfolioAccountId"),
     investmentItemId: formData.get("investmentItemId"),
     action: formData.get("action"),
     quantity: formData.get("quantity"),

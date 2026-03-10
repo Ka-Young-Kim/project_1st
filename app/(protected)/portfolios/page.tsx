@@ -1,7 +1,10 @@
 import { StatusToast } from "@/components/ui/status-toast";
+import { PortfolioManagementBoard } from "@/features/portfolios/components/portfolio-management-board";
 import { PortfolioForm } from "@/features/portfolios/components/portfolio-form";
 import { PortfolioList } from "@/features/portfolios/components/portfolio-list";
+import { getPortfolioManagement } from "@/features/portfolios/queries/get-portfolio-management";
 import { getPortfolios } from "@/features/portfolios/queries/get-portfolios";
+import { resolvePortfolioId } from "@/features/portfolios/queries/get-portfolios";
 import { getStatusMessage } from "@/lib/constants";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -13,8 +16,17 @@ export default async function PortfoliosPage(props: {
   const statusParam = Array.isArray(searchParams.status)
     ? searchParams.status[0]
     : searchParams.status;
+  const portfolioId = Array.isArray(searchParams.portfolio)
+    ? searchParams.portfolio[0]
+    : searchParams.portfolio;
   const banner = getStatusMessage(statusParam);
-  const portfolios = await getPortfolios();
+  const [{ activePortfolio }, portfolios] = await Promise.all([
+    resolvePortfolioId(portfolioId),
+    getPortfolios(),
+  ]);
+  const managementData = activePortfolio
+    ? await getPortfolioManagement(activePortfolio.id)
+    : null;
 
   return (
     <div className="space-y-6">
@@ -24,11 +36,12 @@ export default async function PortfoliosPage(props: {
         </p>
         <h1 className="text-3xl font-bold tracking-tight">포트폴리오 관리</h1>
         <p className="text-sm text-[var(--muted)]">
-          포트폴리오별로 관리되는 항목과 공통 항목을 구분해 관리합니다.
+          계좌, 자산군, 목표 비율, 리밸런싱, 스냅샷을 한 화면에서 관리합니다.
         </p>
       </div>
       {banner ? <StatusToast tone={banner.tone}>{banner.message}</StatusToast> : null}
       <div className="grid gap-6">
+        {managementData ? <PortfolioManagementBoard data={managementData} /> : null}
         <PortfolioList portfolios={portfolios} />
         <PortfolioForm />
       </div>

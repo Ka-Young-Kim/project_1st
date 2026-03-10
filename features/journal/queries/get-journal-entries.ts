@@ -5,6 +5,7 @@ export async function getJournalEntries(portfolioId?: string) {
     where: portfolioId ? { portfolioId } : undefined,
     include: {
       investmentItem: true,
+      portfolioAccount: true,
     },
     orderBy: [{ tradeDate: "desc" }, { createdAt: "desc" }],
   });
@@ -13,6 +14,8 @@ export async function getJournalEntries(portfolioId?: string) {
     id: entry.id,
     tradeDate: entry.tradeDate,
     investmentItemId: entry.investmentItemId,
+    portfolioAccountId: entry.portfolioAccountId,
+    portfolioAccountName: entry.portfolioAccount?.name ?? null,
     itemName: entry.investmentItem?.name ?? null,
     symbol: entry.symbol,
     action: entry.action,

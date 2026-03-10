@@ -4,6 +4,7 @@ import { JournalCalendar } from "@/features/journal/components/journal-calendar"
 import { JournalForm } from "@/features/journal/components/journal-form";
 import { JournalList } from "@/features/journal/components/journal-list";
 import { getInvestmentItems } from "@/features/investment-items/queries/get-investment-items";
+import { getPortfolioAccounts } from "@/features/portfolios/queries/get-portfolio-accounts";
 import { resolvePortfolioId } from "@/features/portfolios/queries/get-portfolios";
 import { getJournalEntries } from "@/features/journal/queries/get-journal-entries";
 import { getStatusMessage } from "@/lib/constants";
@@ -29,9 +30,10 @@ export default async function JournalPage(props: {
     : searchParams.portfolio;
   const banner = getStatusMessage(statusParam);
   const { activePortfolio } = await resolvePortfolioId(portfolioId);
-  const [entries, itemOptions] = await Promise.all([
+  const [entries, itemOptions, accountOptions] = await Promise.all([
     getJournalEntries(activePortfolio?.id),
     getInvestmentItems({ activeOnly: true, portfolioId: activePortfolio?.id }),
+    getPortfolioAccounts(activePortfolio?.id),
   ]);
   const currentMonth = selectedMonth ?? formatDateInput(new Date()).slice(0, 7);
   const visibleEntries = selectedDate
@@ -159,6 +161,11 @@ export default async function JournalPage(props: {
               name: item.name,
               code: item.code,
             }))}
+            accounts={accountOptions.map((account) => ({
+              id: account.id,
+              name: account.name,
+              displayId: account.displayId,
+            }))}
             portfolioId={activePortfolio?.id ?? ""}
           />
         </div>
@@ -168,6 +175,11 @@ export default async function JournalPage(props: {
               id: item.id,
               name: item.name,
               code: item.code,
+            }))}
+            accounts={accountOptions.map((account) => ({
+              id: account.id,
+              name: account.name,
+              displayId: account.displayId,
             }))}
             portfolioId={activePortfolio.id}
           />

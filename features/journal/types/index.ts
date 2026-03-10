@@ -2,6 +2,8 @@ export type JournalListItem = {
   id: string;
   tradeDate: Date;
   investmentItemId: string | null;
+  portfolioAccountId: string | null;
+  portfolioAccountName: string | null;
   itemName: string | null;
   symbol: string;
   action: "buy" | "sell";

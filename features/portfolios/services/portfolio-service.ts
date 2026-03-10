@@ -4,6 +4,7 @@ import {
   PortfolioInput,
   PortfolioUpdateInput,
 } from "@/features/portfolios/schemas/portfolio";
+import { ensurePortfolioAccounts } from "@/features/portfolios/services/portfolio-management-service";
 import { prisma } from "@/lib/prisma";
 
 function revalidatePortfolioViews() {
@@ -28,6 +29,8 @@ export async function createPortfolio(input: PortfolioInput) {
       data: { active: false },
     });
   }
+
+  await ensurePortfolioAccounts(portfolio.id);
 
   revalidatePortfolioViews();
 }
