@@ -32,7 +32,7 @@ export function SettingsDialog({
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[rgba(11,16,32,0.92)] text-sm font-semibold text-white transition hover:bg-[rgba(255,255,255,0.08)] sm:right-4 sm:top-4"
+          className="absolute right-3 top-3 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-[rgba(7,13,28,0.96)] text-base font-semibold text-white shadow-[0_8px_24px_rgba(0,0,0,0.32)] transition hover:border-white/20 hover:bg-[rgba(255,255,255,0.12)] sm:right-4 sm:top-4"
           aria-label="설정 닫기"
         >
           ×

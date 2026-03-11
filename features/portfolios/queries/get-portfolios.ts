@@ -1,3 +1,6 @@
+import { cookies } from "next/headers";
+
+import { PORTFOLIO_SELECTION_COOKIE } from "@/features/portfolios/lib/selection";
 import { prisma } from "@/lib/prisma";
 import { ensurePortfolioAccounts } from "@/features/portfolios/services/portfolio-management-service";
 
@@ -11,7 +14,7 @@ export async function getPortfolios() {
         },
       },
     },
-    orderBy: [{ active: "desc" }, { updatedAt: "desc" }],
+    orderBy: [{ updatedAt: "desc" }, { createdAt: "asc" }],
   });
 
   if (portfolios.length === 0) {
@@ -19,7 +22,6 @@ export async function getPortfolios() {
       data: {
         name: "기본 포트폴리오",
         description: "초기 데이터 이관용 기본 포트폴리오",
-        active: true,
       },
     });
     portfolios = [
@@ -56,49 +58,21 @@ export async function getPortfolios() {
     }),
   ]);
 
-  const activePortfolios = portfolios.filter((item) => item.active);
-  const needsActiveNormalization =
-    activePortfolios.length !== 1 || activePortfolios[0]?.id !== preferredPortfolio.id;
-
-  if (needsActiveNormalization) {
-    await prisma.$transaction([
-      prisma.portfolio.updateMany({
-        where: { active: true },
-        data: { active: false },
-      }),
-      prisma.portfolio.update({
-        where: { id: preferredPortfolio.id },
-        data: { active: true },
-      }),
-    ]);
-
-    portfolios = await prisma.portfolio.findMany({
-      include: {
-        _count: {
-          select: {
-            items: true,
-            logs: true,
-          },
-        },
-      },
-      orderBy: [{ active: "desc" }, { updatedAt: "desc" }],
-    });
-  }
-
   await Promise.all(portfolios.map((portfolio) => ensurePortfolioAccounts(portfolio.id)));
 
   return portfolios.map((portfolio) => ({
     id: portfolio.id,
     name: portfolio.name,
     description: portfolio.description,
-    active: portfolio.active,
   }));
 }
 
 export async function resolvePortfolioId(portfolioId?: string) {
   const portfolios = await getPortfolios();
+  const cookieStore = await cookies();
+  const lastSelectedPortfolioId = cookieStore.get(PORTFOLIO_SELECTION_COOKIE)?.value;
   const preferredPortfolio =
-    portfolios.find((item) => item.active) ?? portfolios[0] ?? null;
+    portfolios.find((item) => item.id === lastSelectedPortfolioId) ?? portfolios[0] ?? null;
   const activePortfolio =
     portfolios.find((item) => item.id === portfolioId) ?? preferredPortfolio;
 

@@ -26,10 +26,6 @@ export function PortfolioForm() {
           <span className="text-sm font-medium text-white/88">설명</span>
           <Textarea name="description" className={`${fieldClassName} min-h-24 py-2.5`} />
         </label>
-        <label className="inline-flex items-center gap-3 rounded-[1rem] border border-white/8 bg-black/10 px-4 py-3 text-sm text-white/88">
-          <input type="checkbox" name="active" defaultChecked className="h-4 w-4 accent-[#6ea8fe]" />
-          활성 포트폴리오
-        </label>
         <SubmitButton className="w-full" pendingLabel="저장 중...">
           포트폴리오 저장
         </SubmitButton>

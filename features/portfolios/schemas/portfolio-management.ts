@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { PORTFOLIO_ASSET_GROUP_OPTIONS } from "@/features/portfolios/lib/asset-group";
+
 const percentInputSchema = z
   .string()
   .trim()
@@ -27,7 +29,17 @@ export const portfolioAccountUpdateSchema = portfolioAccountInputSchema.extend({
 
 export const portfolioAssetGroupInputSchema = z.object({
   portfolioId: z.string().min(1, "포트폴리오를 선택하세요."),
-  name: z.string().trim().min(1, "자산군 이름을 입력하세요.").max(80),
+  name: z.enum(
+    PORTFOLIO_ASSET_GROUP_OPTIONS.map((item) => item.value) as [
+      "채권",
+      "금",
+      "배당주",
+      "리츠",
+      "국내주식",
+      "미국주식",
+      "기타투자",
+    ],
+  ),
   targetWeight: percentInputSchema,
   sortOrder: z.coerce.number().int().min(0).default(0),
 });

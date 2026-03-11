@@ -1,25 +1,38 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+import { PORTFOLIO_SELECTION_COOKIE } from "@/features/portfolios/lib/selection";
 
 type PortfolioOption = {
   id: string;
   name: string;
-  active: boolean;
 };
 
 export function PortfolioSwitcher({
   portfolios,
   compact = false,
+  defaultSelectedId,
 }: Readonly<{
   portfolios: PortfolioOption[];
   compact?: boolean;
+  defaultSelectedId?: string;
 }>) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const selectedId = searchParams.get("portfolio") ?? portfolios[0]?.id ?? "";
+  const selectedId =
+    searchParams.get("portfolio") ?? defaultSelectedId ?? portfolios[0]?.id ?? "";
+
+  useEffect(() => {
+    if (!selectedId) {
+      return;
+    }
+
+    document.cookie = `${PORTFOLIO_SELECTION_COOKIE}=${selectedId}; path=/; max-age=31536000; samesite=lax`;
+  }, [selectedId]);
 
   if (portfolios.length === 0) {
     return null;
@@ -48,6 +61,7 @@ export function PortfolioSwitcher({
         onChange={(event) => {
           const params = new URLSearchParams(searchParams.toString());
           params.set("portfolio", event.target.value);
+          document.cookie = `${PORTFOLIO_SELECTION_COOKIE}=${event.target.value}; path=/; max-age=31536000; samesite=lax`;
           router.push(`${pathname}?${params.toString()}`);
         }}
         className={
@@ -69,10 +83,10 @@ export function PortfolioSwitcher({
       <Link
         href={
           selectedId
-            ? `/portfolios?${new URLSearchParams({ portfolio: selectedId }).toString()}`
-            : "/portfolios"
+            ? `/portfolio-hub?${new URLSearchParams({ portfolio: selectedId }).toString()}`
+            : "/portfolio-hub"
         }
-        aria-label="포트폴리오 관리"
+        aria-label="포트폴리오 허브"
         className={
           compact
             ? "inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-white/4 text-[#9fb0d3] transition hover:bg-white/8 hover:text-white"

@@ -23,7 +23,7 @@ export async function createInvestmentItem(input: InvestmentItemInput) {
     name: input.name,
   });
 
-  await prisma.investmentItem.create({
+  const item = await prisma.investmentItem.create({
     data: {
       portfolio: {
         connect: {
@@ -44,6 +44,8 @@ export async function createInvestmentItem(input: InvestmentItemInput) {
   revalidatePath("/");
   revalidatePath("/items");
   revalidatePath("/journal");
+
+  return item;
 }
 
 export async function updateInvestmentItem(input: InvestmentItemUpdateInput) {

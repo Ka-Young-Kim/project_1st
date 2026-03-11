@@ -62,10 +62,14 @@ function NavIcon({ href, active }: Readonly<{ href: string; active: boolean }>) 
   );
 }
 
-export function SidebarNav() {
+export function SidebarNav({
+  defaultPortfolioId,
+}: Readonly<{
+  defaultPortfolioId?: string;
+}>) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const portfolioId = searchParams.get("portfolio");
+  const portfolioId = searchParams.get("portfolio") ?? defaultPortfolioId;
 
   return (
     <nav className="space-y-1.5">

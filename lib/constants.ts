@@ -6,8 +6,8 @@ export const NAV_ITEMS = [
   },
   {
     href: "/portfolios",
-    label: "포트폴리오 관리",
-    description: "다계좌 포트폴리오와 리밸런싱을 관리합니다.",
+    label: "포트폴리오 구성",
+    description: "선택한 포트폴리오의 계좌, 자산군, 리밸런싱을 설정합니다.",
   },
   {
     href: "/journal",

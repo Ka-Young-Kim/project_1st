@@ -8,7 +8,6 @@ export const portfolioInputSchema = z.object({
     .max(500)
     .optional()
     .transform((value) => value || ""),
-  active: z.boolean().default(true),
 });
 
 export const portfolioUpdateSchema = portfolioInputSchema.extend({

@@ -11,14 +11,18 @@ export async function updatePortfolioAction(formData: FormData) {
     id: formData.get("id"),
     name: formData.get("name"),
     description: formData.get("description"),
-    active: formData.get("active") === "on",
   });
 
   if (!parsed.success) {
     logger.warn("portfolio.update.validation_failed", parsed.error.flatten());
-    redirect("/portfolios?status=portfolio-invalid");
+    redirect("/portfolio-hub?status=portfolio-invalid");
   }
 
   await updatePortfolio(parsed.data);
-  redirect("/portfolios?status=portfolio-updated");
+  redirect(
+    `/portfolio-hub?${new URLSearchParams({
+      status: "portfolio-updated",
+      portfolio: parsed.data.id,
+    }).toString()}`,
+  );
 }

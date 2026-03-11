@@ -3,10 +3,10 @@ import { Suspense } from "react";
 
 import { LogoutButton } from "@/features/auth/components/logout-button";
 import { SidebarSummary } from "@/features/dashboard/components/sidebar-summary";
-import { PortfolioSwitcher } from "@/features/portfolios/components/portfolio-switcher";
-import { getPortfolios } from "@/features/portfolios/queries/get-portfolios";
 import { getDashboardSummary } from "@/features/dashboard/queries/get-dashboard-summary";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
+import { PortfolioSwitcher } from "@/features/portfolios/components/portfolio-switcher";
+import { resolvePortfolioId } from "@/features/portfolios/queries/get-portfolios";
 import { SettingsDialog } from "@/features/settings/components/settings-dialog";
 import { SettingsPanel } from "@/features/settings/components/settings-panel";
 import { getAppSettings } from "@/features/settings/services/settings-service";
@@ -15,9 +15,9 @@ export async function AppShell({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const settings = await getAppSettings();
-  const [summary, portfolios] = await Promise.all([
+  const [summary, { portfolios, activePortfolio }] = await Promise.all([
     getDashboardSummary(),
-    getPortfolios(),
+    resolvePortfolioId(),
   ]);
   const brandInitial = settings.brandName.trim().charAt(0) || "₩";
 
@@ -67,7 +67,7 @@ export async function AppShell({
               </p>
               <div className="mt-3">
                 <Suspense fallback={null}>
-                  <SidebarNav />
+                  <SidebarNav defaultPortfolioId={activePortfolio?.id} />
                 </Suspense>
               </div>
             </div>
@@ -100,7 +100,11 @@ export async function AppShell({
         <main className="space-y-6 p-6">
           <div className="flex justify-end">
             <Suspense fallback={null}>
-              <PortfolioSwitcher portfolios={portfolios} compact />
+              <PortfolioSwitcher
+                portfolios={portfolios}
+                compact
+                defaultSelectedId={activePortfolio?.id}
+              />
             </Suspense>
           </div>
           {children}

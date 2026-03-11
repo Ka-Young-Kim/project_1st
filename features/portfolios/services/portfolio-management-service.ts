@@ -51,6 +51,7 @@ function revalidatePortfolioViews() {
   revalidatePath("/items");
   revalidatePath("/journal");
   revalidatePath("/portfolios");
+  revalidatePath("/portfolio-hub");
 }
 
 export async function ensurePortfolioAccounts(portfolioId: string) {
@@ -658,7 +659,6 @@ export async function getPortfolioManagementData(portfolioId: string) {
       id: portfolio.id,
       name: portfolio.name,
       description: portfolio.description,
-      active: portfolio.active,
     },
     summary: {
       investedAmount: round2(portfolioInvestedAmount),

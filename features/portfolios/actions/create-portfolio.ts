@@ -10,14 +10,18 @@ export async function createPortfolioAction(formData: FormData) {
   const parsed = portfolioInputSchema.safeParse({
     name: formData.get("name"),
     description: formData.get("description"),
-    active: formData.get("active") === "on",
   });
 
   if (!parsed.success) {
     logger.warn("portfolio.create.validation_failed", parsed.error.flatten());
-    redirect("/portfolios?status=portfolio-invalid");
+    redirect("/portfolio-hub?status=portfolio-invalid");
   }
 
-  await createPortfolio(parsed.data);
-  redirect("/portfolios?status=portfolio-created");
+  const portfolio = await createPortfolio(parsed.data);
+  redirect(
+    `/portfolio-hub?${new URLSearchParams({
+      status: "portfolio-created",
+      portfolio: portfolio.id,
+    }).toString()}`,
+  );
 }

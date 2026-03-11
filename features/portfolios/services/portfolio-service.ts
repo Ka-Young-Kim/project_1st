@@ -12,6 +12,7 @@ function revalidatePortfolioViews() {
   revalidatePath("/items");
   revalidatePath("/journal");
   revalidatePath("/portfolios");
+  revalidatePath("/portfolio-hub");
 }
 
 export async function createPortfolio(input: PortfolioInput) {
@@ -19,36 +20,21 @@ export async function createPortfolio(input: PortfolioInput) {
     data: {
       name: input.name,
       description: input.description || null,
-      active: input.active,
     },
   });
-
-  if (input.active) {
-    await prisma.portfolio.updateMany({
-      where: { id: { not: portfolio.id } },
-      data: { active: false },
-    });
-  }
 
   await ensurePortfolioAccounts(portfolio.id);
 
   revalidatePortfolioViews();
+  return portfolio;
 }
 
 export async function updatePortfolio(input: PortfolioUpdateInput) {
-  if (input.active) {
-    await prisma.portfolio.updateMany({
-      where: { id: { not: input.id } },
-      data: { active: false },
-    });
-  }
-
   await prisma.portfolio.update({
     where: { id: input.id },
     data: {
       name: input.name,
       description: input.description || null,
-      active: input.active,
     },
   });
 

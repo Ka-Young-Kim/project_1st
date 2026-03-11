@@ -8,14 +8,19 @@ export async function deletePortfolioAction(formData: FormData) {
   const id = String(formData.get("id") ?? "");
 
   if (!id) {
-    redirect("/portfolios?status=portfolio-invalid");
+    redirect("/portfolio-hub?status=portfolio-invalid");
   }
 
   const result = await deletePortfolio(id);
 
   if (!result.ok) {
-    redirect("/portfolios?status=portfolio-linked");
+    redirect(
+      `/portfolio-hub?${new URLSearchParams({
+        status: "portfolio-linked",
+        portfolio: id,
+      }).toString()}`,
+    );
   }
 
-  redirect("/portfolios?status=portfolio-deleted");
+  redirect("/portfolio-hub?status=portfolio-deleted");
 }
