@@ -54,6 +54,7 @@ model InvestmentItem {
   updatedAt    DateTime           @updatedAt
   logs         InvestmentLog[]
   holdings     PortfolioHolding[]
+  portfolioItems PortfolioItem[]
 
   @@unique([portfolioId, code])
 }
@@ -70,6 +71,7 @@ model Portfolio {
   accounts      PortfolioAccount[]
   assetGroups   PortfolioAssetGroup[]
   holdings      PortfolioHolding[]
+  portfolioItems PortfolioItem[]
   snapshots     PortfolioSnapshot[]
 }
 
@@ -78,6 +80,7 @@ model PortfolioAccount {
   portfolioId        String
   portfolio          Portfolio             @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
   name               String
+  nickname           String?
   displayId          String?
   sortOrder          Int                   @default(0)
   cashTrackingEnabled Boolean              @default(false)
@@ -85,6 +88,7 @@ model PortfolioAccount {
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
   logs               InvestmentLog[]
+  portfolioItems     PortfolioItem[]
   snapshots          PortfolioAccountSnapshot[]
 
   @@unique([portfolioId, name])
@@ -100,10 +104,38 @@ model PortfolioAssetGroup {
   createdAt   DateTime                     @default(now())
   updatedAt   DateTime                     @updatedAt
   holdings    PortfolioHolding[]
+  portfolioItems PortfolioItem[]
   snapshots   PortfolioAssetGroupSnapshot[]
   holdingSnapshots PortfolioHoldingSnapshot[]
 
   @@unique([portfolioId, name])
+}
+
+model PortfolioItem {
+  id                    String               @id @default(cuid())
+  portfolioId           String
+  portfolio             Portfolio            @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  linkedInvestmentItemId String?
+  linkedInvestmentItem  InvestmentItem?      @relation(fields: [linkedInvestmentItemId], references: [id], onDelete: SetNull)
+  portfolioAccountId    String?
+  portfolioAccount      PortfolioAccount?    @relation(fields: [portfolioAccountId], references: [id], onDelete: SetNull)
+  portfolioAssetGroupId String?
+  portfolioAssetGroup   PortfolioAssetGroup? @relation(fields: [portfolioAssetGroupId], references: [id], onDelete: SetNull)
+  name                  String
+  code                  String
+  quantity              Decimal              @default(0)
+  averagePrice          Decimal              @default(0)
+  currentPrice          Decimal              @default(0)
+  notes                 String?
+  active                Boolean              @default(true)
+  sortOrder             Int                  @default(0)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  @@index([portfolioId, sortOrder])
+  @@index([linkedInvestmentItemId])
+  @@index([portfolioAccountId])
+  @@index([portfolioAssetGroupId])
 }
 
 model PortfolioHolding {

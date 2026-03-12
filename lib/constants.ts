@@ -150,6 +150,22 @@ const STATUS_MESSAGES = {
     tone: "error",
     message: "포트폴리오 항목 연결 정보가 올바르지 않습니다.",
   },
+  "portfolio-item-created": {
+    tone: "success",
+    message: "포트폴리오 항목이 저장되었습니다.",
+  },
+  "portfolio-item-updated": {
+    tone: "success",
+    message: "포트폴리오 항목이 업데이트되었습니다.",
+  },
+  "portfolio-item-deleted": {
+    tone: "success",
+    message: "포트폴리오 항목이 삭제되었습니다.",
+  },
+  "portfolio-item-invalid": {
+    tone: "error",
+    message: "포트폴리오 항목 입력값이 올바르지 않습니다.",
+  },
   "portfolio-snapshot-recorded": {
     tone: "success",
     message: "포트폴리오 스냅샷이 기록되었습니다.",

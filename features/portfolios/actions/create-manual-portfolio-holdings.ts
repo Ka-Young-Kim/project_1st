@@ -12,14 +12,29 @@ import { getTodayDateInputInSeoul } from "@/lib/utils";
 
 function getCategoryByGroupName(groupName: string) {
   if (groupName === "금") {
-    return { category: "gold", industry: "현물", currency: "KRW", exchange: "" };
+    return {
+      category: "gold" as const,
+      industry: "현물",
+      currency: "KRW",
+      exchange: "",
+    };
   }
 
   if (groupName === "채권") {
-    return { category: "bond", industry: "기타", currency: "KRW", exchange: "" };
+    return {
+      category: "bond" as const,
+      industry: "기타",
+      currency: "KRW",
+      exchange: "",
+    };
   }
 
-  return { category: "other", industry: groupName, currency: "KRW", exchange: "" };
+  return {
+    category: "other" as const,
+    industry: groupName,
+    currency: "KRW",
+    exchange: "",
+  };
 }
 
 function generateManualCode(name: string, index: number) {

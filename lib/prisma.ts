@@ -27,6 +27,7 @@ function hasRequiredModels(client: PrismaClient | undefined) {
       "appSettings" in client &&
       "portfolioAccount" in client &&
       "portfolioAssetGroup" in client &&
+      "portfolioItem" in client &&
       "portfolioHolding" in client &&
       "portfolioSnapshot" in client,
   );
@@ -42,6 +43,7 @@ function getOrCreatePrismaClient(client: PrismaClient | undefined): PrismaClient
       hasAppSettings: "appSettings" in client,
       hasPortfolioAccount: "portfolioAccount" in client,
       hasPortfolioAssetGroup: "portfolioAssetGroup" in client,
+      hasPortfolioItem: "portfolioItem" in client,
       hasPortfolioHolding: "portfolioHolding" in client,
       hasPortfolioSnapshot: "portfolioSnapshot" in client,
     });

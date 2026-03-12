@@ -11,6 +11,7 @@ export async function createPortfolioAccountAction(formData: FormData) {
   const parsed = portfolioAccountInputSchema.safeParse({
     portfolioId,
     name: formData.get("name"),
+    nickname: formData.get("nickname"),
     displayId: formData.get("displayId"),
     sortOrder: formData.get("sortOrder"),
     cashTrackingEnabled: formData.get("cashTrackingEnabled") === "on",

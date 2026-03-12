@@ -1,4 +1,5 @@
 export const PORTFOLIO_ASSET_GROUP_OPTIONS = [
+  { value: "현금", label: "현금" },
   { value: "채권", label: "채권" },
   { value: "금", label: "금" },
   { value: "배당주", label: "배당주" },

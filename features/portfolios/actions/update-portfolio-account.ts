@@ -12,6 +12,7 @@ export async function updatePortfolioAccountAction(formData: FormData) {
     id: formData.get("id"),
     portfolioId,
     name: formData.get("name"),
+    nickname: formData.get("nickname"),
     displayId: formData.get("displayId"),
     sortOrder: formData.get("sortOrder"),
     cashTrackingEnabled: formData.get("cashTrackingEnabled") === "on",

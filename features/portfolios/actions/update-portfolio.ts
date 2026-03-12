@@ -7,6 +7,7 @@ import { updatePortfolio } from "@/features/portfolios/services/portfolio-servic
 import { logger } from "@/lib/logger";
 
 export async function updatePortfolioAction(formData: FormData) {
+  const returnTo = String(formData.get("returnTo") ?? "");
   const parsed = portfolioUpdateSchema.safeParse({
     id: formData.get("id"),
     name: formData.get("name"),
@@ -19,6 +20,10 @@ export async function updatePortfolioAction(formData: FormData) {
   }
 
   await updatePortfolio(parsed.data);
+  if (returnTo.startsWith("/")) {
+    redirect(returnTo);
+  }
+
   redirect(
     `/portfolio-hub?${new URLSearchParams({
       status: "portfolio-updated",

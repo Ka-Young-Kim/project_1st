@@ -7,6 +7,8 @@ import {
   PortfolioAssetGroupInput,
   PortfolioAssetGroupUpdateInput,
   PortfolioHoldingAssignmentInput,
+  PortfolioItemInput,
+  PortfolioItemUpdateInput,
 } from "@/features/portfolios/schemas/portfolio-management";
 import { getLatestQuotes, getUsdToKrwRate } from "@/lib/market-data/quote-service";
 import { prisma } from "@/lib/prisma";
@@ -17,6 +19,7 @@ export type PortfolioManagementData = PortfolioAggregate;
 
 type AccountBucket = {
   accountId: string | null;
+  investmentItemId: string;
   quantity: number;
   costBasis: number;
   lastTradePrice: number;
@@ -51,7 +54,155 @@ function revalidatePortfolioViews() {
   revalidatePath("/items");
   revalidatePath("/journal");
   revalidatePath("/portfolios");
+  revalidatePath("/portfolios/snapshots");
   revalidatePath("/portfolio-hub");
+}
+
+function buildAccountBuckets(
+  logs: Array<{
+    portfolioAccountId: string | null;
+    investmentItemId: string | null;
+    action: string;
+    quantity: Prisma.Decimal;
+    price: Prisma.Decimal;
+  }>,
+) {
+  const buckets = new Map<string, AccountBucket>();
+
+  for (const log of logs) {
+    if (!log.investmentItemId) {
+      continue;
+    }
+
+    const accountId = log.portfolioAccountId ?? "__unassigned__";
+    const key = `${accountId}:${log.investmentItemId}`;
+    const current = buckets.get(key) ?? {
+      accountId: log.portfolioAccountId,
+      investmentItemId: log.investmentItemId,
+      quantity: 0,
+      costBasis: 0,
+      lastTradePrice: Number(log.price),
+    };
+    const quantity = Number(log.quantity);
+    const price = Number(log.price);
+
+    if (log.action === "buy") {
+      current.quantity += quantity;
+      current.costBasis += quantity * price;
+    } else if (current.quantity > 0) {
+      const averagePrice =
+        current.quantity === 0 ? 0 : current.costBasis / current.quantity;
+      const sellQuantity = Math.min(quantity, current.quantity);
+      current.quantity -= sellQuantity;
+      current.costBasis = Math.max(
+        0,
+        current.costBasis - averagePrice * sellQuantity,
+      );
+    }
+
+    current.lastTradePrice = price;
+    buckets.set(key, current);
+  }
+
+  return buckets;
+}
+
+function buildManualCode(name: string) {
+  const digits = Date.now().toString().slice(-6);
+  const normalizedName = name
+    .trim()
+    .replace(/\s+/g, "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9가-힣]/g, "")
+    .slice(0, 8);
+
+  return `${normalizedName || "PITEM"}${digits}`.slice(0, 20);
+}
+
+async function validatePortfolioRelations({
+  portfolioId,
+  portfolioAccountId,
+  portfolioAssetGroupId,
+  linkedInvestmentItemId,
+}: {
+  portfolioId: string;
+  portfolioAccountId?: string;
+  portfolioAssetGroupId?: string;
+  linkedInvestmentItemId?: string;
+}) {
+  const [account, group, item] = await Promise.all([
+    portfolioAccountId
+      ? prisma.portfolioAccount.findFirst({
+          where: { id: portfolioAccountId, portfolioId },
+          select: { id: true },
+        })
+      : Promise.resolve(null),
+    portfolioAssetGroupId
+      ? prisma.portfolioAssetGroup.findFirst({
+          where: { id: portfolioAssetGroupId, portfolioId },
+          select: { id: true },
+        })
+      : Promise.resolve(null),
+    linkedInvestmentItemId
+      ? prisma.investmentItem.findFirst({
+          where: { id: linkedInvestmentItemId, portfolioId },
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            quoteSymbol: true,
+            exchange: true,
+            currency: true,
+          },
+        })
+      : Promise.resolve(null),
+  ]);
+
+  if (portfolioAccountId && !account) {
+    throw new Error(`Portfolio account not found: ${portfolioAccountId}`);
+  }
+
+  if (portfolioAssetGroupId && !group) {
+    throw new Error(`Portfolio asset group not found: ${portfolioAssetGroupId}`);
+  }
+
+  if (linkedInvestmentItemId && !item) {
+    throw new Error(`Investment item not found: ${linkedInvestmentItemId}`);
+  }
+
+  return { linkedItem: item };
+}
+
+async function getStoredMetricsForLinkedItem(
+  portfolioId: string,
+  linkedInvestmentItemId: string,
+  portfolioAccountId: string,
+) {
+  const logs = await prisma.investmentLog.findMany({
+    where: {
+      portfolioId,
+      investmentItemId: linkedInvestmentItemId,
+      portfolioAccountId,
+    },
+    orderBy: [{ tradeDate: "asc" }, { createdAt: "asc" }],
+    select: {
+      portfolioAccountId: true,
+      investmentItemId: true,
+      action: true,
+      quantity: true,
+      price: true,
+    },
+  });
+  const bucket = buildAccountBuckets(logs).get(
+    `${portfolioAccountId}:${linkedInvestmentItemId}`,
+  );
+
+  return {
+    quantity: bucket?.quantity ?? 0,
+    averagePrice:
+      bucket && bucket.quantity > 0 ? bucket.costBasis / bucket.quantity : 0,
+    currentPrice: bucket?.lastTradePrice ?? 0,
+  };
 }
 
 export async function ensurePortfolioAccounts(portfolioId: string) {
@@ -69,6 +220,7 @@ export async function ensurePortfolioAccounts(portfolioId: string) {
       data: {
         portfolioId,
         name: "기본 계좌",
+        nickname: "",
         displayId: "",
         sortOrder: 0,
         cashTrackingEnabled: false,
@@ -87,11 +239,122 @@ export async function ensurePortfolioAccounts(portfolioId: string) {
   }
 }
 
+export async function ensurePortfolioItems(portfolioId: string) {
+  await ensurePortfolioAccounts(portfolioId);
+
+  const existing = await prisma.portfolioItem.findFirst({
+    where: { portfolioId },
+    select: { id: true },
+  });
+
+  if (existing) {
+    return;
+  }
+
+  const [items, holdings, logs] = await Promise.all([
+    prisma.investmentItem.findMany({
+      where: { portfolioId },
+      orderBy: [{ name: "asc" }],
+      select: {
+        id: true,
+        name: true,
+        code: true,
+      },
+    }),
+    prisma.portfolioHolding.findMany({
+      where: { portfolioId, active: true },
+      select: {
+        investmentItemId: true,
+        portfolioAssetGroupId: true,
+      },
+    }),
+    prisma.investmentLog.findMany({
+      where: { portfolioId },
+      orderBy: [{ tradeDate: "asc" }, { createdAt: "asc" }],
+      select: {
+        portfolioAccountId: true,
+        investmentItemId: true,
+        action: true,
+        quantity: true,
+        price: true,
+      },
+    }),
+  ]);
+
+  const bucketMap = buildAccountBuckets(logs);
+  const holdingMap = new Map(
+    holdings.map((holding) => [holding.investmentItemId, holding]),
+  );
+
+  const rows = Array.from(bucketMap.values())
+    .filter((bucket) => bucket.quantity > 0)
+    .map((bucket, index) => {
+      const item = items.find(
+        (candidate) => candidate.id === bucket.investmentItemId,
+      );
+
+      if (!item) {
+        return null;
+      }
+
+      return {
+        portfolioId,
+        linkedInvestmentItemId: item.id,
+        portfolioAccountId: bucket.accountId,
+        portfolioAssetGroupId:
+          holdingMap.get(bucket.investmentItemId)?.portfolioAssetGroupId ?? null,
+        name: item.name,
+        code: item.code,
+        quantity: bucket.quantity,
+        averagePrice:
+          bucket.quantity > 0 ? bucket.costBasis / bucket.quantity : 0,
+        currentPrice: bucket.lastTradePrice,
+        sortOrder: index,
+      };
+    })
+    .filter(Boolean) as Array<{
+    portfolioId: string;
+    linkedInvestmentItemId: string;
+    portfolioAccountId: string | null;
+    portfolioAssetGroupId: string | null;
+    name: string;
+    code: string;
+    quantity: number;
+    averagePrice: number;
+    currentPrice: number;
+    sortOrder: number;
+  }>;
+
+  if (rows.length === 0) {
+    return;
+  }
+
+  await prisma.$transaction(
+    rows.map((row) =>
+      prisma.portfolioItem.create({
+        data: {
+          portfolioId: row.portfolioId,
+          linkedInvestmentItemId: row.linkedInvestmentItemId,
+          portfolioAccountId: row.portfolioAccountId,
+          portfolioAssetGroupId: row.portfolioAssetGroupId,
+          name: row.name,
+          code: row.code,
+          quantity: toDecimal(row.quantity),
+          averagePrice: toDecimal(row.averagePrice),
+          currentPrice: toDecimal(row.currentPrice),
+          sortOrder: row.sortOrder,
+        },
+      }),
+    ),
+  );
+}
+
 export async function createPortfolioAccount(input: PortfolioAccountInput) {
   await prisma.portfolioAccount.create({
     data: {
       portfolioId: input.portfolioId,
       name: input.name,
+      nickname: input.nickname || null,
       displayId: input.displayId || null,
       sortOrder: input.sortOrder,
       cashTrackingEnabled: input.cashTrackingEnabled,
@@ -107,6 +370,7 @@ export async function updatePortfolioAccount(input: PortfolioAccountUpdateInput)
     where: { id: input.id },
     data: {
       name: input.name,
+      nickname: input.nickname || null,
       displayId: input.displayId || null,
       sortOrder: input.sortOrder,
       cashTrackingEnabled: input.cashTrackingEnabled,
@@ -216,10 +480,125 @@ export async function deletePortfolioAssetGroup(id: string) {
       where: { portfolioAssetGroupId: id },
       data: { portfolioAssetGroupId: null },
     }),
+    prisma.portfolioItem.updateMany({
+      where: { portfolioAssetGroupId: id },
+      data: { portfolioAssetGroupId: null },
+    }),
     prisma.portfolioAssetGroup.delete({
       where: { id },
     }),
   ]);
+
+  revalidatePortfolioViews();
+}
+
+export async function createPortfolioItem(input: PortfolioItemInput) {
+  const { linkedItem } = await validatePortfolioRelations({
+    portfolioId: input.portfolioId,
+    portfolioAccountId: input.portfolioAccountId,
+    portfolioAssetGroupId: input.portfolioAssetGroupId,
+    linkedInvestmentItemId: input.linkedInvestmentItemId,
+  });
+
+  if (!linkedItem && !input.name.trim()) {
+    throw new Error("Portfolio item name is required.");
+  }
+
+  const metrics =
+    linkedItem && input.portfolioAccountId
+      ? await getStoredMetricsForLinkedItem(
+          input.portfolioId,
+          linkedItem.id,
+          input.portfolioAccountId,
+        )
+      : {
+          quantity: Number(input.quantity),
+          averagePrice: Number(input.averagePrice),
+          currentPrice: Number(input.currentPrice) || Number(input.averagePrice),
+        };
+
+  await prisma.portfolioItem.create({
+    data: {
+      portfolioId: input.portfolioId,
+      linkedInvestmentItemId: linkedItem?.id ?? null,
+      portfolioAccountId: input.portfolioAccountId || null,
+      portfolioAssetGroupId: input.portfolioAssetGroupId || null,
+      name: linkedItem?.name ?? input.name.trim(),
+      code:
+        linkedItem?.code ??
+        (input.code.trim() || buildManualCode(input.name)),
+      quantity: toDecimal(metrics.quantity),
+      averagePrice: toDecimal(metrics.averagePrice),
+      currentPrice: toDecimal(metrics.currentPrice),
+      notes: input.notes || null,
+      active: input.active,
+      sortOrder: input.sortOrder,
+    },
+  });
+
+  revalidatePortfolioViews();
+}
+
+export async function updatePortfolioItem(input: PortfolioItemUpdateInput) {
+  const existing = await prisma.portfolioItem.findUnique({
+    where: { id: input.id },
+    select: { id: true, portfolioId: true, name: true },
+  });
+
+  if (!existing || existing.portfolioId !== input.portfolioId) {
+    throw new Error(`Portfolio item not found: ${input.id}`);
+  }
+
+  const { linkedItem } = await validatePortfolioRelations({
+    portfolioId: input.portfolioId,
+    portfolioAccountId: input.portfolioAccountId,
+    portfolioAssetGroupId: input.portfolioAssetGroupId,
+    linkedInvestmentItemId: input.linkedInvestmentItemId,
+  });
+
+  if (!linkedItem && !input.name.trim()) {
+    throw new Error("Portfolio item name is required.");
+  }
+
+  const metrics =
+    linkedItem && input.portfolioAccountId
+      ? await getStoredMetricsForLinkedItem(
+          input.portfolioId,
+          linkedItem.id,
+          input.portfolioAccountId,
+        )
+      : {
+          quantity: Number(input.quantity),
+          averagePrice: Number(input.averagePrice),
+          currentPrice: Number(input.currentPrice) || Number(input.averagePrice),
+        };
+
+  await prisma.portfolioItem.update({
+    where: { id: input.id },
+    data: {
+      linkedInvestmentItemId: linkedItem?.id ?? null,
+      portfolioAccountId: input.portfolioAccountId || null,
+      portfolioAssetGroupId: input.portfolioAssetGroupId || null,
+      name: linkedItem?.name ?? input.name.trim(),
+      code:
+        linkedItem?.code ??
+        (input.code.trim() || buildManualCode(input.name || existing.name)),
+      quantity: toDecimal(metrics.quantity),
+      averagePrice: toDecimal(metrics.averagePrice),
+      currentPrice: toDecimal(metrics.currentPrice),
+      notes: input.notes || null,
+      active: input.active,
+      sortOrder: input.sortOrder,
+    },
+  });
+
+  revalidatePortfolioViews();
+}
+
+export async function deletePortfolioItem(id: string) {
+  await prisma.portfolioItem.delete({
+    where: { id },
+  });
 
   revalidatePortfolioViews();
 }
@@ -287,9 +666,9 @@ export async function unassignPortfolioHolding(portfolioId: string, investmentIt
 }
 
 export async function getPortfolioManagementData(portfolioId: string) {
-  await ensurePortfolioAccounts(portfolioId);
+  await ensurePortfolioItems(portfolioId);
 
-  const [portfolio, items, holdings, logs, snapshots] = await Promise.all([
+  const [portfolio, logs, snapshots, availableInvestmentItems] = await Promise.all([
     prisma.portfolio.findUniqueOrThrow({
       where: { id: portfolioId },
       include: {
@@ -299,19 +678,16 @@ export async function getPortfolioManagementData(portfolioId: string) {
         assetGroups: {
           orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         },
+        portfolioItems: {
+          where: { active: true },
+          include: {
+            linkedInvestmentItem: true,
+            portfolioAccount: true,
+            portfolioAssetGroup: true,
+          },
+          orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+        },
       },
-    }),
-    prisma.investmentItem.findMany({
-      where: { portfolioId },
-      orderBy: [{ active: "desc" }, { name: "asc" }],
-    }),
-    prisma.portfolioHolding.findMany({
-      where: { portfolioId },
-      include: {
-        investmentItem: true,
-        portfolioAssetGroup: true,
-      },
-      orderBy: [{ createdAt: "asc" }],
     }),
     prisma.investmentLog.findMany({
       where: { portfolioId },
@@ -334,145 +710,106 @@ export async function getPortfolioManagementData(portfolioId: string) {
         },
       },
     }),
+    prisma.investmentItem.findMany({
+      where: { portfolioId, active: true },
+      orderBy: [{ name: "asc" }],
+      select: {
+        id: true,
+        name: true,
+        code: true,
+      },
+    }),
   ]);
 
-  const accountMap = new Map(
-    portfolio.accounts.map((account) => [account.id, account]),
+  const accountBuckets = buildAccountBuckets(
+    logs.map((log) => ({
+      portfolioAccountId: log.portfolioAccountId,
+      investmentItemId: log.investmentItemId,
+      action: log.action,
+      quantity: log.quantity,
+      price: log.price,
+    })),
   );
-  const holdingMap = new Map(
-    holdings.map((holding) => [holding.investmentItemId, holding]),
+
+  const linkedItems = portfolio.portfolioItems
+    .map((item) => item.linkedInvestmentItem)
+    .filter(Boolean);
+  const quoteByCode = await getLatestQuotes(
+    Array.from(
+      new Map(
+        linkedItems.map((item) => [
+          item!.id,
+          {
+            code: item!.code,
+            quoteSymbol: item!.quoteSymbol ?? item!.code,
+            exchange: item!.exchange ?? null,
+            currency: item!.currency ?? "KRW",
+          },
+        ]),
+      ).values(),
+    ),
   );
-
-  const accountBuckets = new Map<string, AccountBucket>();
-  for (const log of logs) {
-    if (!log.investmentItemId) {
-      continue;
-    }
-
-    const accountId = log.portfolioAccountId ?? "__unassigned__";
-    const key = `${accountId}:${log.investmentItemId}`;
-    const current = accountBuckets.get(key) ?? {
-      accountId: log.portfolioAccountId,
-      quantity: 0,
-      costBasis: 0,
-      lastTradePrice: Number(log.price),
-    };
-    const quantity = Number(log.quantity);
-    const price = Number(log.price);
-
-    if (log.action === "buy") {
-      current.quantity += quantity;
-      current.costBasis += quantity * price;
-    } else if (current.quantity > 0) {
-      const averagePrice =
-        current.quantity === 0 ? 0 : current.costBasis / current.quantity;
-      const sellQuantity = Math.min(quantity, current.quantity);
-      current.quantity -= sellQuantity;
-      current.costBasis = Math.max(
-        0,
-        current.costBasis - averagePrice * sellQuantity,
-      );
-    }
-
-    current.lastTradePrice = price;
-    accountBuckets.set(key, current);
-  }
-
-  const holdingsByItemId = new Map(
-    holdings.filter((holding) => holding.active).map((holding) => [holding.investmentItemId, holding]),
-  );
-  const trackedItems = items.filter((item) =>
-    Array.from(accountBuckets.keys()).some((key) => key.endsWith(`:${item.id}`)),
-  );
-  const quoteRequests = trackedItems.map((item) => ({
-    code: item.code,
-    quoteSymbol: item.quoteSymbol ?? item.code,
-    exchange: item.exchange ?? null,
-    currency: item.currency ?? "KRW",
-  }));
-  const quoteByCode = await getLatestQuotes(quoteRequests);
-  const needsUsdToKrw = trackedItems.some((item) => {
-    const liveQuote = quoteByCode.get(item.code);
-    return (liveQuote?.currency ?? item.currency ?? "KRW") === "USD";
+  const needsUsdToKrw = linkedItems.some((item) => {
+    const liveQuote = quoteByCode.get(item!.code);
+    return (liveQuote?.currency ?? item!.currency ?? "KRW") === "USD";
   });
   const usdToKrwRate = needsUsdToKrw ? await getUsdToKrwRate().catch(() => null) : null;
 
-  const itemSummaries = trackedItems
-    .map((item) => {
-      const holding = holdingsByItemId.get(item.id) ?? null;
-      const buckets = Array.from(accountBuckets.entries())
-        .filter(([, bucket]) => bucket.quantity > 0)
-        .filter(([key]) => key.endsWith(`:${item.id}`))
-        .map(([, bucket]) => bucket);
+  const itemSummaries = portfolio.portfolioItems.map((item) => {
+    const linkedItem = item.linkedInvestmentItem;
+    const bucketKey = `${item.portfolioAccountId ?? "__unassigned__"}:${item.linkedInvestmentItemId ?? ""}`;
+    const bucket =
+      linkedItem && item.linkedInvestmentItemId
+        ? accountBuckets.get(bucketKey)
+        : null;
+    const storedQuantity = Number(item.quantity);
+    const storedAveragePrice = Number(item.averagePrice);
+    const storedCurrentPrice = Number(item.currentPrice);
+    const quantity = bucket?.quantity ?? storedQuantity;
+    const averagePrice =
+      bucket && bucket.quantity > 0
+        ? bucket.costBasis / bucket.quantity
+        : storedAveragePrice;
+    const liveQuote = linkedItem ? quoteByCode.get(linkedItem.code) : null;
+    const currency = liveQuote?.currency ?? linkedItem?.currency ?? "KRW";
+    const currentPrice =
+      liveQuote?.price ?? bucket?.lastTradePrice ?? storedCurrentPrice;
+    const investedAmountBase = bucket?.costBasis ?? quantity * averagePrice;
+    const marketValueBase = quantity * currentPrice;
+    const investedAmount = round2(
+      toKrw(investedAmountBase, currency, usdToKrwRate),
+    );
+    const marketValue = round2(toKrw(marketValueBase, currency, usdToKrwRate));
+    const profitAmount = round2(marketValue - investedAmount);
+    const profitRate =
+      investedAmount > 0 ? round2((profitAmount / investedAmount) * 100) : 0;
 
-      const quantity = buckets.reduce((sum, bucket) => sum + bucket.quantity, 0);
-      const investedAmount = buckets.reduce((sum, bucket) => sum + bucket.costBasis, 0);
-      const averagePrice = quantity > 0 ? investedAmount / quantity : 0;
-      const liveQuote = quoteByCode.get(item.code);
-      const resolvedCurrency = liveQuote?.currency ?? item.currency ?? "KRW";
-      const currentPrice =
-        liveQuote?.price ??
-        buckets[buckets.length - 1]?.lastTradePrice ??
-        0;
-      const marketValueBase = quantity * currentPrice;
-      const investedAmountKrw = toKrw(investedAmount, resolvedCurrency, usdToKrwRate);
-      const marketValueKrw = toKrw(marketValueBase, resolvedCurrency, usdToKrwRate);
-      const profitAmount = marketValueKrw - investedAmountKrw;
-      const profitRate =
-        investedAmountKrw > 0 ? (profitAmount / investedAmountKrw) * 100 : 0;
-
-      const accounts = buckets.map((bucket) => {
-        const account = bucket.accountId ? accountMap.get(bucket.accountId) : null;
-        const accountMarketValue = toKrw(
-          bucket.quantity * currentPrice,
-          resolvedCurrency,
-          usdToKrwRate,
-        );
-        const accountInvestedAmount = round2(
-          toKrw(bucket.costBasis, resolvedCurrency, usdToKrwRate),
-        );
-        const accountProfitAmount = round2(accountMarketValue - accountInvestedAmount);
-        const accountProfitRate =
-          accountInvestedAmount > 0
-            ? (accountProfitAmount / accountInvestedAmount) * 100
-            : 0;
-        const accountAveragePrice =
-          bucket.quantity > 0 ? bucket.costBasis / bucket.quantity : 0;
-
-        return {
-          id: bucket.accountId ?? "__unassigned__",
-          name: account?.name ?? "미지정 계좌",
-          displayId: account?.displayId ?? "",
-          quantity: round2(bucket.quantity),
-          averagePrice: round2(accountAveragePrice),
-          currentPrice: round2(currentPrice),
-          currency: resolvedCurrency,
-          investedAmount: accountInvestedAmount,
-          marketValue: round2(accountMarketValue),
-          profitAmount: accountProfitAmount,
-          profitRate: round2(accountProfitRate),
-        };
-      });
-
-      return {
-        holdingId: holding?.id ?? null,
-        investmentItemId: item.id,
-        groupId: holding?.portfolioAssetGroupId ?? null,
-        groupName: holding?.portfolioAssetGroup?.name ?? "미분류",
-        code: item.code,
-        name: item.name,
-        currency: resolvedCurrency,
-        quantity: round2(quantity),
-        averagePrice: round2(averagePrice),
-        currentPrice: round2(currentPrice),
-        investedAmount: round2(investedAmountKrw),
-        marketValue: round2(marketValueKrw),
-        profitAmount: round2(profitAmount),
-        profitRate: round2(profitRate),
-        accounts,
-      } as const;
-    })
-    .filter((item) => item.quantity > 0);
+    return {
+      id: item.id,
+      sortOrder: item.sortOrder,
+      linkedInvestmentItemId: item.linkedInvestmentItemId,
+      name: linkedItem?.name ?? item.name,
+      code: linkedItem?.code ?? item.code,
+      quantity: round2(quantity),
+      averagePrice: round2(averagePrice),
+      currentPrice: round2(currentPrice),
+      investedAmount,
+      marketValue,
+      profitAmount,
+      profitRate,
+      currency,
+      notes: item.notes ?? "",
+      accountId: item.portfolioAccountId,
+      accountName:
+        item.portfolioAccount?.nickname?.trim() ||
+        item.portfolioAccount?.name ||
+        "미지정 계좌",
+      accountDisplayId: item.portfolioAccount?.displayId ?? "",
+      groupId: item.portfolioAssetGroupId,
+      groupName: item.portfolioAssetGroup?.name ?? "미분류",
+      isLinkedToInvestmentItem: Boolean(item.linkedInvestmentItemId),
+    };
+  });
 
   const totalTrackedCash = portfolio.accounts.reduce((sum, account) => {
     if (!account.cashTrackingEnabled) {
@@ -483,21 +820,33 @@ export async function getPortfolioManagementData(portfolioId: string) {
   }, 0);
 
   const portfolioInvestedAmount =
-    itemSummaries.reduce((sum, item) => sum + item.investedAmount, 0) + totalTrackedCash;
+    itemSummaries.reduce((sum, item) => sum + item.investedAmount, 0) +
+    totalTrackedCash;
   const portfolioMarketValue =
-    itemSummaries.reduce((sum, item) => sum + item.marketValue, 0) + totalTrackedCash;
+    itemSummaries.reduce((sum, item) => sum + item.marketValue, 0) +
+    totalTrackedCash;
   const portfolioProfitAmount = portfolioMarketValue - portfolioInvestedAmount;
   const portfolioProfitRate =
     portfolioInvestedAmount > 0
       ? (portfolioProfitAmount / portfolioInvestedAmount) * 100
       : 0;
 
+  const hasExplicitCashGroup = portfolio.assetGroups.some((group) => group.name === "현금");
   const explicitGroups = portfolio.assetGroups.map((group) => {
     const entries = itemSummaries.filter((item) => item.groupId === group.id);
-    const investedAmount = entries.reduce((sum, item) => sum + item.investedAmount, 0);
-    const marketValue = entries.reduce((sum, item) => sum + item.marketValue, 0);
-    const profitAmount = marketValue - investedAmount;
-    const profitRate = investedAmount > 0 ? (profitAmount / investedAmount) * 100 : 0;
+    const isCashGroup = group.name === "현금";
+    const investedAmount = isCashGroup
+      ? totalTrackedCash
+      : entries.reduce((sum, item) => sum + item.investedAmount, 0);
+    const marketValue = isCashGroup
+      ? totalTrackedCash
+      : entries.reduce((sum, item) => sum + item.marketValue, 0);
+    const profitAmount = isCashGroup ? 0 : marketValue - investedAmount;
+    const profitRate = isCashGroup
+      ? 0
+      : investedAmount > 0
+        ? (profitAmount / investedAmount) * 100
+        : 0;
     const currentWeight = percentOf(marketValue, portfolioMarketValue);
     const targetWeight = Number(group.targetWeight);
     const targetMarketValue = (portfolioMarketValue * targetWeight) / 100;
@@ -520,14 +869,30 @@ export async function getPortfolioManagementData(portfolioId: string) {
   });
 
   const uncategorizedItems = itemSummaries.filter((item) => !item.groupId);
-  const syntheticGroups = [];
+  const syntheticGroups: Array<{
+    id: string;
+    name: string;
+    targetWeight: number;
+    currentWeight: number;
+    investedAmount: number;
+    marketValue: number;
+    profitAmount: number;
+    profitRate: number;
+    buyAmount: number;
+    sellAmount: number;
+    items: typeof itemSummaries;
+    isSynthetic: boolean;
+  }> = [];
 
   if (uncategorizedItems.length > 0) {
     const investedAmount = uncategorizedItems.reduce(
       (sum, item) => sum + item.investedAmount,
       0,
     );
-    const marketValue = uncategorizedItems.reduce((sum, item) => sum + item.marketValue, 0);
+    const marketValue = uncategorizedItems.reduce(
+      (sum, item) => sum + item.marketValue,
+      0,
+    );
     const profitAmount = marketValue - investedAmount;
     const profitRate = investedAmount > 0 ? (profitAmount / investedAmount) * 100 : 0;
 
@@ -547,7 +912,7 @@ export async function getPortfolioManagementData(portfolioId: string) {
     });
   }
 
-  if (totalTrackedCash > 0) {
+  if (totalTrackedCash > 0 && !hasExplicitCashGroup) {
     syntheticGroups.push({
       id: "__cash__",
       name: "현금",
@@ -564,95 +929,84 @@ export async function getPortfolioManagementData(portfolioId: string) {
     });
   }
 
-  const accountSummaries = [
-    ...portfolio.accounts.map((account) => {
-      const accountItems = itemSummaries.flatMap((item) =>
-        item.accounts
-          .filter((bucket) => bucket.id === account.id)
-          .map((bucket) => ({
-            ...bucket,
-            code: item.code,
-            name: item.name,
-            groupName: item.groupName,
-          })),
-      );
-      const investedAmount =
-        accountItems.reduce((sum, item) => sum + item.investedAmount, 0) +
-        (account.cashTrackingEnabled ? Number(account.cashBalance) : 0);
-      const marketValue =
-        accountItems.reduce((sum, item) => sum + item.marketValue, 0) +
-        (account.cashTrackingEnabled ? Number(account.cashBalance) : 0);
-
-      return {
-        id: account.id,
-        name: account.name,
-        displayId: account.displayId ?? "",
-        cashTrackingEnabled: account.cashTrackingEnabled,
-        cashBalance: Number(account.cashBalance),
-        investedAmount: round2(investedAmount),
-        marketValue: round2(marketValue),
-        currentWeight: round2(percentOf(marketValue, portfolioMarketValue)),
-        items: accountItems,
-      };
-    }),
-    ...(() => {
-      const unassignedItems = itemSummaries.flatMap((item) =>
-        item.accounts
-          .filter((bucket) => bucket.id === "__unassigned__")
-          .map((bucket) => ({
-            ...bucket,
-            code: item.code,
-            name: item.name,
-            groupName: item.groupName,
-          })),
-      );
-
-      if (unassignedItems.length === 0) {
-        return [];
-      }
-
-      const marketValue = unassignedItems.reduce((sum, item) => sum + item.marketValue, 0);
-      const investedAmount = unassignedItems.reduce(
-        (sum, item) => sum + item.investedAmount,
-        0,
-      );
-
-      return [
-        {
-          id: "__unassigned__",
-          name: "미지정 계좌",
-          displayId: "",
-          cashTrackingEnabled: false,
-          cashBalance: 0,
-          investedAmount: round2(investedAmount),
-          marketValue: round2(marketValue),
-          currentWeight: round2(percentOf(marketValue, portfolioMarketValue)),
-          items: unassignedItems,
-        },
-      ];
-    })(),
-  ];
-
-  const managedItems = items.map((item) => {
-    const linkedHolding = holdingMap.get(item.id);
-    const summary =
-      itemSummaries.find((holding) => holding.investmentItemId === item.id) ?? null;
+  const realAccountSummaries = portfolio.accounts.map((account) => {
+    const accountItems = itemSummaries.filter((item) => item.accountId === account.id);
+    const investedAmount =
+      accountItems.reduce((sum, item) => sum + item.investedAmount, 0) +
+      (account.cashTrackingEnabled ? Number(account.cashBalance) : 0);
+    const marketValue =
+      accountItems.reduce((sum, item) => sum + item.marketValue, 0) +
+      (account.cashTrackingEnabled ? Number(account.cashBalance) : 0);
+    const profitAmount = marketValue - investedAmount;
+    const profitRate =
+      investedAmount > 0 ? round2((profitAmount / investedAmount) * 100) : 0;
 
     return {
-      id: item.id,
-      name: item.name,
-      code: item.code,
-      category: item.category ?? "other",
-      active: item.active,
-      isLinked: Boolean(linkedHolding),
-      portfolioHoldingId: linkedHolding?.id ?? null,
-      portfolioAssetGroupId: linkedHolding?.portfolioAssetGroupId ?? "",
-      groupName: linkedHolding?.portfolioAssetGroup?.name ?? "미분류",
-      quantity: summary?.quantity ?? 0,
-      marketValue: summary?.marketValue ?? 0,
-      profitRate: summary?.profitRate ?? 0,
+      id: account.id,
+      name: account.name,
+      nickname: account.nickname ?? "",
+      displayId: account.displayId ?? "",
+      cashTrackingEnabled: account.cashTrackingEnabled,
+      cashBalance: Number(account.cashBalance),
+      investedAmount: round2(investedAmount),
+      marketValue: round2(marketValue),
+      profitAmount: round2(profitAmount),
+      profitRate,
+      currentWeight: round2(percentOf(marketValue, portfolioMarketValue)),
+      items: accountItems,
     };
   });
+  const unassignedItems = itemSummaries.filter((item) => !item.accountId);
+  const accountSummaries = [
+    ...realAccountSummaries,
+    ...(unassignedItems.length > 0
+      ? [
+          {
+            id: "__unassigned__",
+            name: "미지정 계좌",
+            nickname: "",
+            displayId: "",
+            cashTrackingEnabled: false,
+            cashBalance: 0,
+            investedAmount: round2(
+              unassignedItems.reduce((sum, item) => sum + item.investedAmount, 0),
+            ),
+            marketValue: round2(
+              unassignedItems.reduce((sum, item) => sum + item.marketValue, 0),
+            ),
+            profitAmount: round2(
+              unassignedItems.reduce(
+                (sum, item) => sum + (item.marketValue - item.investedAmount),
+                0,
+              ),
+            ),
+            profitRate: round2(
+              (() => {
+                const investedAmount = unassignedItems.reduce(
+                  (sum, item) => sum + item.investedAmount,
+                  0,
+                );
+                const marketValue = unassignedItems.reduce(
+                  (sum, item) => sum + item.marketValue,
+                  0,
+                );
+
+                return investedAmount > 0
+                  ? ((marketValue - investedAmount) / investedAmount) * 100
+                  : 0;
+              })(),
+            ),
+            currentWeight: round2(
+              percentOf(
+                unassignedItems.reduce((sum, item) => sum + item.marketValue, 0),
+                portfolioMarketValue,
+              ),
+            ),
+            items: unassignedItems,
+          },
+        ]
+      : []),
+  ];
 
   return {
     portfolio: {
@@ -669,7 +1023,8 @@ export async function getPortfolioManagementData(portfolioId: string) {
     },
     accounts: accountSummaries,
     assetGroups: [...explicitGroups, ...syntheticGroups],
-    managedItems,
+    availableInvestmentItems,
+    portfolioItems: itemSummaries,
     snapshots: snapshots.map((snapshot) => ({
       id: snapshot.id,
       snapshotDate: snapshot.snapshotDate,
@@ -768,10 +1123,10 @@ export async function recordPortfolioSnapshot(portfolioId: string) {
         prisma.portfolioHoldingSnapshot.create({
           data: {
             portfolioSnapshotId: snapshotId,
-            portfolioHoldingId: item.holdingId,
+            portfolioHoldingId: null,
             portfolioAssetGroupId:
               item.groupId && !item.groupId.startsWith("__") ? item.groupId : null,
-            investmentItemId: item.investmentItemId,
+            investmentItemId: item.linkedInvestmentItemId,
             code: item.code,
             name: item.name,
             quantity: toDecimal(item.quantity),

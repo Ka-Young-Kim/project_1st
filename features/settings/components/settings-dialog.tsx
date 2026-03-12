@@ -6,11 +6,15 @@ import { createPortal } from "react-dom";
 type SettingsDialogProps = {
   trigger: React.ReactNode;
   children: React.ReactNode;
+  stopPropagationOnTriggerClick?: boolean;
+  dialogClassName?: string;
 };
 
 export function SettingsDialog({
   trigger,
   children,
+  stopPropagationOnTriggerClick = false,
+  dialogClassName,
 }: Readonly<SettingsDialogProps>) {
   const [open, setOpen] = useState(false);
   const portalTarget = typeof document === "undefined" ? null : document.body;
@@ -18,7 +22,7 @@ export function SettingsDialog({
   const dialog = open ? (
     <div className="admin-shell fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 sm:p-4">
       <div
-        className="relative w-full max-w-[560px]"
+        className={`relative w-full max-w-[560px] ${dialogClassName ?? ""}`.trim()}
         onClick={(event) => {
           const target = event.target;
           if (
@@ -44,7 +48,18 @@ export function SettingsDialog({
 
   return (
     <>
-      <div onClick={() => setOpen(true)}>{trigger}</div>
+      <div
+        onClick={(event) => {
+          if (stopPropagationOnTriggerClick) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+
+          setOpen(true);
+        }}
+      >
+        {trigger}
+      </div>
       {portalTarget ? createPortal(dialog, portalTarget) : null}
     </>
   );
