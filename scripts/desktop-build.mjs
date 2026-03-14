@@ -12,9 +12,26 @@ function run(command, args, extraEnv = {}) {
   });
 }
 
+function downloadWindowsPrismaEngines() {
+  const postinstallScriptPath = path.join(
+    process.cwd(),
+    "node_modules",
+    "@prisma",
+    "engines",
+    "dist",
+    "scripts",
+    "postinstall.js",
+  );
+
+  run("node", [postinstallScriptPath], {
+    PRISMA_CLI_BINARY_TARGETS: "windows",
+  });
+}
+
 rmSync(path.join(process.cwd(), "dist-electron"), { recursive: true, force: true });
 
 run("npx", ["prisma", "generate"]);
+downloadWindowsPrismaEngines();
 run("npx", ["next", "build"], {
   NEXT_BUILD_TARGET: "desktop",
 });
