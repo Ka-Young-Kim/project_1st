@@ -21,6 +21,15 @@ export async function updatePortfolioAssetGroupAction(formData: FormData) {
     redirect(`/portfolios?status=portfolio-asset-group-invalid&portfolio=${portfolioId}`);
   }
 
-  await updatePortfolioAssetGroup(parsed.data);
+  try {
+    await updatePortfolioAssetGroup(parsed.data);
+  } catch (error) {
+    logger.warn("portfolio.asset_group.update_failed", {
+      portfolioId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    redirect(`/portfolios?status=portfolio-asset-group-invalid&portfolio=${portfolioId}`);
+  }
+
   redirect(`/portfolios?status=portfolio-asset-group-updated&portfolio=${portfolioId}`);
 }

@@ -14,7 +14,6 @@ const cards = (summary: SummaryProps["summary"]) => [
   {
     label: "미완료 TODO",
     value: `${summary.incompleteTodoCount}`,
-    description: "완료되지 않은 전체 할 일",
     insight:
       summary.incompleteTodoCount > 0
         ? "오늘 처리 순서를 정할 대상이 남아 있습니다."
@@ -30,7 +29,6 @@ const cards = (summary: SummaryProps["summary"]) => [
   {
     label: "오늘 마감",
     value: `${summary.dueTodayCount}`,
-    description: "한국 시간 기준 오늘 마감인 항목",
     insight:
       summary.dueTodayCount > 0
         ? "오늘 안에 확인할 마감 항목이 있습니다."
@@ -46,7 +44,6 @@ const cards = (summary: SummaryProps["summary"]) => [
   {
     label: "이번 달 거래",
     value: `${summary.monthlyTradeCount}`,
-    description: "이번 달 기록된 매매 횟수",
     insight:
       summary.monthlyTradeCount >= 5
         ? "활동 빈도가 높습니다. 회고 밀도를 함께 관리하세요."
@@ -59,7 +56,6 @@ const cards = (summary: SummaryProps["summary"]) => [
   {
     label: "전체 TODO",
     value: `${summary.totalTodoCount}`,
-    description: "기록된 할 일 총 개수",
     insight:
       summary.totalTodoCount >= 8
         ? "백로그가 커지고 있습니다. 묶거나 제거할 항목을 점검하세요."
@@ -73,39 +69,38 @@ const cards = (summary: SummaryProps["summary"]) => [
 
 export function SummaryCards({ summary }: Readonly<SummaryProps>) {
   return (
-    <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
-      {cards(summary).map((item) => (
-        <Card
-          key={item.label}
-          surface="glass"
-          className={cx(
-            "relative overflow-hidden border border-[var(--border)] bg-gradient-to-br p-4",
-            item.accent,
-            item.text,
-            item.glow,
-          )}
-        >
-          <div className="absolute right-[-18px] top-[-18px] h-20 w-20 rounded-full bg-white/8 blur-2xl" />
-          <p className="relative text-xs font-semibold uppercase tracking-[0.24em] opacity-75">
-            {item.label}
-          </p>
-          <p className="relative mt-3 text-[2rem] font-bold tracking-tight">
-            {item.value}
-          </p>
-          <p className="relative mt-1.5 text-[13px] leading-5 opacity-85">
-            {item.description}
-          </p>
-          <p className="relative mt-3 text-[13px] leading-5 opacity-90">
-            {item.insight}
-          </p>
-          <div className="relative mt-4 h-1.5 rounded-full bg-black/20">
-            <div
-              className="h-full rounded-full bg-current/70"
-              style={{ width: `${Math.max(12, item.progress)}%` }}
-            />
-          </div>
-        </Card>
-      ))}
+    <div className="overflow-x-auto pb-1">
+      <div className="grid min-w-[980px] grid-cols-4 gap-3">
+        {cards(summary).map((item) => (
+          <Card
+            key={item.label}
+            surface="glass"
+            className={cx(
+              "relative overflow-hidden border border-[var(--border)] bg-gradient-to-br p-3.5",
+              item.accent,
+              item.text,
+              item.glow,
+            )}
+          >
+            <div className="absolute right-[-18px] top-[-18px] h-20 w-20 rounded-full bg-white/8 blur-2xl" />
+            <p className="relative text-xs font-semibold uppercase tracking-[0.24em] opacity-75">
+              {item.label}
+            </p>
+            <p className="relative mt-2.5 text-[1.75rem] font-bold tracking-tight">
+              {item.value}
+            </p>
+            <p className="relative mt-2.5 text-[13px] leading-5 opacity-90">
+              {item.insight}
+            </p>
+            <div className="relative mt-3.5 h-1.5 rounded-full bg-black/20">
+              <div
+                className="h-full rounded-full bg-current/70"
+                style={{ width: `${Math.max(12, item.progress)}%` }}
+              />
+            </div>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

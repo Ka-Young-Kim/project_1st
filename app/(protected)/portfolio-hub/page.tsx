@@ -58,12 +58,14 @@ export default async function PortfolioHubPage(props: {
         </Card>
       ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-        <PortfolioList
-          portfolios={portfolios}
-          selectedPortfolioId={activePortfolio?.id}
-        />
-        <PortfolioForm />
+      <div className="overflow-x-auto pb-1">
+        <div className="grid min-w-[1080px] grid-cols-[1.15fr_0.85fr] gap-6">
+          <PortfolioList
+            portfolios={portfolios}
+            selectedPortfolioId={activePortfolio?.id}
+          />
+          <PortfolioForm />
+        </div>
       </div>
     </div>
   );

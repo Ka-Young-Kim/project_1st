@@ -20,6 +20,15 @@ export async function createPortfolioAssetGroupAction(formData: FormData) {
     redirect(`/portfolios?status=portfolio-asset-group-invalid&portfolio=${portfolioId}`);
   }
 
-  await createPortfolioAssetGroup(parsed.data);
+  try {
+    await createPortfolioAssetGroup(parsed.data);
+  } catch (error) {
+    logger.warn("portfolio.asset_group.create_failed", {
+      portfolioId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    redirect(`/portfolios?status=portfolio-asset-group-invalid&portfolio=${portfolioId}`);
+  }
+
   redirect(`/portfolios?status=portfolio-asset-group-created&portfolio=${portfolioId}`);
 }

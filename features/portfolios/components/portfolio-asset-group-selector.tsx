@@ -4,12 +4,15 @@ import { useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { PORTFOLIO_ASSET_GROUP_OPTIONS } from "@/features/portfolios/lib/asset-group";
+import {
+  PORTFOLIO_ASSET_GROUP_OPTIONS,
+  isResidualAssetGroupName,
+} from "@/features/portfolios/lib/asset-group";
 import { cx } from "@/lib/utils";
 
 const defaultAssetGroupOptions: string[] = PORTFOLIO_ASSET_GROUP_OPTIONS.map(
   (item) => item.value,
-);
+).filter((option) => !isResidualAssetGroupName(option));
 
 export function PortfolioAssetGroupSelector({
   fieldClassName,
@@ -30,7 +33,7 @@ export function PortfolioAssetGroupSelector({
   function addCustomGroup() {
     const trimmed = customGroup.trim();
 
-    if (!trimmed) {
+    if (!trimmed || isResidualAssetGroupName(trimmed)) {
       return;
     }
 

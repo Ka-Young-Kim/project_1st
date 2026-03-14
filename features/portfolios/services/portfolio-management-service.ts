@@ -10,6 +10,11 @@ import {
   PortfolioItemInput,
   PortfolioItemUpdateInput,
 } from "@/features/portfolios/schemas/portfolio-management";
+import {
+  RESIDUAL_ASSET_GROUP_NAME,
+  isResidualAssetGroupName,
+  reconcileAssetGroupWeights,
+} from "@/features/portfolios/lib/asset-group";
 import { getLatestQuotes, getUsdToKrwRate } from "@/lib/market-data/quote-service";
 import { prisma } from "@/lib/prisma";
 import { getTodayRangeInSeoul } from "@/lib/utils";
@@ -56,6 +61,61 @@ function revalidatePortfolioViews() {
   revalidatePath("/portfolios");
   revalidatePath("/portfolios/snapshots");
   revalidatePath("/portfolio-hub");
+}
+
+async function syncResidualAssetGroup(
+  tx: Prisma.TransactionClient,
+  portfolioId: string,
+) {
+  const groups = await tx.portfolioAssetGroup.findMany({
+    where: { portfolioId },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    select: {
+      id: true,
+      name: true,
+      targetWeight: true,
+      sortOrder: true,
+    },
+  });
+
+  const reconciled = reconcileAssetGroupWeights(
+    groups.map((group) => ({
+      id: group.id,
+      name: group.name,
+      targetWeight: Number(group.targetWeight),
+      sortOrder: group.sortOrder,
+    })),
+  );
+
+  if (reconciled.residualGroup) {
+    await tx.portfolioAssetGroup.update({
+      where: { id: reconciled.residualGroup.id },
+      data: {
+        name: RESIDUAL_ASSET_GROUP_NAME,
+        targetWeight: toDecimal(reconciled.residualWeight),
+      },
+    });
+    return;
+  }
+
+  if (!reconciled.shouldCreateResidualGroup) {
+    return;
+  }
+
+  await tx.portfolioAssetGroup.create({
+    data: {
+      portfolioId,
+      name: RESIDUAL_ASSET_GROUP_NAME,
+      targetWeight: toDecimal(reconciled.residualWeight),
+      sortOrder: reconciled.residualSortOrder,
+    },
+  });
+}
+
+async function ensureResidualAssetGroupForPortfolio(portfolioId: string) {
+  await prisma.$transaction(async (tx) => {
+    await syncResidualAssetGroup(tx, portfolioId);
+  });
 }
 
 function buildAccountBuckets(
@@ -405,35 +465,71 @@ export async function deletePortfolioAccount(id: string) {
     return { ok: false as const };
   }
 
-  await prisma.portfolioAccount.delete({
-    where: { id },
-  });
+  await prisma.$transaction([
+    prisma.portfolioItem.updateMany({
+      where: { portfolioAccountId: id },
+      data: { portfolioAccountId: null },
+    }),
+    prisma.portfolioAccount.delete({
+      where: { id },
+    }),
+  ]);
 
   revalidatePortfolioViews();
   return { ok: true as const };
 }
 
 export async function createPortfolioAssetGroup(input: PortfolioAssetGroupInput) {
-  await prisma.portfolioAssetGroup.create({
-    data: {
-      portfolioId: input.portfolioId,
-      name: input.name,
-      targetWeight: toDecimal(input.targetWeight),
-      sortOrder: input.sortOrder,
-    },
+  if (isResidualAssetGroupName(input.name)) {
+    throw new Error("Residual asset group is system managed.");
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.portfolioAssetGroup.create({
+      data: {
+        portfolioId: input.portfolioId,
+        name: input.name,
+        targetWeight: toDecimal(input.targetWeight),
+        sortOrder: input.sortOrder,
+      },
+    });
+
+    await syncResidualAssetGroup(tx, input.portfolioId);
   });
 
   revalidatePortfolioViews();
 }
 
 export async function updatePortfolioAssetGroup(input: PortfolioAssetGroupUpdateInput) {
-  await prisma.portfolioAssetGroup.update({
-    where: { id: input.id },
-    data: {
-      name: input.name,
-      targetWeight: toDecimal(input.targetWeight),
-      sortOrder: input.sortOrder,
-    },
+  await prisma.$transaction(async (tx) => {
+    const existing = await tx.portfolioAssetGroup.findUnique({
+      where: { id: input.id },
+      select: { id: true, name: true, portfolioId: true },
+    });
+
+    if (!existing || existing.portfolioId !== input.portfolioId) {
+      throw new Error(`Portfolio asset group not found: ${input.id}`);
+    }
+
+    if (isResidualAssetGroupName(existing.name)) {
+      await syncResidualAssetGroup(tx, input.portfolioId);
+      return;
+    }
+
+    if (isResidualAssetGroupName(input.name)) {
+      throw new Error("Residual asset group is system managed.");
+    }
+
+    await tx.portfolioAssetGroup.update({
+      where: { id: input.id },
+      data: {
+        name: input.name,
+        targetWeight: toDecimal(input.targetWeight),
+        sortOrder: input.sortOrder,
+      },
+    });
+
+    await syncResidualAssetGroup(tx, input.portfolioId);
   });
 
   revalidatePortfolioViews();
@@ -443,22 +539,30 @@ export async function savePortfolioAssetGroupTargets(
   portfolioId: string,
   targets: Array<{ id: string; targetWeight: string }>,
 ) {
-  const total = targets.reduce((sum, item) => sum + Number(item.targetWeight), 0);
+  await prisma.$transaction(async (tx) => {
+    const groups = await tx.portfolioAssetGroup.findMany({
+      where: { portfolioId },
+      select: { id: true, name: true },
+    });
+    const groupMap = new Map(groups.map((group) => [group.id, group.name]));
 
-  if (Math.abs(total - 100) > 0.0001) {
-    throw new Error("Asset group target weights must sum to 100.");
-  }
+    for (const target of targets) {
+      const groupName = groupMap.get(target.id);
 
-  await prisma.$transaction(
-    targets.map((target) =>
-      prisma.portfolioAssetGroup.update({
+      if (!groupName || isResidualAssetGroupName(groupName)) {
+        continue;
+      }
+
+      await tx.portfolioAssetGroup.update({
         where: { id: target.id },
         data: {
           targetWeight: toDecimal(target.targetWeight),
         },
-      }),
-    ),
-  );
+      });
+    }
+
+    await syncResidualAssetGroup(tx, portfolioId);
+  });
 
   revalidatePortfolioViews();
 }
@@ -468,6 +572,7 @@ export async function deletePortfolioAssetGroup(id: string) {
     where: { id },
     select: {
       portfolioId: true,
+      name: true,
     },
   });
 
@@ -475,19 +580,24 @@ export async function deletePortfolioAssetGroup(id: string) {
     return;
   }
 
-  await prisma.$transaction([
-    prisma.portfolioHolding.updateMany({
+  if (isResidualAssetGroupName(group.name)) {
+    return;
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.portfolioHolding.updateMany({
       where: { portfolioAssetGroupId: id },
       data: { portfolioAssetGroupId: null },
-    }),
-    prisma.portfolioItem.updateMany({
+    });
+    await tx.portfolioItem.updateMany({
       where: { portfolioAssetGroupId: id },
       data: { portfolioAssetGroupId: null },
-    }),
-    prisma.portfolioAssetGroup.delete({
+    });
+    await tx.portfolioAssetGroup.delete({
       where: { id },
-    }),
-  ]);
+    });
+    await syncResidualAssetGroup(tx, group.portfolioId);
+  });
 
   revalidatePortfolioViews();
 }
@@ -667,6 +777,7 @@ export async function unassignPortfolioHolding(portfolioId: string, investmentIt
 
 export async function getPortfolioManagementData(portfolioId: string) {
   await ensurePortfolioItems(portfolioId);
+  await ensureResidualAssetGroupForPortfolio(portfolioId);
 
   const [portfolio, logs, snapshots, availableInvestmentItems] = await Promise.all([
     prisma.portfolio.findUniqueOrThrow({
@@ -803,7 +914,7 @@ export async function getPortfolioManagementData(portfolioId: string) {
       accountName:
         item.portfolioAccount?.nickname?.trim() ||
         item.portfolioAccount?.name ||
-        "미지정 계좌",
+        "미지정",
       accountDisplayId: item.portfolioAccount?.displayId ?? "",
       groupId: item.portfolioAssetGroupId,
       groupName: item.portfolioAssetGroup?.name ?? "미분류",
@@ -963,7 +1074,7 @@ export async function getPortfolioManagementData(portfolioId: string) {
       ? [
           {
             id: "__unassigned__",
-            name: "미지정 계좌",
+            name: "미지정",
             nickname: "",
             displayId: "",
             cashTrackingEnabled: false,

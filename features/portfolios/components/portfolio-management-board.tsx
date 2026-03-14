@@ -21,6 +21,7 @@ import { updatePortfolioAction } from "@/features/portfolios/actions/update-port
 import { updatePortfolioAccountAction } from "@/features/portfolios/actions/update-portfolio-account";
 import { updatePortfolioAssetGroupAction } from "@/features/portfolios/actions/update-portfolio-asset-group";
 import { updatePortfolioItemAction } from "@/features/portfolios/actions/update-portfolio-item";
+import { isResidualAssetGroupName } from "@/features/portfolios/lib/asset-group";
 import { PortfolioAssetGroupSelector } from "@/features/portfolios/components/portfolio-asset-group-selector";
 import { PortfolioSnapshotHistory } from "@/features/portfolios/components/portfolio-snapshot-history";
 import { SettingsDialog } from "@/features/settings/components/settings-dialog";
@@ -38,7 +39,9 @@ const fieldClassName =
 const assetGroupMetricCardClassName =
   "h-full min-w-0 rounded-[1rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] px-3 py-2.5";
 const boardActionButtonClassName =
-  "inline-flex h-9 min-w-[96px] items-center justify-center whitespace-nowrap rounded-[0.95rem] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04))] px-3 py-1.5 text-[13px] font-semibold text-[#dce7ff] transition hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0.06))]";
+  "inline-flex h-8 min-w-[88px] items-center justify-center whitespace-nowrap rounded-[0.9rem] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04))] px-2.5 py-1 text-[12px] font-semibold text-[#dce7ff] transition hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0.06))]";
+const boardInlineAddButtonClassName =
+  "inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04))] text-sm font-semibold text-[#dce7ff] transition hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0.06))]";
 const itemDeleteButtonClassName =
   "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-rose-300/30 bg-[linear-gradient(180deg,rgba(190,24,93,0.14),rgba(190,24,93,0.08))] text-xs font-semibold leading-none text-rose-100 transition hover:bg-[linear-gradient(180deg,rgba(190,24,93,0.2),rgba(190,24,93,0.12))]";
 
@@ -75,7 +78,7 @@ function buildAccountLabel(account: {
 
 function getAccountLabelById(accounts: AccountSummary[], accountId?: string) {
   if (!accountId) {
-    return "미지정 계좌";
+    return "미지정";
   }
 
   const account = accounts.find((candidate) => candidate.id === accountId);
@@ -201,13 +204,13 @@ function ManagementViewToggle({
   ];
 
   return (
-    <div className="inline-flex rounded-full border border-white/10 bg-[rgba(10,19,39,0.92)] p-[2px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+    <div className="inline-flex h-8 w-[122px] rounded-full border border-white/10 bg-[rgba(10,19,39,0.92)] p-[2px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
       {options.map((option) => (
         <button
           key={option.id}
           type="button"
           onClick={() => onChange(option.id)}
-          className={`rounded-full px-2.5 py-1 text-[10px] font-semibold leading-none transition ${
+          className={`flex min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-full px-2 py-[0.42rem] text-[11px] font-semibold leading-none transition ${
             activeView === option.id
               ? "bg-[#5f97ef] text-white shadow-[0_8px_18px_rgba(72,127,223,0.34)]"
               : "bg-transparent text-[#c5d4f2] hover:bg-white/6 hover:text-white"
@@ -323,7 +326,7 @@ function PortfolioItemCreateForm({
                 defaultValue=""
                 className={`${fieldClassName} py-2.5 [&>option]:bg-[#15203a] [&>option]:text-white`}
               >
-                <option value="">미지정 계좌</option>
+                <option value="">미지정</option>
                 {accountOptions.map((account) => (
                   <option key={account.id} value={account.id} className="bg-[#15203a] text-white">
                     {buildAccountLabel(account)}
@@ -392,7 +395,7 @@ function PortfolioItemCreateForm({
                   defaultValue=""
                   className={`${fieldClassName} py-2.5 [&>option]:bg-[#15203a] [&>option]:text-white`}
                 >
-                  <option value="">미지정 계좌</option>
+                  <option value="">미지정</option>
                   {accountOptions.map((account) => (
                     <option key={account.id} value={account.id} className="bg-[#15203a] text-white">
                       {buildAccountLabel(account)}
@@ -510,7 +513,7 @@ function PortfolioItemEditorDialog({
             defaultValue={item.accountId ?? ""}
             className={`${fieldClassName} py-2.5 [&>option]:bg-[#15203a] [&>option]:text-white`}
           >
-            <option value="">미지정 계좌</option>
+            <option value="">미지정</option>
             {accountOptions.map((account) => (
               <option key={account.id} value={account.id} className="bg-[#15203a] text-white">
                 {buildAccountLabel(account)}
@@ -798,16 +801,6 @@ function AccountEditorDialog({
           계좌 저장
         </SubmitButton>
       </form>
-      <form action={deletePortfolioAccountAction} className="mt-3">
-        <input type="hidden" name="id" value={account.id} />
-        <input type="hidden" name="portfolioId" value={portfolioId} />
-        <ConfirmSubmitButton
-          confirmMessage="이 계좌를 삭제하시겠습니까?"
-          className="w-full rounded-2xl border border-rose-300/30 bg-rose-400/10 px-4 py-3 text-sm font-semibold text-rose-100 transition hover:bg-rose-400/20"
-        >
-          삭제
-        </ConfirmSubmitButton>
-      </form>
     </Card>
   );
 }
@@ -912,103 +905,103 @@ export function PortfolioManagementBoard({
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <SummaryBox label="총 투자금" value={formatWon(String(data.summary.investedAmount))} />
-          <SummaryBox label="총 평가금" value={formatWon(String(data.summary.marketValue))} />
-          <SummaryBox
-            label="총 수익금"
-            value={<ProfitTone value={data.summary.profitAmount} suffix="won" />}
-          />
-          <SummaryBox
-            label="총 수익률"
-            value={<ProfitTone value={data.summary.profitRate} />}
-          />
+        <div className="mt-6 overflow-x-auto pb-1">
+          <div className="grid min-w-[760px] grid-cols-4 gap-4">
+            <SummaryBox label="총 투자금" value={formatWon(String(data.summary.investedAmount))} />
+            <SummaryBox label="총 평가금" value={formatWon(String(data.summary.marketValue))} />
+            <SummaryBox
+              label="총 수익금"
+              value={<ProfitTone value={data.summary.profitAmount} suffix="won" />}
+            />
+            <SummaryBox
+              label="총 수익률"
+              value={<ProfitTone value={data.summary.profitRate} />}
+            />
+          </div>
         </div>
       </Card>
 
       <Card className="text-white">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
               Portfolio Dashboard
             </p>
-            <div className="mt-2 flex flex-wrap items-center gap-3">
+            <div className="mt-2 flex h-8 items-center gap-3 whitespace-nowrap">
               <h3 className="text-2xl font-semibold tracking-tight text-white">포트폴리오 상세</h3>
-              <ManagementViewToggle activeView={activeView} onChange={setActiveView} />
+              <SettingsDialog
+                trigger={
+                  <button
+                    type="button"
+                    className={boardInlineAddButtonClassName}
+                    aria-label={activeView === "asset-groups" ? "자산군 추가 열기" : "계좌 추가 열기"}
+                  >
+                    +
+                  </button>
+                }
+              >
+                {activeView === "asset-groups" ? (
+                  <Card className="rounded-[22px] bg-[linear-gradient(180deg,rgba(20,29,53,.98),rgba(17,26,48,.98))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
+                    <h4 className="text-xl font-semibold">자산군 추가</h4>
+                    <form action={createPortfolioAssetGroupAction} className="mt-5 space-y-4">
+                      <input type="hidden" name="portfolioId" value={data.portfolio.id} />
+                      <input type="hidden" name="sortOrder" value={editableAssetGroups.length} />
+                      <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_9.5rem] md:items-start">
+                        <PortfolioAssetGroupSelector fieldClassName={fieldClassName} />
+                        <label className="space-y-1.5">
+                          <span className="text-sm font-medium">초기 비중</span>
+                          <Input
+                            name="targetWeight"
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            defaultValue={editableAssetGroups.length === 0 ? "100" : "0"}
+                            className={`${fieldClassName} py-2.5`}
+                          />
+                        </label>
+                      </div>
+                      <SubmitButton className="w-full" pendingLabel="자산군 저장 중...">
+                        자산군 추가
+                      </SubmitButton>
+                    </form>
+                  </Card>
+                ) : (
+                  <Card className="rounded-[22px] bg-[linear-gradient(180deg,rgba(20,29,53,.98),rgba(17,26,48,.98))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
+                    <h4 className="text-xl font-semibold">새 계좌 추가</h4>
+                    <form action={createPortfolioAccountAction} className="mt-5 space-y-4">
+                      <input type="hidden" name="portfolioId" value={data.portfolio.id} />
+                      <input type="hidden" name="sortOrder" value={realAccounts.length} />
+                      <input type="hidden" name="cashBalance" value="0" />
+                      <input type="hidden" name="cashTrackingEnabled" value="off" />
+                      <div className="grid gap-4 md:grid-cols-2 md:items-start">
+                        <label className="space-y-1.5">
+                          <span className="text-sm font-medium">은행</span>
+                          <Input name="name" required className={`${fieldClassName} py-2.5`} />
+                        </label>
+                        <label className="space-y-1.5">
+                          <span className="text-sm font-medium">계좌 번호</span>
+                          <Input name="displayId" required className={`${fieldClassName} py-2.5`} />
+                        </label>
+                      </div>
+                      <label className="space-y-1.5">
+                        <span className="text-sm font-medium">별명 (선택)</span>
+                        <Input name="nickname" className={`${fieldClassName} py-2.5`} />
+                      </label>
+                      <div className="pt-1">
+                        <SubmitButton className="w-full" pendingLabel="계좌 저장 중...">
+                          계좌 추가
+                        </SubmitButton>
+                      </div>
+                    </form>
+                  </Card>
+                )}
+              </SettingsDialog>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <SettingsDialog
-              trigger={
-                <button type="button" className={boardActionButtonClassName}>
-                  자산군 추가
-                </button>
-              }
-            >
-              <Card className="rounded-[22px] bg-[linear-gradient(180deg,rgba(20,29,53,.98),rgba(17,26,48,.98))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
-                <h4 className="text-xl font-semibold">자산군 추가</h4>
-                <form action={createPortfolioAssetGroupAction} className="mt-5 space-y-4">
-                  <input type="hidden" name="portfolioId" value={data.portfolio.id} />
-                  <input type="hidden" name="sortOrder" value={editableAssetGroups.length} />
-                  <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_9.5rem] md:items-start">
-                    <PortfolioAssetGroupSelector fieldClassName={fieldClassName} />
-                    <label className="space-y-1.5">
-                      <span className="text-sm font-medium">초기 비중</span>
-                      <Input
-                        name="targetWeight"
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="0.01"
-                        defaultValue={editableAssetGroups.length === 0 ? "100" : "0"}
-                        className={`${fieldClassName} py-2.5`}
-                      />
-                    </label>
-                  </div>
-                  <SubmitButton className="w-full" pendingLabel="자산군 저장 중...">
-                    자산군 추가
-                  </SubmitButton>
-                </form>
-              </Card>
-            </SettingsDialog>
-
-            <SettingsDialog
-              trigger={
-                <button type="button" className={boardActionButtonClassName}>
-                  계좌 정보 추가
-                </button>
-              }
-            >
-              <Card className="rounded-[22px] bg-[linear-gradient(180deg,rgba(20,29,53,.98),rgba(17,26,48,.98))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
-                <h4 className="text-xl font-semibold">새 계좌 추가</h4>
-                <form action={createPortfolioAccountAction} className="mt-5 space-y-4">
-                  <input type="hidden" name="portfolioId" value={data.portfolio.id} />
-                  <input type="hidden" name="sortOrder" value={realAccounts.length} />
-                  <input type="hidden" name="cashBalance" value="0" />
-                  <input type="hidden" name="cashTrackingEnabled" value="off" />
-                  <div className="grid gap-4 md:grid-cols-2 md:items-start">
-                    <label className="space-y-1.5">
-                      <span className="text-sm font-medium">은행</span>
-                      <Input name="name" required className={`${fieldClassName} py-2.5`} />
-                    </label>
-                    <label className="space-y-1.5">
-                      <span className="text-sm font-medium">계좌 번호</span>
-                      <Input name="displayId" required className={`${fieldClassName} py-2.5`} />
-                    </label>
-                  </div>
-                  <label className="space-y-1.5">
-                    <span className="text-sm font-medium">별명 (선택)</span>
-                    <Input name="nickname" className={`${fieldClassName} py-2.5`} />
-                  </label>
-                  <div className="pt-1">
-                    <SubmitButton className="w-full" pendingLabel="계좌 저장 중...">
-                      계좌 추가
-                    </SubmitButton>
-                  </div>
-                </form>
-              </Card>
-            </SettingsDialog>
+          <div className="flex h-7 w-[86px] shrink-0 items-center justify-end">
+            <ManagementViewToggle activeView={activeView} onChange={setActiveView} />
           </div>
         </div>
 
@@ -1017,6 +1010,7 @@ export function PortfolioManagementBoard({
             <div className="grid grid-cols-1 gap-6">
               {data.assetGroups.map((group) => {
                 const isCashGroup = group.name === "현금";
+                const isResidualGroup = isResidualAssetGroupName(group.name);
                 const visibleItemCount = isCashGroup ? cashAccounts.length : group.items.length;
 
                 return (
@@ -1024,17 +1018,22 @@ export function PortfolioManagementBoard({
                     key={group.id}
                     className="overflow-hidden rounded-[2rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] shadow-[0_8px_30px_rgba(0,0,0,0.18)]"
                   >
-                    <div className="border-b border-white/8 px-5 py-3">
+                    <div className="border-b border-white/8 px-5 py-2.5">
                       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                         <div className="flex min-w-0 items-center gap-4">
-                          <div className="grid h-14 w-14 shrink-0 place-items-center rounded-[1.2rem] border border-white/8 bg-[rgba(255,255,255,0.09)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-[1rem] border border-white/8 bg-[rgba(255,255,255,0.09)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                             <AssetGroupIcon name={group.name} />
                           </div>
                           <div className="min-w-0 self-center">
                             <div className="flex flex-wrap items-center gap-2">
-                              <h4 className="text-[1.25rem] font-semibold leading-none tracking-tight text-white">
+                              <h4 className="text-[1.15rem] font-semibold leading-none tracking-tight text-white">
                                 {group.name}
                               </h4>
+                              {isResidualGroup ? (
+                                <span className="rounded-full border border-[#8fb6ff]/22 bg-[#8fb6ff]/12 px-3 py-1 text-xs font-semibold text-[#dce7ff]">
+                                  잔여 비중
+                                </span>
+                              ) : null}
                               {group.isSynthetic ? (
                                 <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-[#cdd9f2]">
                                   자동 계산
@@ -1047,7 +1046,7 @@ export function PortfolioManagementBoard({
                           <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-[#cdd9f2]">
                             {visibleItemCount}개 항목
                           </span>
-                          {!group.isSynthetic ? (
+                          {!group.isSynthetic && !isResidualGroup ? (
                             <form action={deletePortfolioAssetGroupAction}>
                               <input type="hidden" name="id" value={group.id} />
                               <input type="hidden" name="portfolioId" value={data.portfolio.id} />
@@ -1064,8 +1063,9 @@ export function PortfolioManagementBoard({
                     </div>
 
                     <div className="space-y-4 px-5 py-4">
-                      <div className="grid grid-cols-2 gap-3 xl:grid-cols-5">
-                        {group.isSynthetic ? (
+                      <div className="overflow-x-auto pb-1">
+                        <div className="grid min-w-[760px] grid-cols-5 gap-3">
+                        {group.isSynthetic || isResidualGroup ? (
                           <div className={assetGroupMetricCardClassName}>
                             <p className="text-[10px] text-[#93a4c7]">비중</p>
                             <p className="mt-1.5 whitespace-nowrap text-[0.92rem] font-bold tracking-tight text-white">
@@ -1137,17 +1137,18 @@ export function PortfolioManagementBoard({
                             <ProfitTone value={group.profitRate} />
                           </p>
                         </div>
-                        <div className={assetGroupMetricCardClassName}>
-                          <p className="text-[10px] text-[#93a4c7]">리밸런싱</p>
-                          <p className="mt-1.5 whitespace-nowrap text-[0.92rem] font-semibold tracking-tight">
-                            {group.buyAmount > 0 ? (
-                              <span className="text-[#7cf2c9]">+{formatWon(String(group.buyAmount))}</span>
-                            ) : group.sellAmount > 0 ? (
-                              <span className="text-[#ff8e8e]">-{formatWon(String(group.sellAmount))}</span>
-                            ) : (
-                              <span className="text-white">-</span>
-                            )}
-                          </p>
+                          <div className={assetGroupMetricCardClassName}>
+                            <p className="text-[10px] text-[#93a4c7]">리밸런싱</p>
+                            <p className="mt-1.5 whitespace-nowrap text-[0.92rem] font-semibold tracking-tight">
+                              {group.buyAmount > 0 ? (
+                                <span className="text-[#ff8e8e]">+{formatWon(String(group.buyAmount))}</span>
+                              ) : group.sellAmount > 0 ? (
+                                <span className="text-[#8fb6ff]">-{formatWon(String(group.sellAmount))}</span>
+                              ) : (
+                                <span className="text-white">-</span>
+                              )}
+                            </p>
+                          </div>
                         </div>
                       </div>
 
@@ -1279,41 +1280,71 @@ export function PortfolioManagementBoard({
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-lg font-semibold">{getAccountTitle(account)}</p>
-                          {account.id.startsWith("__") ? (
-                            <Badge tone="info" compact>
-                              자동 구분
-                            </Badge>
-                          ) : null}
-                        </div>
-                        {getAccountMeta(account) ? (
-                          <p className="mt-1 text-xs text-[#93a4c7]">{getAccountMeta(account)}</p>
-                        ) : null}
+                        {account.id.startsWith("__") ? (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <p className="text-lg font-semibold">{getAccountTitle(account)}</p>
+                              <Badge tone="info" compact>
+                                자동 구분
+                              </Badge>
+                            </div>
+                            {getAccountMeta(account) ? (
+                              <p className="mt-1 text-xs text-[#93a4c7]">{getAccountMeta(account)}</p>
+                            ) : null}
+                          </>
+                        ) : (
+                          <SettingsDialog
+                            trigger={
+                              <button
+                                type="button"
+                                className="group rounded-[0.9rem] border border-transparent bg-transparent px-0 py-0 text-left transition"
+                                aria-label={`${getAccountTitle(account)} 계좌 수정 열기`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <p className="text-lg font-semibold transition group-hover:text-[#8fb0ec]">
+                                    {getAccountTitle(account)}
+                                  </p>
+                                  <span className="text-xs font-semibold text-[#8ea4cf] opacity-0 transition group-hover:opacity-100">
+                                    수정
+                                  </span>
+                                </div>
+                                {getAccountMeta(account) ? (
+                                  <p className="mt-1 text-xs text-[#93a4c7] transition group-hover:text-[#bfd2f8]">
+                                    {getAccountMeta(account)}
+                                  </p>
+                                ) : null}
+                              </button>
+                            }
+                          >
+                            <AccountEditorDialog portfolioId={data.portfolio.id} account={account} />
+                          </SettingsDialog>
+                        )}
                       </div>
                       {!account.id.startsWith("__") ? (
-                        <SettingsDialog
-                          trigger={
-                            <button
-                              type="button"
-                              className="rounded-full border border-[var(--border)] bg-white/4 px-4 py-2 text-sm font-semibold text-[#cfe1ff] transition hover:bg-white/8"
+                        <div className="flex items-center gap-2">
+                          <form action={deletePortfolioAccountAction}>
+                            <input type="hidden" name="id" value={account.id} />
+                            <input type="hidden" name="portfolioId" value={data.portfolio.id} />
+                            <ConfirmSubmitButton
+                              confirmMessage="이 계좌를 삭제하시겠습니까? 연결된 항목은 미지정으로 이동됩니다."
+                              className={itemDeleteButtonClassName}
                             >
-                              수정
-                            </button>
-                          }
-                        >
-                          <AccountEditorDialog portfolioId={data.portfolio.id} account={account} />
-                        </SettingsDialog>
+                              ×
+                            </ConfirmSubmitButton>
+                          </form>
+                        </div>
                       ) : null}
                     </div>
 
-                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                      <SummaryBox label="평가금" value={formatWon(String(account.marketValue))} />
-                      <SummaryBox label="투자금" value={formatWon(String(account.investedAmount))} />
-                      <SummaryBox
-                        label="수익률"
-                        value={<ProfitTone value={account.profitRate} />}
-                      />
+                    <div className="mt-4 overflow-x-auto pb-1">
+                      <div className="grid min-w-[560px] grid-cols-3 gap-3">
+                        <SummaryBox label="평가금" value={formatWon(String(account.marketValue))} />
+                        <SummaryBox label="투자금" value={formatWon(String(account.investedAmount))} />
+                        <SummaryBox
+                          label="수익률"
+                          value={<ProfitTone value={account.profitRate} />}
+                        />
+                      </div>
                     </div>
 
                     <div className="mt-4 overflow-hidden rounded-[1rem] border border-white/8 bg-black/15">
