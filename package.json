@@ -2,6 +2,7 @@
   "name": "project_1st",
   "version": "0.1.0",
   "private": true,
+  "main": "desktop/main.cjs",
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0",
     "dev:webpack": "next dev --webpack --hostname 0.0.0.0",
@@ -15,12 +16,15 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:push": "node scripts/prisma-db-push.mjs",
-    "db:reset:e2e": "node scripts/reset-e2e-db.mjs"
+    "db:reset:e2e": "node scripts/reset-e2e-db.mjs",
+    "desktop:dev": "node scripts/desktop-dev.mjs",
+    "desktop:build:win": "node scripts/desktop-build.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.16.2",
     "jose": "^6.2.0",
     "next": "16.1.6",
+    "prisma": "^6.16.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "zod": "^4.3.6"
@@ -33,14 +37,109 @@
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^5.1.4",
     "@vitest/coverage-v8": "^4.0.18",
+    "electron": "^41.0.2",
+    "electron-builder": "^26.8.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "magicast": "^0.3.5",
     "playwright": "^1.58.2",
     "prettier": "^3.8.1",
-    "prisma": "^6.16.2",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.0.18"
+  },
+  "build": {
+    "appId": "com.kayoungkim.finance-dashboard",
+    "productName": "Finance Dashboard",
+    "asar": true,
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "desktop/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "node_modules/.prisma/**/*",
+      "node_modules/@prisma/engines/**/*",
+      "node_modules/prisma/**/*",
+      "**/*.node"
+    ],
+    "extraResources": [
+      {
+        "from": ".next/standalone",
+        "to": "server",
+        "filter": [
+          "**/*",
+          "!**/.env",
+          "!**/.env.*",
+          "!**/.playwright-cli/**",
+          "!**/coverage/**",
+          "!**/data/**",
+          "!**/desktop/**",
+          "!**/dist-electron/**",
+          "!**/docs/**",
+          "!**/output/**",
+          "!**/playwright-report/**",
+          "!**/prisma/**",
+          "!**/public/**",
+          "!**/scripts/**",
+          "!**/test-results/**",
+          "!**/tests/**",
+          "!**/*.md",
+          "!**/AGENTS.md",
+          "!**/docker-compose.yml",
+          "!**/Dockerfile",
+          "!**/eslint.config.mjs",
+          "!**/playwright.config.ts",
+          "!**/postcss.config.mjs",
+          "!**/prettier.config.mjs",
+          "!**/package-lock.json",
+          "!**/tsconfig*.json",
+          "!**/*.tsbuildinfo",
+          "!**/vitest.config.ts"
+        ]
+      },
+      {
+        "from": ".next/standalone/node_modules",
+        "to": "server/node_modules",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": ".next/static",
+        "to": "server/.next/static",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "public",
+        "to": "server/public",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "prisma",
+        "to": "server/prisma",
+        "filter": [
+          "schema.prisma",
+          "migrations/**/*"
+        ]
+      }
+    ],
+    "win": {
+      "signAndEditExecutable": false,
+      "target": [
+        {
+          "target": "dir",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
   }
 }

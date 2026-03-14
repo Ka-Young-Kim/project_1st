@@ -21,6 +21,8 @@
 /.next-e2e/
 /.next-run/
 /out/
+/dist-electron/
+/.next-desktop/
 
 # production
 /build
@@ -42,6 +44,7 @@ yarn-error.log*
 # local database
 /prisma/*.db
 /prisma/*.db-journal
+/data/
 
 # vercel
 .vercel

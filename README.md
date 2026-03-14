@@ -42,6 +42,24 @@ npm run db:push
 npm run dev
 ```
 
+## Windows 포터블 앱
+
+Electron 기반 Windows 폴더형 포터블 앱 빌드를 지원합니다.
+
+- 데스크톱 개발 실행
+
+```bash
+npm run desktop:dev
+```
+
+- Windows x64 폴더형 포터블 빌드
+
+```bash
+npm run desktop:build:win
+```
+
+포터블 앱은 실행 파일이 있는 폴더 아래 `data/` 디렉터리를 생성하고, `app.db`, `config.json`, `logs/`를 그 안에 저장합니다. 기본 로그인 비밀번호는 최초 실행 시 `config.json`에 기록되며 기본값은 `changeme1234`입니다.
+
 ## 품질 규칙
 
 ```bash
