@@ -15,7 +15,7 @@ type RecentTrade = {
 
 export function RecentTrades({ items }: Readonly<{ items: RecentTrade[] }>) {
   return (
-    <Card className="overflow-hidden">
+    <Card surface="panel" className="overflow-hidden">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">
@@ -26,12 +26,12 @@ export function RecentTrades({ items }: Readonly<{ items: RecentTrade[] }>) {
             최근 5개 거래 기록과 투자 이유를 확인합니다.
           </p>
         </div>
-        <div className="rounded-full bg-[#e3eff7] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#145678]">
+        <div className="rounded-full border border-[rgba(110,168,254,0.18)] bg-[rgba(110,168,254,0.12)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#d6e5ff]">
           {items.length} logs
         </div>
       </div>
 
-      <div className="mt-6 space-y-4">
+      <div className="mt-4 space-y-3">
         {items.length === 0 ? (
           <EmptyState
             title="기록된 거래가 없습니다"
@@ -41,29 +41,29 @@ export function RecentTrades({ items }: Readonly<{ items: RecentTrade[] }>) {
           items.map((item) => (
             <article
               key={item.id}
-              className="rounded-[1.5rem] border border-[rgba(255,255,255,0.08)] bg-[linear-gradient(180deg,#f7f8fb,#eef3fa)] p-5 text-[#0f172a] transition hover:-translate-y-0.5 hover:border-[#145678]/25"
+              className="rounded-[1rem] border border-[rgba(255,255,255,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] p-4 text-white transition hover:-translate-y-0.5 hover:border-[#8fb6ff]/25"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-lg font-semibold text-[#0f172a]">
+                    <h3 className="text-base font-semibold text-white">
                       {item.symbol}
                     </h3>
                     <Badge tone={item.action}>{formatTradeActionLabel(item.action)}</Badge>
                   </div>
-                  <p className="mt-2 text-sm text-[#64748b]">
+                  <p className="mt-1.5 text-[13px] text-[var(--muted)]">
                     {formatDisplayDate(item.tradeDate)} · {item.quantity}주 ·{" "}
                     {formatCurrency(item.price)}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-[#d7deea] bg-white/95 px-3 py-2 text-right text-[#0f172a]">
+                <div className="rounded-[1rem] border border-white/10 bg-white/6 px-2.5 py-1.5 text-right text-white">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7c93b7]">
                     Position
                   </p>
                   <p className="mt-1 text-sm font-semibold">{item.quantity}주</p>
                 </div>
               </div>
-              <p className="mt-4 text-sm leading-6 text-[#334155]">{item.reason}</p>
+              <p className="mt-3 text-[13px] leading-5 text-[#d8e4ff]">{item.reason}</p>
             </article>
           ))
         )}

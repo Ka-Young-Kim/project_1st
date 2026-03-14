@@ -6,20 +6,12 @@ import {
   createInvestmentItem,
   DuplicateInvestmentItemError,
 } from "@/features/investment-items/services/investment-item-service";
+import { buildInvestmentItemCode } from "@/features/investment-items/lib/internal-code";
 import { createJournalEntry } from "@/features/journal/services/journal-service";
 import { assignPortfolioHolding } from "@/features/portfolios/services/portfolio-management-service";
 import { getTodayDateInputInSeoul } from "@/lib/utils";
 
 function getCategoryByGroupName(groupName: string) {
-  if (groupName === "금") {
-    return {
-      category: "gold" as const,
-      industry: "현물",
-      currency: "KRW",
-      exchange: "",
-    };
-  }
-
   if (groupName === "채권") {
     return {
       category: "bond" as const,
@@ -35,18 +27,6 @@ function getCategoryByGroupName(groupName: string) {
     currency: "KRW",
     exchange: "",
   };
-}
-
-function generateManualCode(name: string, index: number) {
-  const digits = Date.now().toString().slice(-6);
-  const normalizedName = name
-    .trim()
-    .replace(/\s+/g, "")
-    .toUpperCase()
-    .replace(/[^A-Z0-9가-힣]/g, "")
-    .slice(0, 8);
-
-  return `${normalizedName || "MANUAL"}${digits}${index}`.slice(0, 20);
 }
 
 export async function createManualPortfolioHoldingsAction(formData: FormData) {
@@ -95,7 +75,12 @@ export async function createManualPortfolioHoldingsAction(formData: FormData) {
       const item = await createInvestmentItem({
         portfolioId,
         name: row.name,
-        code: row.code || generateManualCode(row.name, index),
+        code: buildInvestmentItemCode({
+          name: row.name,
+          category: base.category,
+          providedCode: row.code,
+          index,
+        }),
         quoteSymbol: "",
         exchange: base.exchange,
         currency: base.currency,

@@ -12,7 +12,7 @@ type UpcomingTodo = {
 
 export function UpcomingTodos({ items }: Readonly<{ items: UpcomingTodo[] }>) {
   return (
-    <Card className="overflow-hidden">
+    <Card surface="panel" className="overflow-hidden">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">
@@ -28,7 +28,7 @@ export function UpcomingTodos({ items }: Readonly<{ items: UpcomingTodo[] }>) {
         </div>
       </div>
 
-      <div className="mt-6 space-y-4">
+      <div className="mt-4 space-y-3">
         {items.length === 0 ? (
           <EmptyState
             title="미완료 TODO가 없습니다"
@@ -38,17 +38,17 @@ export function UpcomingTodos({ items }: Readonly<{ items: UpcomingTodo[] }>) {
           items.map((item, index) => (
             <article
               key={item.id}
-              className="group flex flex-col gap-4 rounded-[1.5rem] border border-[rgba(255,255,255,0.08)] bg-[linear-gradient(180deg,#f7f8fb,#eef3fa)] p-5 text-[#0f172a] transition hover:-translate-y-0.5 hover:border-[#6ea8fe]/35 md:flex-row md:items-center md:justify-between"
+              className="group flex flex-col gap-3 rounded-[1rem] border border-[rgba(255,255,255,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] p-4 text-white transition hover:-translate-y-0.5 hover:border-[#6ea8fe]/35 md:flex-row md:items-center md:justify-between"
             >
-              <div className="flex items-start gap-4">
-                <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-[#0f172a] text-sm font-semibold text-white">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(110,168,254,0.16)] text-[13px] font-semibold text-white">
                   {index + 1}
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-[#0f172a]">
+                  <h3 className="text-base font-semibold text-white">
                     {item.title}
                   </h3>
-                  <p className="mt-2 text-sm text-[#64748b]">
+                  <p className="mt-1.5 text-[13px] text-[var(--muted)]">
                     마감일: {item.dueDate ? formatDateInput(item.dueDate) : "미지정"}
                   </p>
                 </div>

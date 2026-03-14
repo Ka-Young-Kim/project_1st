@@ -20,17 +20,34 @@ export async function AppShell({
     resolvePortfolioId(),
   ]);
   const brandInitial = settings.brandName.trim().charAt(0) || "₩";
+  const portfolioSwitcherFallback = (
+    <div className="w-full max-w-[22rem] animate-pulse rounded-[1.15rem] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.025))] px-4 py-3">
+      <div className="h-3 w-20 rounded-full bg-white/8" />
+      <div className="mt-2 h-5 w-40 rounded-full bg-white/10" />
+    </div>
+  );
+  const portfolioSwitcherPanel = (
+    <Suspense fallback={portfolioSwitcherFallback}>
+      <div className="w-full max-w-[22rem]">
+        <PortfolioSwitcher
+          portfolios={portfolios}
+          compact
+          defaultSelectedId={activePortfolio?.id}
+        />
+      </div>
+    </Suspense>
+  );
 
   return (
     <div className="page-shell admin-shell">
-      <div className="page-container grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-        <aside className="admin-sidebar h-fit rounded-[22px] p-5 lg:sticky lg:top-6 lg:h-[calc(100vh-48px)] lg:overflow-y-auto lg:rounded-[22px] lg:border lg:border-[var(--border)]">
-          <div className="flex min-h-full flex-col gap-6">
+      <div className="page-container grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <aside className="admin-sidebar h-fit rounded-[24px] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(8,14,28,.98),rgba(10,16,31,.96))] p-5 lg:sticky lg:top-6 lg:h-[calc(100vh-48px)] lg:overflow-y-auto">
+          <div className="flex min-h-full flex-col gap-5">
             <SettingsDialog
               trigger={
                 <button
                   type="button"
-                  className="flex w-full flex-col items-center rounded-[24px] border border-[var(--border)] bg-white/3 px-4 py-6 text-center transition hover:bg-white/5"
+                  className="flex w-full flex-col items-center rounded-[22px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] px-4 py-5 text-center transition hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04))]"
                 >
                   {settings.brandImageUrl ? (
                     <div className="overflow-hidden rounded-full shadow-[0_14px_40px_rgba(0,0,0,.28)]">
@@ -48,10 +65,10 @@ export async function AppShell({
                     </div>
                   )}
                   <div className="mt-4">
-                    <h1 className="text-xl font-semibold leading-tight">
+                    <h1 className="text-[1.35rem] font-semibold leading-tight tracking-tight">
                       {settings.brandName}
                     </h1>
-                    <p className="mt-1 text-sm text-[var(--muted)]">
+                    <p className="mt-1 text-[13px] text-[var(--muted)]">
                       {settings.brandSubtitle}
                     </p>
                   </div>
@@ -62,7 +79,7 @@ export async function AppShell({
             </SettingsDialog>
 
             <div>
-              <p className="px-3 text-xs uppercase tracking-[0.08em] text-[var(--muted)]">
+              <p className="px-3 text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
                 Main
               </p>
               <div className="mt-3">
@@ -76,10 +93,12 @@ export async function AppShell({
               trigger={
                 <button
                   type="button"
-                  className="w-full rounded-[18px] border border-[var(--border)] bg-white/3 p-4 text-left transition hover:bg-white/5"
+                  className="w-full rounded-[18px] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-4 text-left transition hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04))]"
                 >
-                  <h4 className="text-sm font-semibold text-white/90">오늘의 원칙</h4>
-                  <p className="mt-2 line-clamp-4 text-sm leading-6 text-[var(--muted)]">
+                  <h4 className="text-sm font-semibold uppercase tracking-[0.16em] text-white/90">
+                    오늘의 원칙
+                  </h4>
+                  <p className="mt-2.5 line-clamp-4 text-[13px] leading-6 text-[var(--muted)]">
                     {settings.monthlyPrinciple}
                   </p>
                 </button>
@@ -90,24 +109,29 @@ export async function AppShell({
 
             <div className="mt-auto space-y-3 pt-2">
               <SidebarSummary summary={summary} />
-              <div className="rounded-[18px] border border-[var(--border)] bg-white/3 p-3">
+              <div className="rounded-[16px] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-2.5">
                 <LogoutButton />
               </div>
             </div>
           </div>
         </aside>
 
-        <main className="space-y-6 p-6">
-          <div className="flex justify-end">
-            <Suspense fallback={null}>
-              <PortfolioSwitcher
-                portfolios={portfolios}
-                compact
-                defaultSelectedId={activePortfolio?.id}
-              />
-            </Suspense>
+        <main className="min-w-0 2xl:grid 2xl:grid-cols-[minmax(0,1fr)_280px] 2xl:items-start 2xl:gap-4">
+          <div className="space-y-6">
+            <div className="glass-panel rounded-[22px] border border-white/8 bg-[linear-gradient(180deg,rgba(12,19,37,.94),rgba(9,14,28,.96))] px-5 py-3.5 shadow-[0_14px_30px_rgba(2,8,23,.22)]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#93a4c7]">
+                Workspace
+              </p>
+              <p className="mt-1 text-[13px] text-[#dbe7ff]">
+                포트폴리오 흐름과 기록 작업을 한 화면 흐름으로 정리했습니다.
+              </p>
+            </div>
+            <div className="2xl:hidden">{portfolioSwitcherPanel}</div>
+            <div className="space-y-6">{children}</div>
           </div>
-          {children}
+          <div className="hidden 2xl:block 2xl:sticky 2xl:top-6 2xl:self-start 2xl:z-30">
+            {portfolioSwitcherPanel}
+          </div>
         </main>
       </div>
     </div>

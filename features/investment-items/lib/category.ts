@@ -2,7 +2,6 @@ export const INVESTMENT_ITEM_CATEGORIES = [
   { value: "stock", label: "주식" },
   { value: "etf", label: "ETF" },
   { value: "bond", label: "채권" },
-  { value: "gold", label: "금" },
   { value: "other", label: "기타" },
 ] as const;
 
@@ -23,7 +22,6 @@ export const INVESTMENT_ITEM_INDUSTRIES = {
     "지수",
     "해외지수",
     "채권",
-    "금",
     "원자재",
     "배당",
     "섹터",
@@ -36,12 +34,6 @@ export const INVESTMENT_ITEM_INDUSTRIES = {
     "장기채",
     "기타",
   ],
-  gold: [
-    "현물",
-    "금통장",
-    "원자재",
-    "기타",
-  ],
   other: [
     "기타",
   ],
@@ -49,6 +41,10 @@ export const INVESTMENT_ITEM_INDUSTRIES = {
 
 export type InvestmentItemCategory =
   (typeof INVESTMENT_ITEM_CATEGORIES)[number]["value"];
+
+export function isCodeManagedCategory(category: InvestmentItemCategory) {
+  return category === "stock" || category === "etf";
+}
 
 export function normalizeInvestmentItemCategory(value?: string | null) {
   const normalized = value?.trim().toLowerCase();
@@ -63,10 +59,6 @@ export function normalizeInvestmentItemCategory(value?: string | null) {
 
   if (["etf"].includes(normalized)) {
     return "etf" as const;
-  }
-
-  if (["gold", "금"].includes(normalized)) {
-    return "gold" as const;
   }
 
   if (["bond", "채권"].includes(normalized)) {
@@ -95,6 +87,10 @@ export function normalizeInvestmentItemIndustry(
   category: InvestmentItemCategory,
   value?: string | null,
 ) {
+  if (!isCodeManagedCategory(category)) {
+    return "";
+  }
+
   const trimmed = value?.trim();
 
   if (!trimmed) {

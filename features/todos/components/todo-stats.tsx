@@ -29,19 +29,20 @@ const cards = (summary: TodoStatsProps["summary"]) => [
 
 export function TodoStats({ summary }: Readonly<TodoStatsProps>) {
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-3 md:grid-cols-3 md:items-stretch">
       {cards(summary).map((item) => (
         <Card
           key={item.label}
-          className="bg-[linear-gradient(180deg,rgba(20,29,53,.96),rgba(17,26,48,.96))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]"
+          surface="metric"
+          className="flex min-h-[7.75rem] flex-col rounded-[16px] p-3.5"
         >
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
             {item.label}
           </p>
-          <p className="mt-3 text-3xl font-semibold tracking-tight text-white">
+          <p className="mt-2 flex-1 text-[1.45rem] font-semibold tracking-tight text-white">
             {item.value}
           </p>
-          <p className="mt-2 text-sm leading-6 text-[#93a4c7]">{item.description}</p>
+          <p className="text-[13px] text-[#93a4c7]">{item.description}</p>
         </Card>
       ))}
     </div>

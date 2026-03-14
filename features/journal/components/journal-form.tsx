@@ -1,10 +1,15 @@
 import Link from "next/link";
+import { Fragment } from "react";
 
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  InvestmentItemCategory,
+  isCodeManagedCategory,
+} from "@/features/investment-items/lib/category";
 import { createJournal } from "@/features/journal/actions/create-journal";
 import { TradeActionToggle } from "@/features/journal/components/trade-action-toggle";
 import { getTodayDateInputInSeoul } from "@/lib/utils";
@@ -13,6 +18,7 @@ type JournalFormItemOption = {
   id: string;
   name: string;
   code: string;
+  category: InvestmentItemCategory;
 };
 
 type JournalFormAccountOption = {
@@ -25,38 +31,42 @@ export function JournalForm({
   items,
   accounts,
   portfolioId,
+  embedded = false,
 }: Readonly<{
   items: JournalFormItemOption[];
   accounts: JournalFormAccountOption[];
   portfolioId: string;
+  embedded?: boolean;
 }>) {
   const today = getTodayDateInputInSeoul();
-  const fieldClassName =
-    "appearance-none border-white/12 !bg-[rgba(255,255,255,0.04)] !text-white placeholder:!text-[#6f83aa] shadow-none [color-scheme:dark] focus:border-[#6ea8fe] focus:ring-[rgba(110,168,254,0.16)]";
   const itemsHref = `/items?${new URLSearchParams({ portfolio: portfolioId }).toString()}`;
+  const Wrapper = embedded ? Fragment : Card;
+  const wrapperProps = embedded ? {} : { className: "h-fit" };
 
   if (items.length === 0) {
     return (
-      <Card className="h-fit bg-[linear-gradient(180deg,rgba(20,29,53,.96),rgba(17,26,48,.96))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div>
+      <Wrapper {...wrapperProps}>
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className={embedded ? "pr-14" : ""}>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
               Composer
             </p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+            <h2 className="mt-2 text-[1.35rem] font-semibold tracking-tight">
               새 투자일지 추가
             </h2>
-            <p className="mt-2 text-sm leading-6 text-[#93a4c7]">
+            <p className="mt-1.5 text-[13px] leading-5 text-[#93a4c7]">
               투자일지는 등록된 항목을 기준으로 작성합니다.
             </p>
           </div>
 
-          <div className="inline-flex h-10 items-center rounded-full border border-[rgba(110,168,254,0.22)] bg-[rgba(110,168,254,0.1)] px-4 text-sm font-semibold text-[#cfe1ff]">
-            Quick Log
-          </div>
+          {embedded ? null : (
+            <div className="inline-flex h-9 items-center rounded-full border border-[rgba(110,168,254,0.22)] bg-[rgba(110,168,254,0.1)] px-3.5 text-[13px] font-semibold text-[#cfe1ff]">
+              Quick Log
+            </div>
+          )}
         </div>
 
-        <div className="mt-6 rounded-[1.4rem] border border-dashed border-white/10 bg-black/10 px-5 py-6">
+        <div className="mt-5 rounded-[1rem] border border-dashed border-white/10 bg-black/10 px-4 py-5">
           <h3 className="text-lg font-semibold text-white">
             먼저 투자 항목을 추가하세요
           </h3>
@@ -66,38 +76,40 @@ export function JournalForm({
           </p>
           <Link
             href={itemsHref}
-            className="mt-4 inline-flex h-11 items-center rounded-full border border-[rgba(110,168,254,0.28)] bg-[rgba(110,168,254,0.12)] px-5 text-sm font-semibold text-[#cfe1ff] transition hover:bg-[rgba(110,168,254,0.18)]"
+            className="mt-4 inline-flex h-10 items-center rounded-full border border-[rgba(110,168,254,0.28)] bg-[rgba(110,168,254,0.12)] px-4 text-sm font-semibold text-[#cfe1ff] transition hover:bg-[rgba(110,168,254,0.18)]"
           >
             투자 항목 관리로 이동
           </Link>
         </div>
-      </Card>
+      </Wrapper>
     );
   }
 
   return (
-    <Card className="h-fit bg-[linear-gradient(180deg,rgba(20,29,53,.96),rgba(17,26,48,.96))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div>
+    <Wrapper {...wrapperProps}>
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div className={embedded ? "pr-14" : ""}>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
             Composer
           </p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+          <h2 className="mt-2 text-[1.35rem] font-semibold tracking-tight">
             새 투자일지 추가
           </h2>
-          <p className="mt-2 text-sm leading-6 text-[#93a4c7]">
+          <p className="mt-1.5 text-[13px] leading-5 text-[#93a4c7]">
             종목별 투자 일지를 작성해주세요.
           </p>
         </div>
 
-        <div className="inline-flex h-10 items-center rounded-full border border-[rgba(110,168,254,0.22)] bg-[rgba(110,168,254,0.1)] px-4 text-sm font-semibold text-[#cfe1ff]">
-          Quick Log
-        </div>
+        {embedded ? null : (
+          <div className="inline-flex h-9 items-center rounded-full border border-[rgba(110,168,254,0.22)] bg-[rgba(110,168,254,0.1)] px-3.5 text-[13px] font-semibold text-[#cfe1ff]">
+            Quick Log
+          </div>
+        )}
       </div>
 
-      <form action={createJournal} className="mt-6 space-y-4.5">
+      <form action={createJournal} className="mt-5 space-y-4">
         <input type="hidden" name="portfolioId" value={portfolioId} />
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-3">
           <label className="space-y-1.5">
             <span className="text-sm font-medium text-white/88">거래일</span>
             <Input
@@ -105,7 +117,8 @@ export function JournalForm({
               type="date"
               defaultValue={today}
               required
-              className={`${fieldClassName} py-2`}
+              tone="dark"
+              className="py-2"
             />
           </label>
           <label className="space-y-1.5">
@@ -113,11 +126,12 @@ export function JournalForm({
             <Select
               name="portfolioAccountId"
               required
-              className={`${fieldClassName} py-2.5`}
+              tone="dark"
+              className="py-2.5"
               defaultValue={accounts[0]?.id ?? ""}
             >
               {accounts.map((account) => (
-                <option key={account.id} value={account.id} className="bg-[#141d35] text-white">
+                <option key={account.id} value={account.id}>
                   {account.displayId
                     ? `${account.name} (${account.displayId})`
                     : account.name}
@@ -130,22 +144,25 @@ export function JournalForm({
             <Select
               name="investmentItemId"
               required
-              className={`${fieldClassName} py-2.5`}
+              tone="dark"
+              className="py-2.5"
               defaultValue=""
             >
-              <option value="" className="bg-[#141d35] text-white">
+              <option value="">
                 항목 선택
               </option>
               {items.map((item) => (
-                <option key={item.id} value={item.id} className="bg-[#141d35] text-white">
-                  {item.name} ({item.code})
+                <option key={item.id} value={item.id}>
+                  {isCodeManagedCategory(item.category)
+                    ? `${item.name} (${item.code})`
+                    : item.name}
                 </option>
               ))}
             </Select>
           </label>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-3">
           <label className="space-y-1.5">
             <span className="text-sm font-medium text-white/88">매매 유형</span>
             <TradeActionToggle name="action" defaultValue="buy" />
@@ -158,7 +175,8 @@ export function JournalForm({
               step="0.0001"
               min="0.0001"
               required
-              className={`${fieldClassName} py-2 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+              tone="dark"
+              className="py-2 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             />
           </label>
           <label className="space-y-1.5">
@@ -169,7 +187,8 @@ export function JournalForm({
               step="0.01"
               min="0.01"
               required
-              className={`${fieldClassName} py-2 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+              tone="dark"
+              className="py-2 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             />
           </label>
         </div>
@@ -180,7 +199,8 @@ export function JournalForm({
             name="reason"
             placeholder="왜 이 매매를 했는지 기록하세요"
             required
-            className={`${fieldClassName} min-h-24 py-2.5`}
+            tone="dark"
+            className="min-h-24 py-2.5"
           />
         </label>
 
@@ -192,12 +212,13 @@ export function JournalForm({
           <Textarea
             name="review"
             placeholder="체결 후 관찰 포인트나 회고를 남기세요"
-            className={`${fieldClassName} min-h-24 py-2.5`}
+            tone="dark"
+            className="min-h-24 py-2.5"
           />
         </label>
 
-        <div className="flex items-center justify-between gap-4 rounded-[1.15rem] border border-white/8 bg-black/10 px-4 py-3">
-          <p className="text-xs leading-5 text-[#93a4c7]">
+        <div className="flex items-center justify-between gap-3 rounded-[1rem] border border-white/8 bg-black/10 px-3.5 py-2.5">
+          <p className="text-[11px] leading-5 text-[#93a4c7]">
             먼저 항목을 등록한 뒤 선택해서 거래 로그를 연결하세요.
           </p>
           <SubmitButton
@@ -208,6 +229,6 @@ export function JournalForm({
           </SubmitButton>
         </div>
       </form>
-    </Card>
+    </Wrapper>
   );
 }

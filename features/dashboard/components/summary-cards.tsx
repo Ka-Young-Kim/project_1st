@@ -73,31 +73,32 @@ const cards = (summary: SummaryProps["summary"]) => [
 
 export function SummaryCards({ summary }: Readonly<SummaryProps>) {
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
       {cards(summary).map((item) => (
         <Card
           key={item.label}
+          surface="glass"
           className={cx(
-            "relative overflow-hidden border border-[var(--border)] bg-gradient-to-br p-5",
+            "relative overflow-hidden border border-[var(--border)] bg-gradient-to-br p-4",
             item.accent,
             item.text,
             item.glow,
           )}
         >
-          <div className="absolute right-[-18px] top-[-18px] h-24 w-24 rounded-full bg-white/8 blur-2xl" />
+          <div className="absolute right-[-18px] top-[-18px] h-20 w-20 rounded-full bg-white/8 blur-2xl" />
           <p className="relative text-xs font-semibold uppercase tracking-[0.24em] opacity-75">
             {item.label}
           </p>
-          <p className="relative mt-4 text-4xl font-bold tracking-tight">
+          <p className="relative mt-3 text-[2rem] font-bold tracking-tight">
             {item.value}
           </p>
-          <p className="relative mt-2 text-sm leading-6 opacity-85">
+          <p className="relative mt-1.5 text-[13px] leading-5 opacity-85">
             {item.description}
           </p>
-          <p className="relative mt-4 text-sm leading-6 opacity-90">
+          <p className="relative mt-3 text-[13px] leading-5 opacity-90">
             {item.insight}
           </p>
-          <div className="relative mt-6 h-1.5 rounded-full bg-black/20">
+          <div className="relative mt-4 h-1.5 rounded-full bg-black/20">
             <div
               className="h-full rounded-full bg-current/70"
               style={{ width: `${Math.max(12, item.progress)}%` }}

@@ -87,17 +87,17 @@ export function SidebarNav({
             key={item.href}
             href={href}
             className={cx(
-              "group flex items-center gap-3 rounded-[1rem] px-3 py-3 transition",
+              "group flex items-start gap-3 rounded-[1.15rem] border px-3.5 py-3.5 transition",
               isActive
                 ? isGlobalMenu
-                  ? "bg-[rgba(255,203,107,0.12)] text-white"
-                  : "bg-[rgba(110,168,254,0.12)] text-white"
-                : "text-[#b3bfdc] hover:bg-white/4 hover:text-white",
+                  ? "border-[rgba(255,203,107,0.12)] bg-[rgba(255,203,107,0.12)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                  : "border-[rgba(110,168,254,0.14)] bg-[rgba(110,168,254,0.12)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                : "border-transparent text-[#b3bfdc] hover:border-white/6 hover:bg-white/4 hover:text-white",
             )}
           >
             <span
               className={cx(
-                "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+                "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
                 isActive
                   ? isGlobalMenu
                     ? "bg-[rgba(255,203,107,0.16)]"
@@ -109,7 +109,12 @@ export function SidebarNav({
             >
               <NavIcon href={item.href} active={isActive} />
             </span>
-            <span className="text-sm font-semibold">{item.label}</span>
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold">{item.label}</span>
+              <span className="mt-1 block truncate whitespace-nowrap text-[11px] leading-5 text-[#7f92b7] transition group-hover:text-[#a8bbdd]">
+                {item.description}
+              </span>
+            </span>
           </Link>
         );
       })}

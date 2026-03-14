@@ -1,7 +1,9 @@
 import Link from "next/link";
 
 import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
 import { StatusToast } from "@/components/ui/status-toast";
+import { Card } from "@/components/ui/card";
 import { PortfolioSnapshotHistory } from "@/features/portfolios/components/portfolio-snapshot-history";
 import { getPortfolioManagement } from "@/features/portfolios/queries/get-portfolio-management";
 import { resolvePortfolioId } from "@/features/portfolios/queries/get-portfolios";
@@ -26,32 +28,28 @@ export default async function PortfolioSnapshotsPage(props: {
     : null;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div className="space-y-2">
-          <p className="status-badge bg-white/80 text-[var(--accent-strong)]">
-            Snapshot View
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight">스냅샷 관리</h1>
-          <p className="text-sm text-[var(--muted)]">
-            선택한 포트폴리오의 기록된 스냅샷을 새 창에서 확인합니다.
-          </p>
-        </div>
-        {activePortfolio ? (
-          <Link
-            href={`/portfolios?${new URLSearchParams({ portfolio: activePortfolio.id }).toString()}`}
-            className="inline-flex items-center justify-center rounded-[1rem] border border-[rgba(110,168,254,0.32)] bg-[rgba(110,168,254,0.14)] px-5 py-3 text-sm font-semibold text-[#dce7ff] transition hover:bg-[rgba(110,168,254,0.22)]"
-          >
-            포트폴리오 구성으로 돌아가기
-          </Link>
-        ) : null}
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        eyebrow="Snapshot View"
+        title="스냅샷 관리"
+        description="선택한 포트폴리오의 누적 스냅샷을 시계열로 확인하고, 구성 페이지로 다시 돌아가 흐름을 이어갑니다."
+        actions={
+          activePortfolio ? (
+            <Link
+              href={`/portfolios?${new URLSearchParams({ portfolio: activePortfolio.id }).toString()}`}
+              className="inline-flex min-h-11 items-center justify-center rounded-[1rem] border border-[rgba(110,168,254,0.32)] bg-[rgba(110,168,254,0.14)] px-5 py-3 text-sm font-semibold text-[#dce7ff] transition hover:bg-[rgba(110,168,254,0.22)]"
+            >
+              포트폴리오 구성으로 돌아가기
+            </Link>
+          ) : null
+        }
+      />
 
       {banner ? <StatusToast tone={banner.tone}>{banner.message}</StatusToast> : null}
 
       {managementData ? (
         <div className="space-y-4">
-          <div className="rounded-[1.4rem] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(20,29,53,.92),rgba(17,26,48,.94))] px-5 py-4 text-white shadow-[0_14px_40px_rgba(0,0,0,.22)]">
+          <Card className="px-5 py-4">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
               Selected Portfolio
             </p>
@@ -63,7 +61,7 @@ export default async function PortfolioSnapshotsPage(props: {
                 {managementData.portfolio.description}
               </p>
             ) : null}
-          </div>
+          </Card>
           <PortfolioSnapshotHistory snapshots={managementData.snapshots} />
         </div>
       ) : (

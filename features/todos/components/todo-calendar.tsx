@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 
 import { TodoCalendarMonthPicker } from "@/features/todos/components/todo-calendar-month-picker";
 import { cx, getTodayDateInputInSeoul } from "@/lib/utils";
@@ -17,13 +18,17 @@ type CalendarTodoPreviewItem = {
 
 type TodoCalendarProps = {
   activeMonth?: string;
+  selectedDate?: string;
   todos: CalendarTodoPreviewItem[];
 };
 
 export function TodoCalendar({
   activeMonth,
+  selectedDate,
   todos,
 }: Readonly<TodoCalendarProps>) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const referenceDate = activeMonth
     ? new Date(`${activeMonth}-01T00:00:00`)
     : new Date();
@@ -52,9 +57,11 @@ export function TodoCalendar({
 
   const today = getTodayDateInputInSeoul();
   const initialDate =
-    today.startsWith(monthValue)
-      ? today
-      : Array.from(todoMap.keys()).sort()[0] ?? `${monthValue}-01`;
+    selectedDate && selectedDate.startsWith(monthValue)
+      ? selectedDate
+      : today.startsWith(monthValue)
+        ? today
+        : Array.from(todoMap.keys()).sort()[0] ?? `${monthValue}-01`;
   const [previewDate, setPreviewDate] = useState(initialDate);
   const previewItems = todoMap.get(previewDate) ?? [];
 
@@ -64,20 +71,11 @@ export function TodoCalendar({
 
   return (
     <section className="glass-panel rounded-[22px] p-5 md:p-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
-            Calendar
-          </p>
-          <TodoCalendarMonthPicker value={monthValue} />
-        </div>
-
-        <Link
-          href="/todos"
-          className="inline-flex h-10 items-center rounded-full border border-[rgba(110,168,254,0.28)] bg-[rgba(110,168,254,0.12)] px-4 text-sm font-semibold text-[#cfe1ff] transition hover:bg-[rgba(110,168,254,0.18)]"
-        >
-          전체 보기
-        </Link>
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
+          Calendar
+        </p>
+        <TodoCalendarMonthPicker value={monthValue} />
       </div>
 
       <div className="mt-5 grid grid-cols-7 gap-2 text-center">
@@ -98,18 +96,24 @@ export function TodoCalendar({
           const day = index + 1;
           const date = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
           const isPreview = previewDate === date;
+          const isSelected = selectedDate === date;
           const count = todoMap.get(date)?.length ?? 0;
+          const params = new URLSearchParams(searchParams.toString());
+          params.set("month", monthValue);
+          params.set("date", date);
 
           return (
-            <button
+            <Link
               key={date}
-              type="button"
+              href={`${pathname}?${params.toString()}`}
               onMouseEnter={() => setPreviewDate(date)}
               onFocus={() => setPreviewDate(date)}
               className={cx(
                 "relative flex h-11 items-center justify-center rounded-[0.95rem] border text-sm font-semibold transition",
-                isPreview
-                  ? "border-[rgba(110,168,254,0.35)] bg-[rgba(110,168,254,0.14)] text-[var(--foreground)]"
+                isSelected
+                  ? "border-[rgba(110,168,254,0.45)] bg-[rgba(110,168,254,0.18)] text-[var(--foreground)] shadow-[0_0_0_1px_rgba(110,168,254,0.08)]"
+                  : isPreview
+                    ? "border-[rgba(110,168,254,0.35)] bg-[rgba(110,168,254,0.14)] text-[var(--foreground)]"
                   : "border-[var(--border)] bg-white/4 text-[var(--muted)] hover:bg-white/8 hover:text-[var(--foreground)]",
               )}
             >
@@ -117,7 +121,7 @@ export function TodoCalendar({
               {count > 0 ? (
                 <span className="absolute bottom-1 right-1 h-1.5 w-1.5 rounded-full bg-[#6ea8fe]" />
               ) : null}
-            </button>
+            </Link>
           );
         })}
       </div>
@@ -132,27 +136,33 @@ export function TodoCalendar({
           </span>
         </div>
 
-        <div className="mt-3 max-h-[10.5rem] space-y-2 overflow-y-auto pr-1">
+        <div className="mt-3 h-[10.5rem] overflow-y-auto pr-1">
           {previewItems.length === 0 ? (
-            <p className="text-sm leading-6 text-[var(--muted)]">
-              이 날짜에는 마감 TODO가 없습니다.
-            </p>
+            <div className="flex h-full items-center">
+              <p className="text-sm leading-6 text-[var(--muted)]">
+                이 날짜에는 마감 TODO가 없습니다.
+              </p>
+            </div>
           ) : (
-            previewItems.map((todo) => (
-              <div
-                key={todo.id}
-                className="rounded-[14px] border border-[var(--border)] bg-black/10 px-3 py-2.5"
-              >
-                <p
-                  className={cx(
-                    "text-sm font-medium",
-                    todo.completed ? "text-white/55 line-through" : "text-[var(--foreground)]",
-                  )}
+            <div className="space-y-2">
+              {previewItems.map((todo) => (
+                <div
+                  key={todo.id}
+                  className="rounded-[14px] border border-[var(--border)] bg-black/10 px-3 py-2.5"
                 >
-                  {todo.title}
-                </p>
-              </div>
-            ))
+                  <p
+                    className={cx(
+                      "text-sm font-medium",
+                      todo.completed
+                        ? "text-white/55 line-through"
+                        : "text-[var(--foreground)]",
+                    )}
+                  >
+                    {todo.title}
+                  </p>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>

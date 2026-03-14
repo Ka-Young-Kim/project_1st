@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
@@ -8,16 +10,65 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { SettingsDialog } from "@/features/settings/components/settings-dialog";
 import { deleteTodoAction } from "@/features/todos/actions/delete-todo";
+import { TodoForm } from "@/features/todos/components/todo-form";
 import { toggleTodoAction } from "@/features/todos/actions/toggle-todo";
 import { updateTodoAction } from "@/features/todos/actions/update-todo";
 import { TodoListItem } from "@/features/todos/types";
 import { formatDateInput, getTodayDateInputInSeoul } from "@/lib/utils";
 
-export function TodoList({ todos }: Readonly<{ todos: TodoListItem[] }>) {
+export function TodoList({
+  todos,
+  viewAllHref = "/todos",
+}: Readonly<{ todos: TodoListItem[]; viewAllHref?: string }>) {
   const today = getTodayDateInputInSeoul();
 
   return (
-    <Card className="bg-[linear-gradient(180deg,rgba(20,29,53,.96),rgba(17,26,48,.96))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
+    <Card className="text-white">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
+            List
+          </p>
+          <h2 className="mt-2 text-[1.15rem] font-semibold tracking-tight">
+            일정 목록
+          </h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link
+            href={viewAllHref}
+            className="inline-flex h-9 items-center rounded-full border border-[rgba(110,168,254,0.28)] bg-[rgba(110,168,254,0.12)] px-3.5 text-[13px] font-semibold text-[#cfe1ff] transition hover:bg-[rgba(110,168,254,0.18)]"
+          >
+            전체 보기
+          </Link>
+          <SettingsDialog
+            trigger={
+              <button
+                type="button"
+                aria-label="새 TODO 추가 열기"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#84adff]/35 bg-[#203764]/70 text-white transition hover:bg-[#274577]"
+              >
+                <svg
+                  viewBox="0 0 20 20"
+                  className="h-4 w-4"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M10 4.5v11M4.5 10h11"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            }
+          >
+            <Card surface="dialog" className="p-5 sm:p-6">
+              <TodoForm embedded />
+            </Card>
+          </SettingsDialog>
+        </div>
+      </div>
       <div className="space-y-3 overflow-y-auto pr-1 xl:max-h-[39rem]">
         {todos.length === 0 ? (
           <EmptyState
@@ -34,9 +85,9 @@ export function TodoList({ todos }: Readonly<{ todos: TodoListItem[] }>) {
             return (
               <article
                 key={todo.id}
-                className="rounded-[1.25rem] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(22,32,58,.96),rgba(20,29,53,.96))] px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,.18)]"
+                className="rounded-[1.25rem] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(22,32,58,.96),rgba(20,29,53,.96))] px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,.18)] transition hover:border-[#8fb6ff]/18"
               >
-              <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3">
                 <form action={toggleTodoAction} className="pt-1">
                   <input type="hidden" name="id" value={todo.id} />
                   <input
@@ -74,7 +125,7 @@ export function TodoList({ todos }: Readonly<{ todos: TodoListItem[] }>) {
                           </button>
                         }
                       >
-                        <Card className="rounded-[22px] bg-[linear-gradient(180deg,rgba(20,29,53,.98),rgba(17,26,48,.98))] p-5 text-white shadow-[0_14px_40px_rgba(0,0,0,.28)] sm:p-6">
+                        <Card surface="dialog" className="p-5 sm:p-6">
                           <div>
                             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
                               Todo Item
@@ -94,7 +145,12 @@ export function TodoList({ todos }: Readonly<{ todos: TodoListItem[] }>) {
 
                             <label className="space-y-2">
                               <span className="text-sm font-medium">제목</span>
-                              <Input name="title" defaultValue={todo.title} required />
+                              <Input
+                                name="title"
+                                defaultValue={todo.title}
+                                required
+                                tone="dark"
+                              />
                             </label>
 
                             <div className="grid gap-4 md:grid-cols-2">
@@ -104,6 +160,7 @@ export function TodoList({ todos }: Readonly<{ todos: TodoListItem[] }>) {
                                   name="priority"
                                   defaultValue={todo.priority}
                                   required
+                                  tone="dark"
                                 >
                                   <option value="low">low</option>
                                   <option value="medium">medium</option>
@@ -117,13 +174,18 @@ export function TodoList({ todos }: Readonly<{ todos: TodoListItem[] }>) {
                                   type="date"
                                   min={today}
                                   defaultValue={dueDateInput ?? ""}
+                                  tone="dark"
                                 />
                               </label>
                             </div>
 
                             <label className="space-y-2">
                               <span className="text-sm font-medium">메모</span>
-                              <Textarea name="notes" defaultValue={todo.notes ?? ""} />
+                              <Textarea
+                                name="notes"
+                                defaultValue={todo.notes ?? ""}
+                                tone="dark"
+                              />
                             </label>
 
                             <SubmitButton

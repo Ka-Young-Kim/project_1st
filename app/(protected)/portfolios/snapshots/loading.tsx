@@ -1,8 +1,8 @@
 export default function PortfolioSnapshotsLoading() {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div className="space-y-2">
+    <div className="space-y-8">
+      <div className="flex flex-col gap-5 border-b border-white/6 pb-6 xl:flex-row xl:items-end xl:justify-between">
+        <div className="space-y-4">
           <div className="h-6 w-28 rounded-full bg-white/10" />
           <div className="h-10 w-48 rounded-xl bg-white/10" />
           <div className="h-5 w-80 max-w-full rounded-lg bg-white/8" />

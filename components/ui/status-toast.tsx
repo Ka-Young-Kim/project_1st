@@ -6,10 +6,11 @@ import { cx } from "@/lib/utils";
 
 const toneStyles = {
   success:
-    "border-[rgba(124,242,201,0.18)] bg-[rgba(10,33,29,0.92)] text-[#bdf6e4]",
+    "border-[rgba(124,242,201,0.18)] bg-[linear-gradient(180deg,rgba(10,33,29,0.96),rgba(7,24,22,0.98))] text-[#bdf6e4]",
   error:
-    "border-[rgba(255,125,125,0.2)] bg-[rgba(43,18,24,0.92)] text-[#ffc3c3]",
-  info: "border-[rgba(255,203,107,0.18)] bg-[rgba(44,31,14,0.92)] text-[#ffe0a3]",
+    "border-[rgba(255,125,125,0.2)] bg-[linear-gradient(180deg,rgba(43,18,24,0.96),rgba(27,11,15,0.98))] text-[#ffc3c3]",
+  info:
+    "border-[rgba(255,203,107,0.18)] bg-[linear-gradient(180deg,rgba(44,31,14,0.96),rgba(29,21,10,0.98))] text-[#ffe0a3]",
 } as const;
 
 export function StatusToast({
@@ -35,10 +36,10 @@ export function StatusToast({
   }
 
   return (
-    <div className="pointer-events-none fixed right-5 top-5 z-50">
+    <div className="pointer-events-none fixed right-8 top-8 z-50">
       <div
         className={cx(
-          "inline-flex max-w-[24rem] items-center rounded-full border px-3.5 py-2.5 text-sm font-medium shadow-[0_18px_40px_rgba(0,0,0,.28)] backdrop-blur-md transition-opacity",
+          "inline-flex max-w-[28rem] items-center rounded-[1.2rem] border px-4 py-3 text-sm font-medium shadow-[0_24px_64px_rgba(0,0,0,.32)] backdrop-blur-md transition-opacity",
           toneStyles[tone],
         )}
       >

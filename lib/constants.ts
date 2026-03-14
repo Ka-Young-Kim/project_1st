@@ -2,27 +2,27 @@ export const NAV_ITEMS = [
   {
     href: "/",
     label: "대시보드",
-    description: "오늘 마감 TODO와 최근 거래를 확인합니다.",
+    description: "오늘 일정과 최근 거래",
   },
   {
     href: "/portfolios",
     label: "포트폴리오 구성",
-    description: "선택한 포트폴리오의 계좌, 자산군, 리밸런싱을 설정합니다.",
+    description: "계좌와 자산군 설정",
   },
   {
     href: "/journal",
     label: "투자일지",
-    description: "매매 기록과 투자 이유, 회고를 남깁니다.",
+    description: "매매 기록과 회고",
   },
   {
     href: "/items",
     label: "투자 항목 관리",
-    description: "등록 항목과 기본 정보를 관리합니다.",
+    description: "등록 항목과 기본 정보",
   },
   {
     href: "/todos",
     label: "할 일 관리",
-    description: "포트폴리오와 관계없이 공통 TODO를 관리합니다.",
+    description: "TODO",
   },
 ] as const;
 

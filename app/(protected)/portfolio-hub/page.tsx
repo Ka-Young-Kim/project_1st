@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { StatusToast } from "@/components/ui/status-toast";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
 import { PortfolioForm } from "@/features/portfolios/components/portfolio-form";
 import { PortfolioList } from "@/features/portfolios/components/portfolio-list";
 import { resolvePortfolioId } from "@/features/portfolios/queries/get-portfolios";
@@ -23,21 +24,20 @@ export default async function PortfolioHubPage(props: {
   const { portfolios, activePortfolio } = await resolvePortfolioId(portfolioId);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-2">
-        <p className="status-badge bg-white/80 text-[var(--accent-strong)]">
-          Portfolio Hub
-        </p>
-        <h1 className="text-3xl font-bold tracking-tight">포트폴리오 허브</h1>
-        <p className="text-sm text-[var(--muted)]">
-          포트폴리오 목록 확인, 신규 생성, 이름 수정, 삭제는 이 페이지에서만 처리합니다.
-        </p>
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        eyebrow="Portfolio Hub"
+        title="포트폴리오 허브"
+        description="포트폴리오 목록 확인, 신규 생성, 이름 수정, 삭제를 이 페이지에서 관리하고 구성 페이지로 자연스럽게 이어지게 정리합니다."
+      />
 
       {banner ? <StatusToast tone={banner.tone}>{banner.message}</StatusToast> : null}
 
       {activePortfolio ? (
-        <Card className="flex flex-col gap-4 rounded-[22px] bg-[linear-gradient(135deg,rgba(9,22,44,.96),rgba(13,29,53,.98))] text-white shadow-[0_18px_50px_rgba(0,0,0,.28)] md:flex-row md:items-center md:justify-between">
+        <Card
+          surface="glass"
+          className="flex flex-col gap-4 bg-[linear-gradient(135deg,rgba(9,22,44,.96),rgba(13,29,53,.98))] text-white shadow-[0_18px_50px_rgba(0,0,0,.28)] md:flex-row md:items-center md:justify-between"
+        >
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
               Selected Portfolio

@@ -45,30 +45,33 @@ export function HoldingsList({ items }: Readonly<HoldingsListProps>) {
   }
 
   return (
-    <section className="rounded-[18px] border border-[var(--border)] bg-white/3 p-4 md:p-5">
-      <div className="flex items-end justify-between gap-3">
+    <section className="rounded-[var(--card-radius)] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(20,29,53,.96),rgba(14,22,42,.98))] p-4 shadow-[0_14px_36px_rgba(2,8,23,.24)] md:p-5">
+      <div className="flex items-end justify-between gap-3 border-b border-white/6 pb-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">
             Holdings
           </p>
-          <h2 className="mt-2 text-xl font-semibold tracking-tight">
+          <h2 className="mt-2 text-[1.35rem] font-semibold tracking-tight">
             보유항목
           </h2>
+          <p className="mt-1.5 text-[13px] leading-5 text-[var(--muted)]">
+            보유 종목의 수량, 평단가, 현재가, 수익률을 한 행에서 읽을 수 있게 정리했습니다.
+          </p>
         </div>
         {usdToKrwRate ? (
-          <p className="text-[11px] font-medium text-[var(--muted)]">
+          <p className="rounded-full border border-white/8 bg-white/4 px-2.5 py-1 text-[10px] font-medium text-[var(--muted)]">
             1달러 = {formatWon(String(usdToKrwRate))}
           </p>
         ) : null}
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-[16px] border border-[var(--border)] bg-black/10">
-        <div className="grid grid-cols-[1.2fr_.8fr_1fr_1fr_.8fr_32px] gap-3 border-b border-[var(--border)] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
+      <div className="mt-4 overflow-hidden rounded-[1rem] border border-[var(--border)] bg-[rgba(5,10,22,0.36)]">
+        <div className="grid grid-cols-[1.35fr_.7fr_1fr_1fr_.8fr_36px] gap-3 border-b border-[var(--border)] px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
           <span>항목</span>
-          <span>갯수</span>
-          <span>평단가</span>
-          <span>현재가격</span>
-          <span>이익률</span>
+          <span className="text-center">보유수량</span>
+          <span className="text-right">평단가</span>
+          <span className="text-right">현재가격</span>
+          <span className="text-right">이익률</span>
           <span />
         </div>
 
@@ -98,7 +101,7 @@ export function HoldingsList({ items }: Readonly<HoldingsListProps>) {
               return (
                 <div
                   key={item.code}
-                  className="grid grid-cols-[1.2fr_.8fr_1fr_1fr_.8fr_32px] items-center gap-3 border-b border-[var(--border)] px-4 py-3 text-sm last:border-b-0"
+                  className="grid grid-cols-[1.35fr_.7fr_1fr_1fr_.8fr_36px] items-center gap-3 border-b border-[var(--border)] px-4 py-3 text-[13px] transition hover:bg-white/4 last:border-b-0"
                 >
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-[var(--foreground)]">
@@ -116,8 +119,8 @@ export function HoldingsList({ items }: Readonly<HoldingsListProps>) {
                         : ""}
                     </p>
                   </div>
-                  <span className="text-[var(--foreground)]">{item.quantity}</span>
-                  <div>
+                  <span className="text-center text-[var(--foreground)]">{item.quantity}</span>
+                  <div className="text-right">
                     <p className="text-[var(--foreground)]">
                       {formatMoney(item.averagePrice, item.currency)}
                     </p>
@@ -125,7 +128,7 @@ export function HoldingsList({ items }: Readonly<HoldingsListProps>) {
                       <p className="mt-1 text-[11px] text-[var(--muted)]">{averagePriceKrw}</p>
                     ) : null}
                   </div>
-                  <div>
+                  <div className="text-right">
                     <p className="text-[var(--foreground)]">
                       {formatMoney(item.currentPrice, item.currency)}
                     </p>
@@ -135,11 +138,11 @@ export function HoldingsList({ items }: Readonly<HoldingsListProps>) {
                   </div>
                   <span
                     className={cx(
-                      "font-semibold",
+                      "block text-right font-semibold",
                       profitValue > 0
-                        ? "text-emerald-300"
+                        ? "text-[#ff8e8e]"
                         : profitValue < 0
-                          ? "text-rose-300"
+                          ? "text-[#8fb6ff]"
                           : "text-[var(--muted)]",
                     )}
                   >

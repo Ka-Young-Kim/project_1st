@@ -28,6 +28,7 @@ export function PortfolioSnapshotHistory({
 }>) {
   return (
     <Card
+      surface="glass"
       className={`bg-[linear-gradient(180deg,rgba(20,29,53,.96),rgba(17,26,48,.96))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)] ${className ?? ""}`.trim()}
     >
       <h3 className="text-2xl font-semibold tracking-tight">스냅샷 히스토리</h3>

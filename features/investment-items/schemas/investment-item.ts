@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import {
   INVESTMENT_ITEM_CATEGORIES,
+  isCodeManagedCategory,
   normalizeInvestmentItemCategory,
   normalizeInvestmentItemIndustry,
 } from "@/features/investment-items/lib/category";
@@ -12,7 +13,6 @@ const investmentItemBaseSchema = z.object({
   code: z
     .string()
     .trim()
-    .min(1, "코드를 입력하세요.")
     .max(20)
     .transform((value) => value.toUpperCase()),
   quoteSymbol: z
@@ -38,7 +38,6 @@ const investmentItemBaseSchema = z.object({
       INVESTMENT_ITEM_CATEGORIES.map((item) => item.value) as [
         "stock",
         "etf",
-        "gold",
         "bond",
         "other",
       ],
@@ -48,27 +47,46 @@ const investmentItemBaseSchema = z.object({
   active: z.boolean().default(true),
 });
 
-export const investmentItemInputSchema = investmentItemBaseSchema.transform((data) => {
+const refinedInvestmentItemSchema = investmentItemBaseSchema.superRefine((data, ctx) => {
+  const category = normalizeInvestmentItemCategory(data.category);
+  const code = data.code.trim();
+
+  if (isCodeManagedCategory(category) && !code) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["code"],
+      message: "코드를 입력하세요.",
+    });
+  }
+});
+
+const transformInvestmentItem = <
+  T extends {
+    code: string;
+    category: string;
+    industry?: string;
+  },
+>(
+  data: T,
+) => {
   const category = normalizeInvestmentItemCategory(data.category);
 
   return {
     ...data,
+    code: data.code.trim(),
     category,
     industry: normalizeInvestmentItemIndustry(category, data.industry),
   };
-});
+};
 
-export const investmentItemUpdateSchema = investmentItemBaseSchema.extend({
-  id: z.string().min(1),
-}).transform((data) => {
-  const category = normalizeInvestmentItemCategory(data.category);
+export const investmentItemInputSchema =
+  refinedInvestmentItemSchema.transform(transformInvestmentItem);
 
-  return {
-    ...data,
-    category,
-    industry: normalizeInvestmentItemIndustry(category, data.industry),
-  };
-});
+export const investmentItemUpdateSchema = refinedInvestmentItemSchema
+  .extend({
+    id: z.string().min(1),
+  })
+  .transform(transformInvestmentItem);
 
 export type InvestmentItemInput = z.infer<typeof investmentItemInputSchema>;
 export type InvestmentItemUpdateInput = z.infer<typeof investmentItemUpdateSchema>;

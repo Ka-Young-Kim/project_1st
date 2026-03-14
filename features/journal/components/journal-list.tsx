@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
@@ -6,8 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  InvestmentItemCategory,
+  isCodeManagedCategory,
+} from "@/features/investment-items/lib/category";
 import { SettingsDialog } from "@/features/settings/components/settings-dialog";
 import { deleteJournal } from "@/features/journal/actions/delete-journal";
+import { JournalForm } from "@/features/journal/components/journal-form";
 import { TradeActionToggle } from "@/features/journal/components/trade-action-toggle";
 import { updateJournal } from "@/features/journal/actions/update-journal";
 import { JournalListItem } from "@/features/journal/types";
@@ -23,17 +30,71 @@ export function JournalList({
   items,
   accounts,
   portfolioId,
+  viewAllHref = "/journal",
 }: Readonly<{
   entries: JournalListItem[];
-  items: Array<{ id: string; name: string; code: string }>;
+  items: Array<{
+    id: string;
+    name: string;
+    code: string;
+    category: InvestmentItemCategory;
+  }>;
   accounts: Array<{ id: string; name: string; displayId: string }>;
   portfolioId: string;
+  viewAllHref?: string;
 }>) {
-  const fieldClassName =
-    "appearance-none border-white/12 !bg-[rgba(255,255,255,0.04)] !text-white placeholder:!text-[#6f83aa] shadow-none [color-scheme:dark] focus:border-[#6ea8fe] focus:ring-[rgba(110,168,254,0.16)]";
-
   return (
-    <Card className="bg-[linear-gradient(180deg,rgba(20,29,53,.96),rgba(17,26,48,.96))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
+    <Card className="text-white">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
+            List
+          </p>
+          <h2 className="mt-2 text-[1.15rem] font-semibold tracking-tight">
+            거래 목록
+          </h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link
+            href={viewAllHref}
+            className="inline-flex h-9 items-center rounded-full border border-[rgba(110,168,254,0.28)] bg-[rgba(110,168,254,0.12)] px-3.5 text-[13px] font-semibold text-[#cfe1ff] transition hover:bg-[rgba(110,168,254,0.18)]"
+          >
+            전체 보기
+          </Link>
+          <SettingsDialog
+            trigger={
+              <button
+                type="button"
+                aria-label="새 투자일지 추가 열기"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#84adff]/35 bg-[#203764]/70 text-white transition hover:bg-[#274577]"
+              >
+                <svg
+                  viewBox="0 0 20 20"
+                  className="h-4 w-4"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M10 4.5v11M4.5 10h11"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            }
+          >
+            <Card surface="dialog" className="p-5 sm:p-6">
+              <JournalForm
+                items={items}
+                accounts={accounts}
+                portfolioId={portfolioId}
+                embedded
+              />
+            </Card>
+          </SettingsDialog>
+        </div>
+      </div>
       <div className="space-y-3 overflow-y-auto pr-1 xl:max-h-[39rem]">
         {entries.length === 0 ? (
           <EmptyState
@@ -91,7 +152,7 @@ export function JournalList({
                 </article>
               }
             >
-                        <Card className="rounded-[22px] bg-[linear-gradient(180deg,rgba(20,29,53,.98),rgba(17,26,48,.98))] p-5 text-white shadow-[0_14px_40px_rgba(0,0,0,.28)] sm:p-6">
+                        <Card surface="dialog" className="p-5 sm:p-6">
                           <div>
                             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
                               Journal Entry
@@ -113,7 +174,8 @@ export function JournalList({
                                   type="date"
                                   defaultValue={formatDateInput(entry.tradeDate)}
                                   required
-                                  className={`${fieldClassName} py-2`}
+                                  tone="dark"
+                                  className="py-2"
                                 />
                               </label>
                               <label className="space-y-2">
@@ -122,14 +184,11 @@ export function JournalList({
                                   name="portfolioAccountId"
                                   required
                                   defaultValue={entry.portfolioAccountId ?? accounts[0]?.id ?? ""}
-                                  className={`${fieldClassName} py-2.5`}
+                                  tone="dark"
+                                  className="py-2.5"
                                 >
                                   {accounts.map((account) => (
-                                    <option
-                                      key={account.id}
-                                      value={account.id}
-                                      className="bg-[#141d35] text-white"
-                                    >
+                                    <option key={account.id} value={account.id}>
                                       {account.displayId
                                         ? `${account.name} (${account.displayId})`
                                         : account.name}
@@ -143,18 +202,17 @@ export function JournalList({
                                   name="investmentItemId"
                                   required
                                   defaultValue={entry.investmentItemId ?? ""}
-                                  className={`${fieldClassName} py-2.5`}
+                                  tone="dark"
+                                  className="py-2.5"
                                 >
-                                  <option value="" className="bg-[#141d35] text-white">
+                                  <option value="">
                                     항목 선택
                                   </option>
                                   {items.map((item) => (
-                                    <option
-                                      key={item.id}
-                                      value={item.id}
-                                      className="bg-[#141d35] text-white"
-                                    >
-                                      {item.name} ({item.code})
+                                    <option key={item.id} value={item.id}>
+                                      {isCodeManagedCategory(item.category)
+                                        ? `${item.name} (${item.code})`
+                                        : item.name}
                                     </option>
                                   ))}
                                 </Select>
@@ -178,7 +236,8 @@ export function JournalList({
                                   min="0.0001"
                                   defaultValue={entry.quantity}
                                   required
-                                  className={`${fieldClassName} py-2 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+                                  tone="dark"
+                                  className="py-2 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                 />
                               </label>
                               <label className="space-y-2">
@@ -190,7 +249,8 @@ export function JournalList({
                                   min="0.01"
                                   defaultValue={entry.price}
                                   required
-                                  className={`${fieldClassName} py-2 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+                                  tone="dark"
+                                  className="py-2 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                 />
                               </label>
                             </div>
@@ -201,7 +261,8 @@ export function JournalList({
                                 name="reason"
                                 defaultValue={entry.reason}
                                 required
-                                className={`${fieldClassName} min-h-24 py-2.5`}
+                                tone="dark"
+                                className="min-h-24 py-2.5"
                               />
                             </label>
 
@@ -210,7 +271,8 @@ export function JournalList({
                               <Textarea
                                 name="review"
                                 defaultValue={entry.review ?? ""}
-                                className={`${fieldClassName} min-h-24 py-2.5`}
+                                tone="dark"
+                                className="min-h-24 py-2.5"
                               />
                             </label>
 

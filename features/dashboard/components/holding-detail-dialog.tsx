@@ -52,9 +52,33 @@ export function HoldingDetailDialog({
         <button
           type="button"
           aria-label={`${symbol} 자세히 보기`}
-          className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[var(--border)] bg-white/4 text-xs text-[#9fb0d3] transition hover:bg-white/8 hover:text-white"
+          className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[var(--border)] bg-white/4 text-[#9fb0d3] transition hover:bg-white/8 hover:text-white"
         >
-          +
+          <svg
+            viewBox="0 0 24 24"
+            className="h-3.5 w-3.5"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M8 4.75h5.5L18.25 9.5V18A2.25 2.25 0 0 1 16 20.25H8A2.25 2.25 0 0 1 5.75 18V7A2.25 2.25 0 0 1 8 4.75Z"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M13.25 4.75V9.5H18"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M8.75 12.25h6.5M8.75 15.25h4.5"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+          </svg>
         </button>
       }
     >

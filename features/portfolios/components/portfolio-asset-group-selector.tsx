@@ -58,6 +58,7 @@ export function PortfolioAssetGroupSelector({
           <Select
             value={selectedGroup}
             onChange={(event) => setSelectedGroup(event.target.value)}
+            tone="dark"
             className={`${fieldClassName} py-2`}
           >
             {options.map((option) => (

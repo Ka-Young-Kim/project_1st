@@ -4,6 +4,7 @@ import {
   InvestmentItemInput,
   InvestmentItemUpdateInput,
 } from "@/features/investment-items/schemas/investment-item";
+import { buildInvestmentItemCode } from "@/features/investment-items/lib/internal-code";
 import { prisma } from "@/lib/prisma";
 
 export class DuplicateInvestmentItemError extends Error {
@@ -14,12 +15,17 @@ export class DuplicateInvestmentItemError extends Error {
 }
 
 export async function createInvestmentItem(input: InvestmentItemInput) {
-  const quoteSymbol = input.quoteSymbol || input.code;
-  const exchange = input.exchange || inferExchangeFromCode(input.code);
-  const currency = input.currency || inferCurrency(input.code, exchange);
+  const code = buildInvestmentItemCode({
+    name: input.name,
+    category: input.category,
+    providedCode: input.code,
+  });
+  const quoteSymbol = input.quoteSymbol || code;
+  const exchange = input.exchange || inferExchangeFromCode(code);
+  const currency = input.currency || inferCurrency(code, exchange);
   await assertInvestmentItemUnique({
     portfolioId: input.portfolioId,
-    code: input.code,
+    code,
     name: input.name,
   });
 
@@ -31,7 +37,7 @@ export async function createInvestmentItem(input: InvestmentItemInput) {
         },
       },
       name: input.name,
-      code: input.code,
+      code,
       quoteSymbol,
       exchange,
       currency,
@@ -49,12 +55,17 @@ export async function createInvestmentItem(input: InvestmentItemInput) {
 }
 
 export async function updateInvestmentItem(input: InvestmentItemUpdateInput) {
-  const quoteSymbol = input.quoteSymbol || input.code;
-  const exchange = input.exchange || inferExchangeFromCode(input.code);
-  const currency = input.currency || inferCurrency(input.code, exchange);
+  const code = buildInvestmentItemCode({
+    name: input.name,
+    category: input.category,
+    providedCode: input.code,
+  });
+  const quoteSymbol = input.quoteSymbol || code;
+  const exchange = input.exchange || inferExchangeFromCode(code);
+  const currency = input.currency || inferCurrency(code, exchange);
   await assertInvestmentItemUnique({
     portfolioId: input.portfolioId,
-    code: input.code,
+    code,
     name: input.name,
     excludeId: input.id,
   });
@@ -68,7 +79,7 @@ export async function updateInvestmentItem(input: InvestmentItemUpdateInput) {
         },
       },
       name: input.name,
-      code: input.code,
+      code,
       quoteSymbol,
       exchange,
       currency,

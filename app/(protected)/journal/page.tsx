@@ -1,7 +1,7 @@
 import { StatusToast } from "@/components/ui/status-toast";
+import { PageHeader } from "@/components/ui/page-header";
 import { BuySellStatsDialog } from "@/features/journal/components/buy-sell-stats-dialog";
 import { JournalCalendar } from "@/features/journal/components/journal-calendar";
-import { JournalForm } from "@/features/journal/components/journal-form";
 import { JournalList } from "@/features/journal/components/journal-list";
 import { getInvestmentItems } from "@/features/investment-items/queries/get-investment-items";
 import { getPortfolioAccounts } from "@/features/portfolios/queries/get-portfolio-accounts";
@@ -90,27 +90,25 @@ export default async function JournalPage(props: {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-2">
-        <p className="status-badge bg-white/80 text-[var(--accent-strong)]">
-          Investment Journal
-        </p>
-        <h1 className="text-3xl font-bold tracking-tight">투자일지</h1>
-        <p className="text-sm text-[var(--muted)]">
-          {activePortfolio
-            ? `${activePortfolio.name} 포트폴리오의 매수·매도 거래와 회고를 기록합니다.`
-            : "포트폴리오를 먼저 생성하세요."}
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Investment Journal"
+        title="투자일지"
+        description={
+          activePortfolio
+            ? `${activePortfolio.name} 포트폴리오의 매수·매도 거래와 회고를 기록하고, 캘린더와 리스트로 흐름을 빠르게 복기합니다.`
+            : "포트폴리오를 먼저 생성한 뒤 거래 기록과 회고를 연결하세요."
+        }
+      />
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="glass-panel rounded-[20px] p-4">
+      <div className="grid gap-3 md:grid-cols-3 md:items-stretch">
+        <div className="glass-panel flex min-h-[7.75rem] flex-col rounded-[16px] p-3.5">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
             이번 달 기록
           </p>
-          <p className="mt-3 text-3xl font-semibold tracking-tight">
+          <p className="mt-2 flex-1 text-[1.45rem] font-semibold tracking-tight">
             {monthlyEntries.length}
           </p>
-          <p className="mt-2 text-sm text-[var(--muted)]">
+          <p className="text-[13px] text-[var(--muted)]">
             {currentMonth.replace("-", ".")} 기준 거래 로그 수
           </p>
         </div>
@@ -124,14 +122,14 @@ export default async function JournalPage(props: {
           seriesByYear={seriesByYear}
         />
 
-        <div className="glass-panel rounded-[20px] p-4">
+        <div className="glass-panel flex min-h-[7.75rem] flex-col rounded-[16px] p-3.5">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
             최근 거래일
           </p>
-          <p className="mt-3 text-2xl font-semibold tracking-tight">
+          <p className="mt-2 flex-1 text-[1.45rem] font-semibold tracking-tight">
             {lastTradeDate ? formatDisplayDate(lastTradeDate) : "-"}
           </p>
-          <p className="mt-2 text-sm text-[var(--muted)]">
+          <p className="text-[13px] text-[var(--muted)]">
             월 누적 거래금액 {formatWon(String(monthlyTurnover))}
           </p>
         </div>
@@ -139,8 +137,8 @@ export default async function JournalPage(props: {
 
       {banner ? <StatusToast tone={banner.tone}>{banner.message}</StatusToast> : null}
 
-      <div className="grid gap-6">
-        <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+      <div className="grid gap-5">
+        <div className="grid gap-5 2xl:grid-cols-[0.88fr_1.12fr]">
           <JournalCalendar
             activeMonth={selectedMonth}
             portfolioId={activePortfolio?.id}
@@ -160,6 +158,7 @@ export default async function JournalPage(props: {
               id: item.id,
               name: item.name,
               code: item.code,
+              category: item.category,
             }))}
             accounts={accountOptions.map((account) => ({
               id: account.id,
@@ -167,23 +166,16 @@ export default async function JournalPage(props: {
               displayId: account.displayId,
             }))}
             portfolioId={activePortfolio?.id ?? ""}
+            viewAllHref={`/journal?${new URLSearchParams(
+              Object.fromEntries(
+                Object.entries({
+                  portfolio: activePortfolio?.id ?? "",
+                  month: currentMonth,
+                }).filter(([, value]) => value),
+              ),
+            ).toString()}`}
           />
         </div>
-        {activePortfolio ? (
-          <JournalForm
-            items={itemOptions.map((item) => ({
-              id: item.id,
-              name: item.name,
-              code: item.code,
-            }))}
-            accounts={accountOptions.map((account) => ({
-              id: account.id,
-              name: account.name,
-              displayId: account.displayId,
-            }))}
-            portfolioId={activePortfolio.id}
-          />
-        ) : null}
       </div>
     </div>
   );

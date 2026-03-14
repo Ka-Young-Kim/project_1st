@@ -1,3 +1,5 @@
+import { Fragment } from "react";
+
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -6,15 +8,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { createTodoAction } from "@/features/todos/actions/create-todo";
 import { getTodayDateInputInSeoul } from "@/lib/utils";
 
-export function TodoForm() {
+export function TodoForm({ embedded = false }: Readonly<{ embedded?: boolean }>) {
   const today = getTodayDateInputInSeoul();
-  const fieldClassName =
-    "appearance-none border-white/12 !bg-[rgba(255,255,255,0.04)] !text-white placeholder:!text-[#6f83aa] shadow-none [color-scheme:dark] focus:border-[#6ea8fe] focus:ring-[rgba(110,168,254,0.16)]";
+  const Wrapper = embedded ? Fragment : Card;
+  const wrapperProps = embedded ? {} : { className: "h-fit" };
 
   return (
-    <Card className="h-fit bg-[linear-gradient(180deg,rgba(20,29,53,.96),rgba(17,26,48,.96))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
+    <Wrapper {...wrapperProps}>
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div>
+        <div className={embedded ? "pr-14" : ""}>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
             Composer
           </p>
@@ -26,9 +28,11 @@ export function TodoForm() {
           </p>
         </div>
 
-        <div className="inline-flex h-10 items-center rounded-full border border-[rgba(110,168,254,0.22)] bg-[rgba(110,168,254,0.1)] px-4 text-sm font-semibold text-[#cfe1ff]">
-          Quick Add
-        </div>
+        {embedded ? null : (
+          <div className="inline-flex h-10 items-center rounded-full border border-[rgba(110,168,254,0.22)] bg-[rgba(110,168,254,0.1)] px-4 text-sm font-semibold text-[#cfe1ff]">
+            Quick Add
+          </div>
+        )}
       </div>
 
       <form action={createTodoAction} className="mt-6 space-y-4.5">
@@ -38,7 +42,8 @@ export function TodoForm() {
             name="title"
             placeholder="예: ISA 계좌 리밸런싱 검토"
             required
-            className={`${fieldClassName} py-2.5`}
+            tone="dark"
+            className="py-2.5"
           />
         </label>
 
@@ -49,15 +54,16 @@ export function TodoForm() {
               name="priority"
               defaultValue="medium"
               required
-              className={`${fieldClassName} py-2`}
+              tone="dark"
+              className="py-2"
             >
-              <option value="low" className="bg-[#141d35] text-white">
+              <option value="low">
                 low
               </option>
-              <option value="medium" className="bg-[#141d35] text-white">
+              <option value="medium">
                 medium
               </option>
-              <option value="high" className="bg-[#141d35] text-white">
+              <option value="high">
                 high
               </option>
             </Select>
@@ -69,7 +75,8 @@ export function TodoForm() {
               type="date"
               min={today}
               defaultValue=""
-              className={`${fieldClassName} py-2`}
+              tone="dark"
+              className="py-2"
             />
           </label>
         </div>
@@ -82,7 +89,8 @@ export function TodoForm() {
           <Textarea
             name="notes"
             placeholder="검토 기준이나 준비물을 남겨두세요"
-            className={`${fieldClassName} min-h-24 py-2.5`}
+            tone="dark"
+            className="min-h-24 py-2.5"
           />
         </label>
 
@@ -90,14 +98,11 @@ export function TodoForm() {
           <p className="text-xs leading-5 text-[#93a4c7]">
             지난 날짜는 마감일로 입력할 수 없습니다.
           </p>
-          <SubmitButton
-            className="min-w-[9rem]"
-            pendingLabel="TODO 저장 중..."
-          >
-          TODO 저장
+          <SubmitButton className="min-w-[9rem]" pendingLabel="TODO 저장 중...">
+            TODO 저장
           </SubmitButton>
         </div>
       </form>
-    </Card>
+    </Wrapper>
   );
 }

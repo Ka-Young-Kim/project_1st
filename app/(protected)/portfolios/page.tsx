@@ -1,5 +1,6 @@
 import { StatusToast } from "@/components/ui/status-toast";
 import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
 import { PortfolioManagementBoard } from "@/features/portfolios/components/portfolio-management-board";
 import { getPortfolioManagement } from "@/features/portfolios/queries/get-portfolio-management";
 import { resolvePortfolioId } from "@/features/portfolios/queries/get-portfolios";
@@ -25,17 +26,13 @@ export default async function PortfoliosPage(props: {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-2">
-        <p className="status-badge bg-white/80 text-[var(--accent-strong)]">
-          Portfolio Setup
-        </p>
-        <h1 className="text-3xl font-bold tracking-tight">포트폴리오 구성</h1>
-        <p className="text-sm text-[var(--muted)]">
-          선택한 포트폴리오 내부의 계좌, 자산군, 목표 비율, 리밸런싱, 스냅샷을 설정합니다.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Portfolio Setup"
+        title="포트폴리오 구성"
+        description="선택한 포트폴리오의 계좌, 자산군, 목표 비율, 리밸런싱, 스냅샷 흐름을 한 화면에서 관리합니다."
+      />
       {banner ? <StatusToast tone={banner.tone}>{banner.message}</StatusToast> : null}
-      <div className="grid gap-6">
+      <div className="grid gap-5">
         {managementData ? (
           <PortfolioManagementBoard data={managementData} />
         ) : (

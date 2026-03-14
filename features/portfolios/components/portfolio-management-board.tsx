@@ -14,6 +14,7 @@ import { createPortfolioAccountAction } from "@/features/portfolios/actions/crea
 import { createPortfolioAssetGroupAction } from "@/features/portfolios/actions/create-portfolio-asset-group";
 import { createPortfolioItemAction } from "@/features/portfolios/actions/create-portfolio-item";
 import { deletePortfolioAccountAction } from "@/features/portfolios/actions/delete-portfolio-account";
+import { deletePortfolioAssetGroupAction } from "@/features/portfolios/actions/delete-portfolio-asset-group";
 import { deletePortfolioItemAction } from "@/features/portfolios/actions/delete-portfolio-item";
 import { recordPortfolioSnapshotAction } from "@/features/portfolios/actions/record-portfolio-snapshot";
 import { updatePortfolioAction } from "@/features/portfolios/actions/update-portfolio";
@@ -34,9 +35,10 @@ type InvestmentItemOption = PortfolioManagementData["availableInvestmentItems"][
 
 const fieldClassName =
   "appearance-none border-white/12 !bg-[rgba(255,255,255,0.04)] !text-white placeholder:!text-[#6f83aa] shadow-none [color-scheme:dark] focus:border-[#6ea8fe] focus:ring-[rgba(110,168,254,0.16)]";
-const assetGroupMetricCardClassName = "h-full rounded-[1.2rem] bg-black/15 p-3";
+const assetGroupMetricCardClassName =
+  "h-full min-w-0 rounded-[1rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] px-3 py-2.5";
 const boardActionButtonClassName =
-  "inline-flex h-[42px] min-w-[112px] items-center justify-center whitespace-nowrap rounded-2xl border border-[var(--border)] bg-white/4 px-4 py-2 text-sm font-semibold text-[#dce7ff] transition hover:bg-white/8";
+  "inline-flex h-9 min-w-[96px] items-center justify-center whitespace-nowrap rounded-[0.95rem] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04))] px-3 py-1.5 text-[13px] font-semibold text-[#dce7ff] transition hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0.06))]";
 const itemDeleteButtonClassName =
   "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-rose-300/30 bg-[linear-gradient(180deg,rgba(190,24,93,0.14),rgba(190,24,93,0.08))] text-xs font-semibold leading-none text-rose-100 transition hover:bg-[linear-gradient(180deg,rgba(190,24,93,0.2),rgba(190,24,93,0.12))]";
 
@@ -177,11 +179,11 @@ function SummaryBox({
   value: ReactNode;
 }>) {
   return (
-    <div className="rounded-[1.1rem] border border-[var(--border)] bg-white/4 px-4 py-3">
+    <div className="rounded-[1rem] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] px-3.5 py-2.5">
       <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
         {label}
       </p>
-      <div className="mt-2 text-[1.05rem] font-semibold tracking-tight text-white">{value}</div>
+      <div className="mt-1.5 text-[0.98rem] font-semibold tracking-tight text-white">{value}</div>
     </div>
   );
 }
@@ -199,13 +201,13 @@ function ManagementViewToggle({
   ];
 
   return (
-    <div className="inline-flex rounded-full border border-white/10 bg-[rgba(10,19,39,0.92)] p-[3px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+    <div className="inline-flex rounded-full border border-white/10 bg-[rgba(10,19,39,0.92)] p-[2px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
       {options.map((option) => (
         <button
           key={option.id}
           type="button"
           onClick={() => onChange(option.id)}
-          className={`rounded-full px-3.5 py-1.5 text-[12px] font-semibold leading-none transition ${
+          className={`rounded-full px-2.5 py-1 text-[10px] font-semibold leading-none transition ${
             activeView === option.id
               ? "bg-[#5f97ef] text-white shadow-[0_8px_18px_rgba(72,127,223,0.34)]"
               : "bg-transparent text-[#c5d4f2] hover:bg-white/6 hover:text-white"
@@ -822,7 +824,7 @@ export function PortfolioManagementBoard({
 
   return (
     <div className="space-y-6">
-      <Card className="bg-[linear-gradient(180deg,rgba(20,29,53,.98),rgba(17,26,48,.98))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
+      <Card className="text-white">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
@@ -924,7 +926,7 @@ export function PortfolioManagementBoard({
         </div>
       </Card>
 
-      <Card className="bg-[linear-gradient(180deg,rgba(20,29,53,.96),rgba(17,26,48,.96))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
+      <Card className="text-white">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
@@ -949,19 +951,21 @@ export function PortfolioManagementBoard({
                 <form action={createPortfolioAssetGroupAction} className="mt-5 space-y-4">
                   <input type="hidden" name="portfolioId" value={data.portfolio.id} />
                   <input type="hidden" name="sortOrder" value={editableAssetGroups.length} />
-                  <PortfolioAssetGroupSelector fieldClassName={fieldClassName} />
-                  <label className="space-y-1.5">
-                    <span className="text-sm font-medium">초기 비중</span>
-                    <Input
-                      name="targetWeight"
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.01"
-                      defaultValue={editableAssetGroups.length === 0 ? "100" : "0"}
-                      className={`${fieldClassName} py-2.5`}
-                    />
-                  </label>
+                  <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_9.5rem] md:items-start">
+                    <PortfolioAssetGroupSelector fieldClassName={fieldClassName} />
+                    <label className="space-y-1.5">
+                      <span className="text-sm font-medium">초기 비중</span>
+                      <Input
+                        name="targetWeight"
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        defaultValue={editableAssetGroups.length === 0 ? "100" : "0"}
+                        className={`${fieldClassName} py-2.5`}
+                      />
+                    </label>
+                  </div>
                   <SubmitButton className="w-full" pendingLabel="자산군 저장 중...">
                     자산군 추가
                   </SubmitButton>
@@ -983,21 +987,25 @@ export function PortfolioManagementBoard({
                   <input type="hidden" name="sortOrder" value={realAccounts.length} />
                   <input type="hidden" name="cashBalance" value="0" />
                   <input type="hidden" name="cashTrackingEnabled" value="off" />
-                  <label className="space-y-1.5">
-                    <span className="text-sm font-medium">은행</span>
-                    <Input name="name" required className={`${fieldClassName} py-2.5`} />
-                  </label>
-                  <label className="space-y-1.5">
-                    <span className="text-sm font-medium">계좌 번호</span>
-                    <Input name="displayId" required className={`${fieldClassName} py-2.5`} />
-                  </label>
+                  <div className="grid gap-4 md:grid-cols-2 md:items-start">
+                    <label className="space-y-1.5">
+                      <span className="text-sm font-medium">은행</span>
+                      <Input name="name" required className={`${fieldClassName} py-2.5`} />
+                    </label>
+                    <label className="space-y-1.5">
+                      <span className="text-sm font-medium">계좌 번호</span>
+                      <Input name="displayId" required className={`${fieldClassName} py-2.5`} />
+                    </label>
+                  </div>
                   <label className="space-y-1.5">
                     <span className="text-sm font-medium">별명 (선택)</span>
                     <Input name="nickname" className={`${fieldClassName} py-2.5`} />
                   </label>
-                  <SubmitButton className="w-full" pendingLabel="계좌 저장 중...">
-                    계좌 추가
-                  </SubmitButton>
+                  <div className="pt-1">
+                    <SubmitButton className="w-full" pendingLabel="계좌 저장 중...">
+                      계좌 추가
+                    </SubmitButton>
+                  </div>
                 </form>
               </Card>
             </SettingsDialog>
@@ -1035,9 +1043,23 @@ export function PortfolioManagementBoard({
                             </div>
                           </div>
                         </div>
-                        <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-[#cdd9f2]">
-                          {visibleItemCount}개 항목
-                        </span>
+                        <div className="flex items-center gap-2 self-start lg:self-center">
+                          <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-[#cdd9f2]">
+                            {visibleItemCount}개 항목
+                          </span>
+                          {!group.isSynthetic ? (
+                            <form action={deletePortfolioAssetGroupAction}>
+                              <input type="hidden" name="id" value={group.id} />
+                              <input type="hidden" name="portfolioId" value={data.portfolio.id} />
+                              <ConfirmSubmitButton
+                                confirmMessage="이 자산군을 삭제하시겠습니까? 연결된 항목은 미분류 상태로 유지됩니다."
+                                className={itemDeleteButtonClassName}
+                              >
+                                ×
+                              </ConfirmSubmitButton>
+                            </form>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
 
@@ -1046,7 +1068,7 @@ export function PortfolioManagementBoard({
                         {group.isSynthetic ? (
                           <div className={assetGroupMetricCardClassName}>
                             <p className="text-[10px] text-[#93a4c7]">비중</p>
-                            <p className="mt-1.5 text-[1.05rem] font-bold text-white">
+                            <p className="mt-1.5 whitespace-nowrap text-[0.92rem] font-bold tracking-tight text-white">
                               {formatPercent(group.targetWeight)} / {formatPercent(group.currentWeight)}
                             </p>
                           </div>
@@ -1058,7 +1080,7 @@ export function PortfolioManagementBoard({
                                 className={`${assetGroupMetricCardClassName} w-full text-left transition hover:bg-black/20`}
                               >
                                 <p className="text-[10px] text-[#93a4c7]">비중</p>
-                                <p className="mt-1.5 text-[1.05rem] font-bold text-white">
+                                <p className="mt-1.5 whitespace-nowrap text-[0.92rem] font-bold tracking-tight text-white">
                                   {formatPercent(group.targetWeight)} / {formatPercent(group.currentWeight)}
                                 </p>
                               </button>
@@ -1099,25 +1121,25 @@ export function PortfolioManagementBoard({
                         )}
                         <div className={assetGroupMetricCardClassName}>
                           <p className="text-[10px] text-[#93a4c7]">투자금</p>
-                          <p className="mt-1.5 text-[1.05rem] font-semibold text-white">
+                          <p className="mt-1.5 whitespace-nowrap text-[0.92rem] font-semibold tracking-tight text-white">
                             {formatWon(String(group.investedAmount))}
                           </p>
                         </div>
                         <div className={assetGroupMetricCardClassName}>
                           <p className="text-[10px] text-[#93a4c7]">평가금</p>
-                          <p className="mt-1.5 text-[1.05rem] font-semibold text-white">
+                          <p className="mt-1.5 whitespace-nowrap text-[0.92rem] font-semibold tracking-tight text-white">
                             {formatWon(String(group.marketValue))}
                           </p>
                         </div>
                         <div className={assetGroupMetricCardClassName}>
                           <p className="text-[10px] text-[#93a4c7]">수익률</p>
-                          <p className="mt-1.5 text-[1.05rem] font-semibold">
+                          <p className="mt-1.5 whitespace-nowrap text-[0.92rem] font-semibold tracking-tight">
                             <ProfitTone value={group.profitRate} />
                           </p>
                         </div>
                         <div className={assetGroupMetricCardClassName}>
                           <p className="text-[10px] text-[#93a4c7]">리밸런싱</p>
-                          <p className="mt-1.5 text-[1.05rem] font-semibold">
+                          <p className="mt-1.5 whitespace-nowrap text-[0.92rem] font-semibold tracking-tight">
                             {group.buyAmount > 0 ? (
                               <span className="text-[#7cf2c9]">+{formatWon(String(group.buyAmount))}</span>
                             ) : group.sellAmount > 0 ? (

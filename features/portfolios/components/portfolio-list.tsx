@@ -24,11 +24,8 @@ export function PortfolioList({
   portfolios: PortfolioListItem[];
   selectedPortfolioId?: string;
 }>) {
-  const fieldClassName =
-    "appearance-none border-white/12 !bg-[rgba(255,255,255,0.04)] !text-white placeholder:!text-[#6f83aa] shadow-none [color-scheme:dark] focus:border-[#6ea8fe] focus:ring-[rgba(110,168,254,0.16)]";
-
   return (
-    <Card className="bg-[linear-gradient(180deg,rgba(20,29,53,.96),rgba(17,26,48,.96))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
+    <Card className="text-white">
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
         Portfolios
       </p>
@@ -61,7 +58,7 @@ export function PortfolioList({
                         </button>
                       }
                     >
-                      <Card className="rounded-[22px] bg-[linear-gradient(180deg,rgba(20,29,53,.98),rgba(17,26,48,.98))] p-5 text-white shadow-[0_14px_40px_rgba(0,0,0,.28)] sm:p-6">
+                      <Card surface="dialog" className="p-5 sm:p-6">
                         <div className="pr-14">
                           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
                             Portfolio
@@ -76,7 +73,8 @@ export function PortfolioList({
                               name="name"
                               defaultValue={portfolio.name}
                               required
-                              className={`${fieldClassName} py-2.5`}
+                              tone="dark"
+                              className="py-2.5"
                             />
                           </label>
                           <label className="space-y-1.5">
@@ -84,7 +82,8 @@ export function PortfolioList({
                             <Textarea
                               name="description"
                               defaultValue={portfolio.description ?? ""}
-                              className={`${fieldClassName} min-h-24 py-2.5`}
+                              tone="dark"
+                              className="min-h-24 py-2.5"
                             />
                           </label>
                           <SubmitButton className="w-full" pendingLabel="수정 저장 중...">

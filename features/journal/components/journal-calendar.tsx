@@ -67,38 +67,17 @@ export function JournalCalendar({
       : fallbackDate;
   const [previewDate, setPreviewDate] = useState(initialDate);
   const previewItems = entryMap.get(previewDate) ?? [];
-  const baseParams = useMemo(() => {
-    const params = new URLSearchParams();
-
-    if (portfolioId) {
-      params.set("portfolio", portfolioId);
-    }
-
-    params.set("month", monthValue);
-
-    return params;
-  }, [monthValue, portfolioId]);
-
   useEffect(() => {
     setPreviewDate(initialDate);
   }, [initialDate]);
 
   return (
-    <section className="glass-panel rounded-[22px] p-5 md:p-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
-            Calendar
-          </p>
-          <TodoCalendarMonthPicker value={monthValue} />
-        </div>
-
-        <Link
-          href={`/journal?${baseParams.toString()}`}
-          className="inline-flex h-10 items-center rounded-full border border-[rgba(110,168,254,0.28)] bg-[rgba(110,168,254,0.12)] px-4 text-sm font-semibold text-[#cfe1ff] transition hover:bg-[rgba(110,168,254,0.18)]"
-        >
-          전체 보기
-        </Link>
+    <section className="glass-panel rounded-[var(--card-radius)] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(20,29,53,.96),rgba(14,22,42,.98))] p-5 shadow-[0_18px_48px_rgba(2,8,23,.26)] md:p-6">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
+          Calendar
+        </p>
+        <TodoCalendarMonthPicker value={monthValue} />
       </div>
 
       <div className="mt-5 grid grid-cols-7 gap-2 text-center">
@@ -121,7 +100,11 @@ export function JournalCalendar({
           const isPreview = previewDate === date;
           const isSelected = selectedDate === date;
           const count = entryMap.get(date)?.length ?? 0;
-          const params = new URLSearchParams(baseParams.toString());
+          const params = new URLSearchParams();
+          if (portfolioId) {
+            params.set("portfolio", portfolioId);
+          }
+          params.set("month", monthValue);
           params.set("date", date);
 
           return (
@@ -158,38 +141,42 @@ export function JournalCalendar({
           </span>
         </div>
 
-        <div className="mt-3 max-h-[10.5rem] space-y-2 overflow-y-auto pr-1">
+        <div className="mt-3 h-[10.5rem] overflow-y-auto pr-1">
           {previewItems.length === 0 ? (
-            <p className="text-sm leading-6 text-[var(--muted)]">
-              이 날짜에는 거래 기록이 없습니다.
-            </p>
+            <div className="flex h-full items-center">
+              <p className="text-sm leading-6 text-[var(--muted)]">
+                이 날짜에는 거래 기록이 없습니다.
+              </p>
+            </div>
           ) : (
-            previewItems.map((entry) => (
-              <div
-                key={entry.id}
-                className="flex items-center gap-3 rounded-[14px] border border-[var(--border)] bg-black/10 px-3 py-2.5"
-              >
-                <span
-                  className={cx(
-                    "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold uppercase",
-                    entry.action === "buy"
-                      ? "bg-emerald-100 text-emerald-800"
-                      : "bg-sky-100 text-sky-800",
-                  )}
+            <div className="space-y-2">
+              {previewItems.map((entry) => (
+                <div
+                  key={entry.id}
+                  className="flex items-center gap-3 rounded-[14px] border border-[var(--border)] bg-black/10 px-3 py-2.5"
                 >
-                  {entry.action === "buy" ? "B" : "S"}
-                </span>
-                <p className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--foreground)]">
-                  {entry.symbol}
-                </p>
-                <span className="shrink-0 text-xs font-medium text-[#a9b8d6]">
-                  {entry.quantity}주
-                </span>
-                <span className="shrink-0 text-xs font-medium text-[#93a4c7]">
-                  {formatCurrency(entry.price)}
-                </span>
-              </div>
-            ))
+                  <span
+                    className={cx(
+                      "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold uppercase",
+                      entry.action === "buy"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-sky-100 text-sky-800",
+                    )}
+                  >
+                    {entry.action === "buy" ? "B" : "S"}
+                  </span>
+                  <p className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--foreground)]">
+                    {entry.symbol}
+                  </p>
+                  <span className="shrink-0 text-xs font-medium text-[#a9b8d6]">
+                    {entry.quantity}주
+                  </span>
+                  <span className="shrink-0 text-xs font-medium text-[#93a4c7]">
+                    {formatCurrency(entry.price)}
+                  </span>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>

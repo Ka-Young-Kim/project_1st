@@ -106,18 +106,15 @@ export function BuySellStatsDialog({
       trigger={
         <button
           type="button"
-          className="glass-panel block w-full rounded-[20px] p-4 text-left transition hover:bg-white/6"
+          className="glass-panel flex min-h-[7.75rem] w-full flex-col rounded-[16px] p-3.5 text-left transition hover:bg-white/6"
         >
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
             매수 / 매도
           </p>
-          <p className="mt-3 text-3xl font-semibold tracking-tight">
+          <p className="mt-2 flex-1 text-[1.45rem] font-semibold tracking-tight">
             {buyCount} / {sellCount}
           </p>
-          <p className="mt-2 text-sm text-[var(--muted)]">
-            이번 달 매수·매도 비율
-          </p>
-          <p className="mt-2 text-xs text-[var(--muted)]">
+          <p className="text-[13px] text-[var(--muted)]">
             {formatWon(String(monthlyBuyAmount))} /{" "}
             {formatWon(String(monthlySellAmount))}
           </p>

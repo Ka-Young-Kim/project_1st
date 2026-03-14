@@ -1,11 +1,11 @@
 import { StatusToast } from "@/components/ui/status-toast";
+import { PageHeader } from "@/components/ui/page-header";
 import { TodoCalendar } from "@/features/todos/components/todo-calendar";
-import { TodoForm } from "@/features/todos/components/todo-form";
 import { TodoList } from "@/features/todos/components/todo-list";
 import { TodoStats } from "@/features/todos/components/todo-stats";
 import { getTodos } from "@/features/todos/queries/get-todos";
 import { getStatusMessage } from "@/lib/constants";
-import { formatDateInput } from "@/lib/utils";
+import { formatDateInput, getTodayDateInputInSeoul } from "@/lib/utils";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -17,29 +17,43 @@ export default async function TodosPage(props: { searchParams?: SearchParams }) 
   const selectedMonth = Array.isArray(searchParams.month)
     ? searchParams.month[0]
     : searchParams.month;
+  const selectedDateParam = Array.isArray(searchParams.date)
+    ? searchParams.date[0]
+    : searchParams.date;
   const banner = getStatusMessage(statusParam);
   const todos = await getTodos();
   const currentMonth = selectedMonth ?? formatDateInput(new Date()).slice(0, 7);
+  const today = getTodayDateInputInSeoul();
+  const shouldDefaultToToday = !selectedMonth && !selectedDateParam;
+  const selectedDate =
+    selectedDateParam && selectedDateParam.startsWith(currentMonth)
+      ? selectedDateParam
+      : shouldDefaultToToday && today.startsWith(currentMonth)
+        ? today
+        : undefined;
   const monthLabel = currentMonth.replace("-", " / ");
   const monthlyTodos = todos.filter(
     (todo) => todo.dueDate && formatDateInput(todo.dueDate).slice(0, 7) === currentMonth,
   );
+  const visibleTodos = selectedDate
+    ? monthlyTodos.filter(
+        (todo) => todo.dueDate && formatDateInput(todo.dueDate) === selectedDate,
+      )
+    : monthlyTodos;
   const completedTodoCount = monthlyTodos.filter((todo) => todo.completed).length;
   const remainingTodoCount = monthlyTodos.length - completedTodoCount;
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-2">
-        <p className="status-badge bg-white/80 text-[#b76a17]">TODO Ledger</p>
-        <h1 className="text-3xl font-bold tracking-tight">할 일 관리</h1>
-        <p className="text-sm text-[var(--muted)]">
-          마감일과 우선순위를 함께 관리해 오늘 해야 할 일을 분리합니다.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="TODO Ledger"
+        title="할 일 관리"
+        description="마감일과 우선순위를 함께 보면서 오늘 처리할 일, 미뤄도 되는 일, 정리가 필요한 백로그를 빠르게 구분합니다."
+      />
 
       {banner ? <StatusToast tone={banner.tone}>{banner.message}</StatusToast> : null}
 
-      <div className="grid gap-6">
+      <div className="grid gap-5">
         <TodoStats
           summary={{
             monthLabel,
@@ -48,9 +62,10 @@ export default async function TodosPage(props: { searchParams?: SearchParams }) 
             remainingTodoCount,
           }}
         />
-        <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+        <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
           <TodoCalendar
             activeMonth={selectedMonth}
+            selectedDate={selectedDate}
             todos={todos.map((todo) => ({
               id: todo.id,
               title: todo.title,
@@ -58,9 +73,11 @@ export default async function TodosPage(props: { searchParams?: SearchParams }) 
               completed: todo.completed,
             }))}
           />
-          <TodoList todos={todos} />
+          <TodoList
+            todos={visibleTodos}
+            viewAllHref={`/todos?${new URLSearchParams({ month: currentMonth }).toString()}`}
+          />
         </div>
-        <TodoForm />
       </div>
     </div>
   );
