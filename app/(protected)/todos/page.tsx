@@ -62,23 +62,23 @@ export default async function TodosPage(props: { searchParams?: SearchParams }) 
             remainingTodoCount,
           }}
         />
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-            <TodoCalendar
-              activeMonth={selectedMonth}
-              selectedDate={selectedDate}
-              todos={todos.map((todo) => ({
-                id: todo.id,
-                title: todo.title,
-                dueDate: todo.dueDate ? formatDateInput(todo.dueDate) : null,
-                completed: todo.completed,
-              }))}
-            />
-            <TodoList
-              todos={visibleTodos}
-              currentMonth={currentMonth}
-              selectedDate={selectedDate}
-              viewAllHref={`/todos?${new URLSearchParams({ month: currentMonth }).toString()}`}
-            />
+        <div className="grid gap-5 2xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <TodoCalendar
+            activeMonth={selectedMonth}
+            selectedDate={selectedDate}
+            todos={todos.map((todo) => ({
+              id: todo.id,
+              title: todo.title,
+              dueDate: todo.dueDate ? formatDateInput(todo.dueDate) : null,
+              completed: todo.completed,
+            }))}
+          />
+          <TodoList
+            todos={visibleTodos}
+            currentMonth={currentMonth}
+            selectedDate={selectedDate}
+            viewAllHref={`/todos?${new URLSearchParams({ month: currentMonth }).toString()}`}
+          />
         </div>
       </div>
     </div>

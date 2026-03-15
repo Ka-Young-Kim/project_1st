@@ -70,7 +70,7 @@ export function TodoCalendar({
   }, [initialDate]);
 
   return (
-    <section className="glass-panel rounded-[22px] p-5 md:p-6">
+    <section className="glass-panel min-w-0 rounded-[22px] p-5 md:p-6">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
           Calendar

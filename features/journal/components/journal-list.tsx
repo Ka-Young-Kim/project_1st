@@ -44,7 +44,7 @@ export function JournalList({
   viewAllHref?: string;
 }>) {
   return (
-    <Card className="text-white">
+    <Card className="min-w-0 text-white">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">

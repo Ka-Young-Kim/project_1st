@@ -72,7 +72,7 @@ export function JournalCalendar({
   }, [initialDate]);
 
   return (
-    <section className="glass-panel rounded-[var(--card-radius)] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(20,29,53,.96),rgba(14,22,42,.98))] p-5 shadow-[0_18px_48px_rgba(2,8,23,.26)] md:p-6">
+    <section className="glass-panel min-w-0 rounded-[var(--card-radius)] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(20,29,53,.96),rgba(14,22,42,.98))] p-5 shadow-[0_18px_48px_rgba(2,8,23,.26)] md:p-6">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
           Calendar
