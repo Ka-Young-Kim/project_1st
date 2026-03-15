@@ -6,6 +6,22 @@ import { todoUpdateSchema } from "@/features/todos/schemas/todo";
 import { updateTodo } from "@/features/todos/services/todo-service";
 import { logger } from "@/lib/logger";
 
+function buildTodoRedirectPath(formData: FormData, status: string) {
+  const month = formData.get("redirectMonth");
+  const date = formData.get("redirectDate");
+  const params = new URLSearchParams({ status });
+
+  if (typeof month === "string" && month.length > 0) {
+    params.set("month", month);
+  }
+
+  if (typeof date === "string" && date.length > 0) {
+    params.set("date", date);
+  }
+
+  return `/todos?${params.toString()}`;
+}
+
 export async function updateTodoAction(formData: FormData) {
   const parsed = todoUpdateSchema.safeParse({
     id: formData.get("id"),
@@ -18,9 +34,9 @@ export async function updateTodoAction(formData: FormData) {
 
   if (!parsed.success) {
     logger.warn("todo.update.validation_failed", parsed.error.flatten());
-    redirect("/todos?status=todo-invalid");
+    redirect(buildTodoRedirectPath(formData, "todo-invalid"));
   }
 
   await updateTodo(parsed.data);
-  redirect("/todos?status=todo-updated");
+  redirect(buildTodoRedirectPath(formData, "todo-updated"));
 }

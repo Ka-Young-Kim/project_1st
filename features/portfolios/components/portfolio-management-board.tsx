@@ -186,7 +186,9 @@ function SummaryBox({
       <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
         {label}
       </p>
-      <div className="mt-1.5 text-[0.98rem] font-semibold tracking-tight text-white">{value}</div>
+      <div className="mt-1.5 break-all text-[0.98rem] font-semibold tracking-tight text-white">
+        {value}
+      </div>
     </div>
   );
 }
@@ -204,17 +206,18 @@ function ManagementViewToggle({
   ];
 
   return (
-    <div className="inline-flex h-8 w-[122px] rounded-full border border-white/10 bg-[rgba(10,19,39,0.92)] p-[2px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+    <div className="inline-flex h-7 w-[108px] rounded-full border border-white/10 bg-[rgba(10,19,39,0.92)] p-[2px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] sm:h-8 sm:w-[122px]">
       {options.map((option) => (
         <button
           key={option.id}
           type="button"
           onClick={() => onChange(option.id)}
-          className={`flex min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-full px-2 py-[0.42rem] text-[11px] font-semibold leading-none transition ${
+          className={`flex min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-full px-1.5 py-[0.38rem] text-[10px] font-semibold leading-none transition sm:px-2 sm:text-[11px] ${
             activeView === option.id
               ? "bg-[#5f97ef] text-white shadow-[0_8px_18px_rgba(72,127,223,0.34)]"
               : "bg-transparent text-[#c5d4f2] hover:bg-white/6 hover:text-white"
           }`}
+          style={{ fontSize: "10px", lineHeight: 1, paddingTop: "0.25rem", paddingBottom: "0.25rem" }}
         >
           {option.label}
         </button>
@@ -818,8 +821,8 @@ export function PortfolioManagementBoard({
   return (
     <div className="space-y-6">
       <Card className="text-white">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-          <div>
+        <div className="flex min-w-0 flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
               Portfolio Control
             </p>
@@ -882,7 +885,7 @@ export function PortfolioManagementBoard({
             ) : null}
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex max-w-full flex-wrap gap-2">
             <form action={recordPortfolioSnapshotAction}>
               <input type="hidden" name="portfolioId" value={data.portfolio.id} />
               <button type="submit" className={boardActionButtonClassName}>
@@ -905,8 +908,7 @@ export function PortfolioManagementBoard({
           </div>
         </div>
 
-        <div className="mt-6 overflow-x-auto pb-1">
-          <div className="grid min-w-[760px] grid-cols-4 gap-4">
+        <div className="mt-6 grid min-w-0 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
             <SummaryBox label="총 투자금" value={formatWon(String(data.summary.investedAmount))} />
             <SummaryBox label="총 평가금" value={formatWon(String(data.summary.marketValue))} />
             <SummaryBox
@@ -917,17 +919,16 @@ export function PortfolioManagementBoard({
               label="총 수익률"
               value={<ProfitTone value={data.summary.profitRate} />}
             />
-          </div>
         </div>
       </Card>
 
       <Card className="text-white">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex min-w-0 items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
               Portfolio Dashboard
             </p>
-            <div className="mt-2 flex h-8 items-center gap-3 whitespace-nowrap">
+            <div className="mt-2 flex h-auto flex-wrap items-center gap-3">
               <h3 className="text-2xl font-semibold tracking-tight text-white">포트폴리오 상세</h3>
               <SettingsDialog
                 trigger={
@@ -1063,12 +1064,11 @@ export function PortfolioManagementBoard({
                     </div>
 
                     <div className="space-y-4 px-5 py-4">
-                      <div className="overflow-x-auto pb-1">
-                        <div className="grid min-w-[760px] grid-cols-5 gap-3">
+                      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
                         {group.isSynthetic || isResidualGroup ? (
                           <div className={assetGroupMetricCardClassName}>
                             <p className="text-[10px] text-[#93a4c7]">비중</p>
-                            <p className="mt-1.5 whitespace-nowrap text-[0.92rem] font-bold tracking-tight text-white">
+                            <p className="mt-1.5 break-all text-[0.92rem] font-bold tracking-tight text-white sm:whitespace-nowrap">
                               {formatPercent(group.targetWeight)} / {formatPercent(group.currentWeight)}
                             </p>
                           </div>
@@ -1080,7 +1080,7 @@ export function PortfolioManagementBoard({
                                 className={`${assetGroupMetricCardClassName} w-full text-left transition hover:bg-black/20`}
                               >
                                 <p className="text-[10px] text-[#93a4c7]">비중</p>
-                                <p className="mt-1.5 whitespace-nowrap text-[0.92rem] font-bold tracking-tight text-white">
+                                <p className="mt-1.5 break-all text-[0.92rem] font-bold tracking-tight text-white sm:whitespace-nowrap">
                                   {formatPercent(group.targetWeight)} / {formatPercent(group.currentWeight)}
                                 </p>
                               </button>
@@ -1121,25 +1121,25 @@ export function PortfolioManagementBoard({
                         )}
                         <div className={assetGroupMetricCardClassName}>
                           <p className="text-[10px] text-[#93a4c7]">투자금</p>
-                          <p className="mt-1.5 whitespace-nowrap text-[0.92rem] font-semibold tracking-tight text-white">
+                          <p className="mt-1.5 break-all text-[0.92rem] font-semibold tracking-tight text-white sm:whitespace-nowrap">
                             {formatWon(String(group.investedAmount))}
                           </p>
                         </div>
                         <div className={assetGroupMetricCardClassName}>
                           <p className="text-[10px] text-[#93a4c7]">평가금</p>
-                          <p className="mt-1.5 whitespace-nowrap text-[0.92rem] font-semibold tracking-tight text-white">
+                          <p className="mt-1.5 break-all text-[0.92rem] font-semibold tracking-tight text-white sm:whitespace-nowrap">
                             {formatWon(String(group.marketValue))}
                           </p>
                         </div>
                         <div className={assetGroupMetricCardClassName}>
                           <p className="text-[10px] text-[#93a4c7]">수익률</p>
-                          <p className="mt-1.5 whitespace-nowrap text-[0.92rem] font-semibold tracking-tight">
+                          <p className="mt-1.5 break-all text-[0.92rem] font-semibold tracking-tight sm:whitespace-nowrap">
                             <ProfitTone value={group.profitRate} />
                           </p>
                         </div>
                           <div className={assetGroupMetricCardClassName}>
                             <p className="text-[10px] text-[#93a4c7]">리밸런싱</p>
-                            <p className="mt-1.5 whitespace-nowrap text-[0.92rem] font-semibold tracking-tight">
+                            <p className="mt-1.5 break-all text-[0.92rem] font-semibold tracking-tight sm:whitespace-nowrap">
                               {group.buyAmount > 0 ? (
                                 <span className="text-[#ff8e8e]">+{formatWon(String(group.buyAmount))}</span>
                               ) : group.sellAmount > 0 ? (
@@ -1149,7 +1149,6 @@ export function PortfolioManagementBoard({
                               )}
                             </p>
                           </div>
-                        </div>
                       </div>
 
                       <details open className="rounded-2xl border border-white/8">
@@ -1336,15 +1335,13 @@ export function PortfolioManagementBoard({
                       ) : null}
                     </div>
 
-                    <div className="mt-4 overflow-x-auto pb-1">
-                      <div className="grid min-w-[560px] grid-cols-3 gap-3">
+                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
                         <SummaryBox label="평가금" value={formatWon(String(account.marketValue))} />
                         <SummaryBox label="투자금" value={formatWon(String(account.investedAmount))} />
                         <SummaryBox
                           label="수익률"
                           value={<ProfitTone value={account.profitRate} />}
                         />
-                      </div>
                     </div>
 
                     <div className="mt-4 overflow-hidden rounded-[1rem] border border-white/8 bg-black/15">
