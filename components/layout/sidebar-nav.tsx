@@ -70,10 +70,11 @@ export function SidebarNav({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const portfolioId = searchParams.get("portfolio") ?? defaultPortfolioId;
+  const visibleItems = NAV_ITEMS.filter((item) => item.href !== "/");
 
   return (
     <nav className="space-y-1.5">
-      {NAV_ITEMS.map((item) => {
+      {visibleItems.map((item) => {
         const isActive = pathname === item.href;
         const isGlobalMenu = item.href === "/todos";
         const href = isGlobalMenu

@@ -24,6 +24,7 @@ type JournalFormItemOption = {
 type JournalFormAccountOption = {
   id: string;
   name: string;
+  bank: string;
   displayId: string;
 };
 
@@ -138,9 +139,7 @@ export function JournalForm({
             >
               {accounts.map((account) => (
                 <option key={account.id} value={account.id}>
-                  {account.displayId
-                    ? `${account.name} (${account.displayId})`
-                    : account.name}
+                  {account.name}
                 </option>
               ))}
             </Select>

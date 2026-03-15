@@ -9,7 +9,7 @@ export const DEFAULT_APP_SETTINGS = {
   id: SETTINGS_ID,
   brandName: "재테크 Admin",
   brandSubtitle: "투자 관리 대시보드",
-  brandImageUrl: "",
+  brandImageUrl: "/avatar-female-profile.svg",
   monthlyPrinciple:
     "추격 매수 금지, 매수 전 기록 우선, 주간 리뷰 고정. 성과보다 규칙 준수율을 먼저 확인합니다.",
   dashboardInsights: [
@@ -30,7 +30,8 @@ export async function getAppSettings() {
 
   return {
     ...settings,
-    brandImageUrl: settings.brandImageUrl ?? "",
+    brandImageUrl:
+      settings.brandImageUrl?.trim() || DEFAULT_APP_SETTINGS.brandImageUrl,
     dashboardInsights:
       settings.dashboardInsights ?? DEFAULT_APP_SETTINGS.dashboardInsights,
   };

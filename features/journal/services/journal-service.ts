@@ -43,6 +43,8 @@ export async function createJournalEntry(input: JournalInput) {
 
   revalidatePath("/");
   revalidatePath("/journal");
+  revalidatePath("/portfolios");
+  revalidatePath("/portfolio-hub");
 
   return entry;
 }
@@ -83,6 +85,8 @@ export async function updateJournalEntry(input: JournalUpdateInput) {
 
   revalidatePath("/");
   revalidatePath("/journal");
+  revalidatePath("/portfolios");
+  revalidatePath("/portfolio-hub");
 }
 
 export async function deleteJournalEntry(id: string) {
@@ -92,4 +96,6 @@ export async function deleteJournalEntry(id: string) {
 
   revalidatePath("/");
   revalidatePath("/journal");
+  revalidatePath("/portfolios");
+  revalidatePath("/portfolio-hub");
 }

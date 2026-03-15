@@ -33,7 +33,7 @@ export function JournalInspector({
     code: string;
     category: InvestmentItemCategory;
   }>;
-  accounts: Array<{ id: string; name: string; displayId: string }>;
+  accounts: Array<{ id: string; name: string; bank: string; displayId: string }>;
   portfolioId: string;
   currentMonth: string;
   selectedDate?: string;
@@ -80,7 +80,7 @@ export function JournalInspector({
         <input type="hidden" name="redirectDate" value={selectedDate ?? ""} />
         <input type="hidden" name="redirectEntry" value={entry.id} />
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="space-y-4">
           <label className="space-y-2">
             <span className="text-sm font-medium">거래일</span>
             <Input
@@ -92,72 +92,78 @@ export function JournalInspector({
               className="py-2"
             />
           </label>
-          <label className="space-y-2">
-            <span className="text-sm font-medium">계좌</span>
-            <Select
-              name="portfolioAccountId"
-              required
-              defaultValue={entry.portfolioAccountId ?? accounts[0]?.id ?? ""}
-              tone="dark"
-              className="py-2.5"
-            >
-              {accounts.map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.displayId ? `${account.name} (${account.displayId})` : account.name}
-                </option>
-              ))}
-            </Select>
-          </label>
-          <label className="space-y-2">
-            <span className="text-sm font-medium">투자 항목</span>
-            <Select
-              name="investmentItemId"
-              required
-              defaultValue={entry.investmentItemId ?? ""}
-              tone="dark"
-              className="py-2.5"
-            >
-              <option value="">항목 선택</option>
-              {items.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {isCodeManagedCategory(item.category) ? `${item.name} (${item.code})` : item.name}
-                </option>
-              ))}
-            </Select>
-          </label>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="space-y-2">
+              <span className="text-sm font-medium">계좌</span>
+              <Select
+                name="portfolioAccountId"
+                required
+                defaultValue={entry.portfolioAccountId ?? accounts[0]?.id ?? ""}
+                tone="dark"
+                className="py-2.5"
+              >
+                {accounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {account.name}
+                  </option>
+                ))}
+              </Select>
+            </label>
+            <label className="space-y-2">
+              <span className="text-sm font-medium">종목</span>
+              <Select
+                name="investmentItemId"
+                required
+                defaultValue={entry.investmentItemId ?? ""}
+                tone="dark"
+                className="py-2.5"
+              >
+                <option value="">종목 선택</option>
+                {items.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {isCodeManagedCategory(item.category) ? `${item.name} (${item.code})` : item.name}
+                  </option>
+                ))}
+              </Select>
+            </label>
+          </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="space-y-4">
           <label className="space-y-2">
             <span className="text-sm font-medium">매매 유형</span>
             <TradeActionToggle name="action" defaultValue={entry.action} />
           </label>
-          <label className="space-y-2">
-            <span className="text-sm font-medium">수량</span>
-            <Input
-              name="quantity"
-              type="number"
-              step="0.0001"
-              min="0.0001"
-              defaultValue={entry.quantity}
-              required
-              tone="dark"
-              className="py-2 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-            />
-          </label>
-          <label className="space-y-2">
-            <span className="text-sm font-medium">가격</span>
-            <Input
-              name="price"
-              type="number"
-              step="0.01"
-              min="0.01"
-              defaultValue={entry.price}
-              required
-              tone="dark"
-              className="py-2 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-            />
-          </label>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="space-y-2">
+              <span className="text-sm font-medium">수량</span>
+              <Input
+                name="quantity"
+                type="number"
+                step="0.0001"
+                min="0.0001"
+                defaultValue={entry.quantity}
+                required
+                tone="dark"
+                className="py-2 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              />
+            </label>
+            <label className="space-y-2">
+              <span className="text-sm font-medium">가격</span>
+              <Input
+                name="price"
+                type="number"
+                step="0.01"
+                min="0.01"
+                defaultValue={entry.price}
+                required
+                tone="dark"
+                className="py-2 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              />
+            </label>
+          </div>
         </div>
 
         <label className="space-y-2">

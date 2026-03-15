@@ -69,7 +69,7 @@ const cards = (summary: SummaryProps["summary"]) => [
 
 export function SummaryCards({ summary }: Readonly<SummaryProps>) {
   return (
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+    <div className="desktop-kpi-grid-4">
         {cards(summary).map((item) => (
           <Card
             key={item.label}

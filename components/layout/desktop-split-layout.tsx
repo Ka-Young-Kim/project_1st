@@ -12,7 +12,7 @@ export function DesktopSplitLayout({
   return (
     <div
       className={cx(
-        "grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px] 2xl:gap-6",
+        "grid gap-5 desktop-split-layout",
         className,
       )}
     >

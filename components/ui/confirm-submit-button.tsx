@@ -1,24 +1,38 @@
 "use client";
 
-import { useState, type MouseEvent, type ReactNode } from "react";
+import {
+  useState,
+  type ButtonHTMLAttributes,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 
-type ConfirmSubmitButtonProps = {
+type ConfirmSubmitButtonProps = Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  "type"
+> & {
   confirmMessage: string;
   children: ReactNode;
-  className?: string;
 };
 
 export function ConfirmSubmitButton({
   confirmMessage,
   children,
   className,
+  onClick,
+  ...buttonProps
 }: Readonly<ConfirmSubmitButtonProps>) {
   const [open, setOpen] = useState(false);
   const [targetForm, setTargetForm] = useState<HTMLFormElement | null>(null);
   const portalTarget = typeof document === "undefined" ? null : document.body;
 
   const handleOpen = (event: MouseEvent<HTMLButtonElement>) => {
+    onClick?.(event);
+    if (event.defaultPrevented) {
+      return;
+    }
+
     event.preventDefault();
     setTargetForm(event.currentTarget.form);
     setOpen(true);
@@ -81,7 +95,12 @@ export function ConfirmSubmitButton({
 
   return (
     <>
-      <button type="submit" className={className} onClick={handleOpen}>
+      <button
+        type="submit"
+        className={className}
+        onClick={handleOpen}
+        {...buttonProps}
+      >
         {children}
       </button>
       {portalTarget ? createPortal(dialog, portalTarget) : null}

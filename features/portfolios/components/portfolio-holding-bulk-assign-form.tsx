@@ -17,6 +17,7 @@ type HoldingOption = {
 type AccountOption = {
   id: string;
   name: string;
+  bank: string;
   displayId: string;
 };
 
@@ -256,7 +257,7 @@ export function PortfolioHoldingBulkAssignForm({
                     >
                       {accountOptions.map((account) => (
                         <option key={account.id} value={account.id} className="bg-[#15203a] text-white">
-                          {account.displayId ? `${account.name} (${account.displayId})` : account.name}
+                          {account.name}
                         </option>
                       ))}
                     </Select>

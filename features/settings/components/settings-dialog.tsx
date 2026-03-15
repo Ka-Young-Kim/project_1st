@@ -20,9 +20,9 @@ export function SettingsDialog({
   const portalTarget = typeof document === "undefined" ? null : document.body;
 
   const dialog = open ? (
-    <div className="admin-shell fixed inset-0 z-50 flex items-center justify-center bg-[rgba(3,7,18,0.78)] p-4 backdrop-blur-md sm:p-6">
+    <div className="admin-shell fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[rgba(3,7,18,0.78)] p-4 backdrop-blur-md sm:items-center sm:p-6">
       <div
-        className={`relative w-full max-w-[640px] ${dialogClassName ?? ""}`.trim()}
+        className={`relative my-auto w-full max-w-[640px] max-h-[calc(100vh-2rem)] overflow-y-auto ${dialogClassName ?? ""}`.trim()}
         onClick={(event) => {
           const target = event.target;
           if (

@@ -86,7 +86,7 @@ export function TodoList({
         </div>
       </div>
 
-      <div className="space-y-3 overflow-y-auto pr-1 xl:max-h-[39rem]">
+      <div className="desktop-scroll-region space-y-3 overflow-y-auto pr-1">
         {todos.length === 0 ? (
           <EmptyState
             title="등록된 TODO가 없습니다"

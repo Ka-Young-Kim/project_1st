@@ -47,7 +47,6 @@ export default async function InvestmentItemsPage(props: {
       {banner ? <StatusToast tone={banner.tone}>{banner.message}</StatusToast> : null}
 
       <DesktopSplitLayout
-        className="xl:grid-cols-[minmax(0,1fr)_340px]"
         primary={
           <InvestmentItemList
             items={filteredItems}

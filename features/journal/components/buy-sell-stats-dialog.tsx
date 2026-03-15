@@ -106,8 +106,14 @@ export function BuySellStatsDialog({
       trigger={
         <button
           type="button"
-          className="glass-panel flex min-h-[7.75rem] w-full flex-col rounded-[16px] p-3.5 text-left transition hover:bg-white/6"
+          className="glass-panel relative flex min-h-[7.75rem] w-full flex-col rounded-[16px] p-3.5 pr-14 text-left transition hover:bg-white/6"
         >
+          <span
+            aria-hidden="true"
+            className="absolute right-3.5 top-3.5 inline-flex h-7 min-w-7 items-center justify-center rounded-full border border-white/10 bg-white/5 px-2 text-[10px] font-semibold tracking-[0.18em] text-[#d8e4ff]"
+          >
+            &gt;&gt;
+          </span>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
             매수 / 매도
           </p>

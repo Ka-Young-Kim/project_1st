@@ -4,7 +4,7 @@ type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement>;
 
 const toneStyles = {
   default:
-    "border border-[var(--border)] bg-white px-3.5 py-2.5 text-sm text-[#162218] focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]/80",
+    "border border-[var(--border)] bg-white px-3.5 py-2.5 text-sm text-[#162218] focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]",
   dark:
     "appearance-none border border-white/12 bg-[rgba(255,255,255,0.04)] px-3.5 py-2.5 text-sm text-white shadow-none [color-scheme:dark] [&>option]:bg-[#15203a] [&>option]:text-white focus:border-[#6ea8fe] focus:ring-4 focus:ring-[rgba(110,168,254,0.16)]",
 } as const;

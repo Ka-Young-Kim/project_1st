@@ -29,7 +29,7 @@ const cards = (summary: TodoStatsProps["summary"]) => [
 
 export function TodoStats({ summary }: Readonly<TodoStatsProps>) {
   return (
-    <div className="grid gap-3 lg:grid-cols-3">
+    <div className="desktop-kpi-grid-3">
         {cards(summary).map((item) => (
           <Card
             key={item.label}

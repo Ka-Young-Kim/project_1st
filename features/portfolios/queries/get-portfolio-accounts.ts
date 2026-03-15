@@ -16,7 +16,7 @@ export async function getPortfolioAccounts(portfolioId?: string) {
   return accounts.map((account) => ({
     id: account.id,
     name: account.name,
-    nickname: account.nickname ?? "",
+    bank: account.bank ?? "",
     displayId: account.displayId ?? "",
     cashTrackingEnabled: account.cashTrackingEnabled,
     cashBalance: account.cashBalance.toString(),

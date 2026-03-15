@@ -66,7 +66,7 @@ export default async function TodosPage(props: { searchParams?: SearchParams }) 
         />
         <DesktopSplitLayout
           primary={
-            <div className="grid gap-5 2xl:grid-cols-[340px_minmax(0,1fr)]">
+            <div className="desktop-secondary-grid">
               <TodoCalendar
                 activeMonth={selectedMonth}
                 selectedDate={selectedDate}

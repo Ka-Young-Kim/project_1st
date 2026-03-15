@@ -51,29 +51,27 @@ function formatPercent(value: number) {
 
 function getAccountTitle(account: {
   name: string;
-  nickname?: string;
 }) {
-  return account.nickname?.trim() ? account.nickname : account.name;
+  return account.name;
 }
 
 function getAccountMeta(account: {
-  name: string;
-  nickname?: string;
+  bank?: string;
   displayId?: string;
 }) {
-  return [account.nickname?.trim() ? account.name : "", account.displayId]
-    .filter(Boolean)
-    .join(" · ");
+  return [account.bank, account.displayId].filter(Boolean).join(" · ");
 }
 
 function buildAccountLabel(account: {
   name: string;
-  nickname?: string;
-  displayId?: string;
 }) {
-  return account.displayId
-    ? `${getAccountTitle(account)} (${account.displayId})`
-    : getAccountTitle(account);
+  return account.name;
+}
+
+function buildPortfolioItemAccountLabel(item: {
+  accountName: string;
+}) {
+  return item.accountName;
 }
 
 function getAccountLabelById(accounts: AccountSummary[], accountId?: string) {
@@ -658,6 +656,68 @@ function PortfolioItemEditorDialog({
   );
 }
 
+function ReadonlyValueBox({
+  label,
+  value,
+}: Readonly<{
+  label: string;
+  value: ReactNode;
+}>) {
+  return (
+    <div className="space-y-1.5">
+      <p className="text-sm font-medium text-white">{label}</p>
+      <div className="rounded-[1rem] border border-white/8 bg-white/4 px-4 py-3 text-sm text-white">
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function PortfolioItemDetailDialog({
+  item,
+}: Readonly<{
+  item: PortfolioItemSummary;
+}>) {
+  const accountLabel = buildPortfolioItemAccountLabel(item);
+
+  return (
+    <Card className="rounded-[22px] bg-[linear-gradient(180deg,rgba(20,29,53,.98),rgba(17,26,48,.98))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
+      <div className="border-b border-white/8 pb-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8ea4cf]">
+          Portfolio Item
+        </p>
+        <h4 className="mt-2 text-[1.4rem] font-semibold tracking-tight">
+          항목 상세
+        </h4>
+        <p className="mt-2 text-sm text-[#93a4c7]">
+          포트폴리오에서는 집계 결과만 확인하고, 거래와 종목 정보 수정은 원본 화면에서 진행합니다.
+        </p>
+      </div>
+
+      <div className="mt-5 space-y-4">
+        <ReadonlyValueBox label="자산군" value={item.groupName} />
+        <ReadonlyValueBox label="계좌" value={accountLabel} />
+        <ReadonlyValueBox label="연결된 투자 항목" value={`${item.name} (${item.code})`} />
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <ReadonlyValueBox label="이름" value={item.name} />
+          <ReadonlyValueBox label="코드" value={item.code} />
+          <ReadonlyValueBox label="수량" value={item.quantity} />
+          <ReadonlyValueBox label="평단가" value={formatWon(String(item.averagePrice))} />
+          <ReadonlyValueBox label="현재가" value={formatWon(String(item.currentPrice))} />
+          <ReadonlyValueBox label="수익률" value={<ProfitTone value={item.profitRate} />} />
+          <ReadonlyValueBox label="투자금" value={formatWon(String(item.investedAmount))} />
+          <ReadonlyValueBox label="평가금" value={formatWon(String(item.marketValue))} />
+        </div>
+
+        <div className="rounded-[1rem] border border-[#6ea8fe]/20 bg-[#6ea8fe]/8 px-4 py-3 text-sm leading-6 text-[#cfe1ff]">
+          계좌와 수량은 투자일지에서, 종목 이름과 코드는 투자 항목 관리에서 수정됩니다.
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 function PortfolioItemRow({
   portfolioId,
   item,
@@ -673,9 +733,10 @@ function PortfolioItemRow({
   availableInvestmentItems: InvestmentItemOption[];
   variant: "asset-group" | "account";
 }>) {
+  const accountMetaLabel = buildPortfolioItemAccountLabel(item);
   const meta =
     variant === "asset-group"
-      ? [item.code, `수량 ${item.quantity}`, item.accountName]
+      ? [item.code, `수량 ${item.quantity}`, accountMetaLabel]
       : [item.code, item.groupName, `수량 ${item.quantity}`];
 
   return (
@@ -718,26 +779,34 @@ function PortfolioItemRow({
             </button>
           }
         >
-          <PortfolioItemEditorDialog
-            portfolioId={portfolioId}
-            item={item}
-            assetGroupOptions={assetGroupOptions}
-            accountOptions={accountOptions}
-            availableInvestmentItems={availableInvestmentItems}
-          />
+          {item.isLinkedToInvestmentItem ? (
+            <PortfolioItemDetailDialog item={item} />
+          ) : (
+            <PortfolioItemEditorDialog
+              portfolioId={portfolioId}
+              item={item}
+              assetGroupOptions={assetGroupOptions}
+              accountOptions={accountOptions}
+              availableInvestmentItems={availableInvestmentItems}
+            />
+          )}
         </SettingsDialog>
       </div>
 
-      <form action={deletePortfolioItemAction}>
-        <input type="hidden" name="id" value={item.id} />
-        <input type="hidden" name="portfolioId" value={portfolioId} />
-        <ConfirmSubmitButton
-          confirmMessage="이 항목을 삭제하시겠습니까?"
-          className={`${itemDeleteButtonClassName} mt-3 lg:mt-0`}
-        >
-          ×
-        </ConfirmSubmitButton>
-      </form>
+      {item.isLinkedToInvestmentItem ? (
+        <div className="hidden lg:block" />
+      ) : (
+        <form action={deletePortfolioItemAction}>
+          <input type="hidden" name="id" value={item.id} />
+          <input type="hidden" name="portfolioId" value={portfolioId} />
+          <ConfirmSubmitButton
+            confirmMessage="이 항목을 삭제하시겠습니까?"
+            className={`${itemDeleteButtonClassName} mt-3 lg:mt-0`}
+          >
+            ×
+          </ConfirmSubmitButton>
+        </form>
+      )}
     </div>
   );
 }
@@ -775,7 +844,7 @@ function AccountEditorDialog({
           value={account.cashTrackingEnabled ? "on" : "off"}
         />
         <label className="space-y-1.5">
-          <span className="text-sm font-medium">은행</span>
+          <span className="text-sm font-medium">이름</span>
           <Input
             name="name"
             defaultValue={account.name}
@@ -783,23 +852,26 @@ function AccountEditorDialog({
             className={`${fieldClassName} py-2.5`}
           />
         </label>
-        <label className="space-y-1.5">
-          <span className="text-sm font-medium">계좌 번호</span>
-          <Input
-            name="displayId"
-            defaultValue={account.displayId}
-            required
-            className={`${fieldClassName} py-2.5`}
-          />
-        </label>
-        <label className="space-y-1.5">
-          <span className="text-sm font-medium">별명 (선택)</span>
-          <Input
-            name="nickname"
-            defaultValue={account.nickname}
-            className={`${fieldClassName} py-2.5`}
-          />
-        </label>
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="space-y-1.5">
+            <span className="text-sm font-medium">은행</span>
+            <Input
+              name="bank"
+              defaultValue={account.bank}
+              required
+              className={`${fieldClassName} py-2.5`}
+            />
+          </label>
+          <label className="space-y-1.5">
+            <span className="text-sm font-medium">계좌 번호</span>
+            <Input
+              name="displayId"
+              defaultValue={account.displayId}
+              required
+              className={`${fieldClassName} py-2.5`}
+            />
+          </label>
+        </div>
         <SubmitButton className="w-full" pendingLabel="저장 중...">
           계좌 저장
         </SubmitButton>
@@ -908,7 +980,7 @@ export function PortfolioManagementBoard({
           </div>
         </div>
 
-        <div className="mt-6 grid min-w-0 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
+        <div className="desktop-kpi-grid-4 mt-6 min-w-0">
             <SummaryBox label="총 투자금" value={formatWon(String(data.summary.investedAmount))} />
             <SummaryBox label="총 평가금" value={formatWon(String(data.summary.marketValue))} />
             <SummaryBox
@@ -975,20 +1047,20 @@ export function PortfolioManagementBoard({
                       <input type="hidden" name="sortOrder" value={realAccounts.length} />
                       <input type="hidden" name="cashBalance" value="0" />
                       <input type="hidden" name="cashTrackingEnabled" value="off" />
-                      <div className="grid gap-4 md:grid-cols-2 md:items-start">
+                      <div className="grid gap-4 md:grid-cols-3 md:items-start">
+                        <label className="space-y-1.5">
+                          <span className="text-sm font-medium">이름</span>
+                          <Input name="name" required className={`${fieldClassName} py-2.5`} />
+                        </label>
                         <label className="space-y-1.5">
                           <span className="text-sm font-medium">은행</span>
-                          <Input name="name" required className={`${fieldClassName} py-2.5`} />
+                          <Input name="bank" required className={`${fieldClassName} py-2.5`} />
                         </label>
                         <label className="space-y-1.5">
                           <span className="text-sm font-medium">계좌 번호</span>
                           <Input name="displayId" required className={`${fieldClassName} py-2.5`} />
                         </label>
                       </div>
-                      <label className="space-y-1.5">
-                        <span className="text-sm font-medium">별명 (선택)</span>
-                        <Input name="nickname" className={`${fieldClassName} py-2.5`} />
-                      </label>
                       <div className="pt-1">
                         <SubmitButton className="w-full" pendingLabel="계좌 저장 중...">
                           계좌 추가
@@ -1064,7 +1136,7 @@ export function PortfolioManagementBoard({
                     </div>
 
                     <div className="space-y-4 px-5 py-4">
-                      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                      <div className="desktop-kpi-grid-5">
                         {group.isSynthetic || isResidualGroup ? (
                           <div className={assetGroupMetricCardClassName}>
                             <p className="text-[10px] text-[#93a4c7]">비중</p>

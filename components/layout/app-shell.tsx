@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Suspense } from "react";
 
+import { DesktopHomeShortcut } from "@/components/layout/desktop-home-shortcut";
 import { DesktopPageHeader } from "@/components/layout/desktop-page-header";
 import { LogoutButton } from "@/features/auth/components/logout-button";
 import { SidebarSummary } from "@/features/dashboard/components/sidebar-summary";
@@ -28,12 +29,15 @@ export async function AppShell({
   );
   const portfolioSwitcherPanel = (
     <Suspense fallback={portfolioSwitcherFallback}>
-      <div className="w-[18rem] max-w-full desktop-no-drag">
-        <PortfolioSwitcher
-          portfolios={portfolios}
-          compact
-          defaultSelectedId={activePortfolio?.id}
-        />
+      <div className="flex items-stretch gap-3 desktop-no-drag">
+        <div className="w-[18rem] max-w-full">
+          <PortfolioSwitcher
+            portfolios={portfolios}
+            compact
+            defaultSelectedId={activePortfolio?.id}
+          />
+        </div>
+        <DesktopHomeShortcut defaultPortfolioId={activePortfolio?.id} />
       </div>
     </Suspense>
   );
@@ -42,17 +46,17 @@ export async function AppShell({
       trigger={
         <button
           type="button"
-          className="w-full rounded-[1.55rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.035))] px-4 py-4 text-left shadow-[0_12px_30px_rgba(0,0,0,.18)] transition hover:border-white/12 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.05))]"
+          className="min-h-[6rem] w-full rounded-[1.55rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.035))] px-4 py-[1.15rem] text-left shadow-[0_12px_30px_rgba(0,0,0,.18)] transition hover:border-white/12 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.05))]"
         >
           <div className="flex items-center gap-3.5">
             {settings.brandImageUrl ? (
-              <div className="overflow-hidden rounded-[1rem] shadow-[0_12px_28px_rgba(0,0,0,.24)]">
+              <div className="relative h-14 w-14 overflow-hidden rounded-[1rem] shadow-[0_12px_28px_rgba(0,0,0,.24)]">
                 <Image
                   src={settings.brandImageUrl}
                   alt={`${settings.brandName} 로고`}
-                  className="h-14 w-14 object-cover"
-                  width={56}
-                  height={56}
+                  fill
+                  sizes="56px"
+                  className="object-cover"
                 />
               </div>
             ) : (
@@ -104,24 +108,6 @@ export async function AppShell({
                 </Suspense>
               </div>
             </div>
-
-            <SettingsDialog
-              trigger={
-                <button
-                  type="button"
-                  className="w-full rounded-[18px] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-4 text-left transition hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04))]"
-                >
-                  <h4 className="text-sm font-semibold uppercase tracking-[0.16em] text-white/90">
-                    오늘의 원칙
-                  </h4>
-                  <p className="mt-2.5 line-clamp-4 text-[13px] leading-6 text-[var(--muted)]">
-                    {settings.monthlyPrinciple}
-                  </p>
-                </button>
-              }
-            >
-              <SettingsPanel settings={settings} mode="principle" />
-            </SettingsDialog>
 
             <div className="mt-auto space-y-3 pt-2">
               <SidebarSummary summary={summary} />

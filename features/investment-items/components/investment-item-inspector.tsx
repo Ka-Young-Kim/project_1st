@@ -57,6 +57,9 @@ export function InvestmentItemInspector({
     );
   }
 
+  const updateFormId = `investment-item-update-${item.id}`;
+  const deleteFormId = `investment-item-delete-${item.id}`;
+
   return (
     <Card className="sticky top-5 border-white/8 bg-[linear-gradient(180deg,rgba(18,28,52,.98),rgba(14,22,42,.98))] p-5 text-white">
       <div className="flex items-start justify-between gap-3">
@@ -87,7 +90,11 @@ export function InvestmentItemInspector({
         <Metric label="최근 수정" value={item.updatedAt.toLocaleDateString("ko-KR")} />
       </div>
 
-      <form action={updateInvestmentItemAction} className="mt-5 space-y-4">
+      <form
+        id={updateFormId}
+        action={updateInvestmentItemAction}
+        className="mt-5 space-y-4"
+      >
         <input type="hidden" name="id" value={item.id} />
         <input type="hidden" name="portfolioId" value={item.portfolioId ?? ""} />
         <input type="hidden" name="redirectCategory" value={selectedCategory ?? "all"} />
@@ -124,27 +131,31 @@ export function InvestmentItemInspector({
             </div>
           </div>
         </label>
-
-        <button
-          type="submit"
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-[1rem] bg-[linear-gradient(180deg,#76aefd,#5a8ee6)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(90,142,230,0.22)] transition hover:bg-[linear-gradient(180deg,#86b8ff,#6798ea)]"
-        >
-          수정 저장
-        </button>
       </form>
 
-      <form action={deleteInvestmentItemAction} className="mt-3">
+      <form id={deleteFormId} action={deleteInvestmentItemAction}>
         <input type="hidden" name="id" value={item.id} />
         <input type="hidden" name="portfolioId" value={item.portfolioId ?? ""} />
         <input type="hidden" name="redirectCategory" value={selectedCategory ?? "all"} />
         <input type="hidden" name="redirectItem" value={item.id} />
+      </form>
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <button
+          type="submit"
+          form={updateFormId}
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-[1rem] bg-[linear-gradient(180deg,#76aefd,#5a8ee6)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(90,142,230,0.22)] transition hover:bg-[linear-gradient(180deg,#86b8ff,#6798ea)]"
+        >
+          수정 저장
+        </button>
         <ConfirmSubmitButton
+          form={deleteFormId}
           confirmMessage="이 투자 항목을 삭제하시겠습니까? 연결된 투자일지가 있으면 삭제되지 않습니다."
           className="w-full rounded-[1rem] border border-rose-300/30 bg-rose-400/10 px-4 py-2.5 text-sm font-semibold text-rose-100 transition hover:bg-rose-400/20"
         >
           삭제
         </ConfirmSubmitButton>
-      </form>
+      </div>
     </Card>
   );
 }

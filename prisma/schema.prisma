@@ -81,6 +81,7 @@ model PortfolioAccount {
   portfolioId        String
   portfolio          Portfolio             @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
   name               String
+  bank               String?
   nickname           String?
   displayId          String?
   sortOrder          Int                   @default(0)
@@ -220,6 +221,7 @@ model PortfolioAccountSnapshot {
   portfolioAccountId String?
   portfolioAccount   PortfolioAccount?     @relation(fields: [portfolioAccountId], references: [id], onDelete: SetNull)
   name               String
+  bank               String?
   displayId          String?
   investedAmount     Decimal
   marketValue        Decimal

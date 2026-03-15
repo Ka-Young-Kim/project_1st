@@ -14,8 +14,8 @@ const decimalOrZeroSchema = z
 
 export const portfolioAccountInputSchema = z.object({
   portfolioId: z.string().min(1, "포트폴리오를 선택하세요."),
-  name: z.string().trim().min(1, "은행 이름을 입력하세요.").max(80),
-  nickname: z.string().trim().max(80).optional().transform((value) => value || ""),
+  name: z.string().trim().min(1, "계좌 이름을 입력하세요.").max(80),
+  bank: z.string().trim().min(1, "은행을 입력하세요.").max(80),
   displayId: z.string().trim().min(1, "계좌 번호를 입력하세요.").max(80),
   sortOrder: z.coerce.number().int().min(0).default(0),
   cashTrackingEnabled: z.boolean().default(false),

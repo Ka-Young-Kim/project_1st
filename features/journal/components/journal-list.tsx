@@ -33,7 +33,7 @@ export function JournalList({
     code: string;
     category: InvestmentItemCategory;
   }>;
-  accounts: Array<{ id: string; name: string; displayId: string }>;
+  accounts: Array<{ id: string; name: string; bank: string; displayId: string }>;
   portfolioId: string;
   viewAllHref?: string;
 }>) {
@@ -105,7 +105,7 @@ export function JournalList({
           </SettingsDialog>
         </div>
       </div>
-      <div className="space-y-3 overflow-y-auto pr-1 xl:max-h-[39rem]">
+      <div className="desktop-scroll-region space-y-3 overflow-y-auto pr-1">
         {entries.length === 0 ? (
           <EmptyState
             title="투자일지가 없습니다"

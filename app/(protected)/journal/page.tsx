@@ -98,7 +98,7 @@ export default async function JournalPage(props: {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="desktop-kpi-grid-3">
           <div className="glass-panel flex min-h-[7.75rem] flex-col rounded-[16px] p-3.5">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
               이번 달 기록
@@ -137,7 +137,7 @@ export default async function JournalPage(props: {
 
       <DesktopSplitLayout
         primary={
-          <div className="grid gap-5 2xl:grid-cols-[340px_minmax(0,1fr)]">
+          <div className="desktop-secondary-grid">
             <JournalCalendar
               activeMonth={selectedMonth}
               portfolioId={activePortfolio?.id}
@@ -165,6 +165,7 @@ export default async function JournalPage(props: {
               accounts={accountOptions.map((account) => ({
                 id: account.id,
                 name: account.name,
+                bank: account.bank,
                 displayId: account.displayId,
               }))}
               portfolioId={activePortfolio?.id ?? ""}
@@ -191,6 +192,7 @@ export default async function JournalPage(props: {
             accounts={accountOptions.map((account) => ({
               id: account.id,
               name: account.name,
+              bank: account.bank,
               displayId: account.displayId,
             }))}
             portfolioId={activePortfolio?.id ?? ""}
