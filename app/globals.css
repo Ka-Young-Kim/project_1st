@@ -117,8 +117,8 @@ textarea {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
-  gap: 1.25rem;
-  padding: 20px 20px 16px;
+  gap: 1rem;
+  padding: 18px 20px 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   background:
     linear-gradient(180deg, rgba(9, 15, 30, 0.98), rgba(8, 14, 28, 0.94)),
@@ -128,8 +128,8 @@ textarea {
 
 .desktop-topbar-main {
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
-  gap: 20px;
+  grid-template-columns: 224px minmax(0, 1fr);
+  gap: 16px;
   align-items: start;
   min-width: 0;
 }
@@ -141,6 +141,10 @@ textarea {
 .desktop-topbar-main .page-description {
   font-size: 0.9rem;
   line-height: 1.6;
+  max-width: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .desktop-topbar-main section {
