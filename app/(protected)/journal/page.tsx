@@ -100,8 +100,7 @@ export default async function JournalPage(props: {
         }
       />
 
-      <div className="overflow-x-auto pb-1">
-        <div className="grid min-w-[760px] grid-cols-3 gap-3">
+      <div className="grid gap-3 md:grid-cols-3">
           <div className="glass-panel flex min-h-[7.75rem] flex-col rounded-[16px] p-3.5">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
               이번 달 기록
@@ -134,14 +133,12 @@ export default async function JournalPage(props: {
               월 누적 거래금액 {formatWon(String(monthlyTurnover))}
             </p>
           </div>
-        </div>
       </div>
 
       {banner ? <StatusToast tone={banner.tone}>{banner.message}</StatusToast> : null}
 
       <div className="grid gap-5">
-        <div className="overflow-x-auto pb-1">
-          <div className="grid min-w-[1120px] grid-cols-[0.88fr_1.12fr] gap-5">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)]">
           <JournalCalendar
             activeMonth={selectedMonth}
             portfolioId={activePortfolio?.id}
@@ -178,7 +175,6 @@ export default async function JournalPage(props: {
               ),
             ).toString()}`}
           />
-          </div>
         </div>
       </div>
     </div>

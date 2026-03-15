@@ -9,9 +9,10 @@ export async function getDashboardSummary(portfolioId?: string) {
     timeZone: "Asia/Seoul",
     year: "numeric",
     month: "2-digit",
+    day: "2-digit",
   })
     .format(new Date())
-    .replace("-", " / ");
+    .replaceAll("-", " / ");
 
   const [
     incompleteTodoCount,

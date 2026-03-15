@@ -69,8 +69,7 @@ const cards = (summary: SummaryProps["summary"]) => [
 
 export function SummaryCards({ summary }: Readonly<SummaryProps>) {
   return (
-    <div className="overflow-x-auto pb-1">
-      <div className="grid min-w-[980px] grid-cols-4 gap-3">
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {cards(summary).map((item) => (
           <Card
             key={item.label}
@@ -100,7 +99,6 @@ export function SummaryCards({ summary }: Readonly<SummaryProps>) {
             </div>
           </Card>
         ))}
-      </div>
     </div>
   );
 }

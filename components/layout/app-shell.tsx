@@ -5,6 +5,7 @@ import { LogoutButton } from "@/features/auth/components/logout-button";
 import { SidebarSummary } from "@/features/dashboard/components/sidebar-summary";
 import { getDashboardSummary } from "@/features/dashboard/queries/get-dashboard-summary";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
+import { ResponsiveSidebar } from "@/components/layout/responsive-sidebar";
 import { PortfolioSwitcher } from "@/features/portfolios/components/portfolio-switcher";
 import { resolvePortfolioId } from "@/features/portfolios/queries/get-portfolios";
 import { SettingsDialog } from "@/features/settings/components/settings-dialog";
@@ -41,7 +42,7 @@ export async function AppShell({
   return (
     <div className="page-shell admin-shell">
       <div className="page-container grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="admin-sidebar h-fit rounded-[24px] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(8,14,28,.98),rgba(10,16,31,.96))] p-5 lg:sticky lg:top-6 lg:h-[calc(100vh-48px)] lg:overflow-y-auto">
+        <ResponsiveSidebar className="admin-sidebar h-fit rounded-[24px] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(8,14,28,.98),rgba(10,16,31,.96))] p-5 lg:self-start">
           <div className="flex min-h-full flex-col gap-5">
             <SettingsDialog
               trigger={
@@ -114,7 +115,7 @@ export async function AppShell({
               </div>
             </div>
           </div>
-        </aside>
+        </ResponsiveSidebar>
 
         <main className="min-w-0 2xl:grid 2xl:grid-cols-[minmax(0,1fr)_280px] 2xl:items-start 2xl:gap-4">
           <div className="space-y-6">
