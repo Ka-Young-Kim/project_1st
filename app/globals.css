@@ -55,11 +55,13 @@ textarea {
 
 .page-shell {
   min-height: 100vh;
-  padding: 22px;
+  padding: clamp(12px, 4vw, 22px);
+  overflow-x: hidden;
 }
 
 .page-container {
   margin: 0 auto;
+  width: min(100%, var(--page-max-width));
   max-width: var(--page-max-width);
 }
 

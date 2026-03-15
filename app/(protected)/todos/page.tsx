@@ -62,8 +62,7 @@ export default async function TodosPage(props: { searchParams?: SearchParams }) 
             remainingTodoCount,
           }}
         />
-        <div className="overflow-x-auto pb-1">
-          <div className="grid min-w-[1120px] grid-cols-[0.9fr_1.1fr] gap-5">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
             <TodoCalendar
               activeMonth={selectedMonth}
               selectedDate={selectedDate}
@@ -76,9 +75,10 @@ export default async function TodosPage(props: { searchParams?: SearchParams }) 
             />
             <TodoList
               todos={visibleTodos}
+              currentMonth={currentMonth}
+              selectedDate={selectedDate}
               viewAllHref={`/todos?${new URLSearchParams({ month: currentMonth }).toString()}`}
             />
-          </div>
         </div>
       </div>
     </div>

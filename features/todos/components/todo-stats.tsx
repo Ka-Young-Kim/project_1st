@@ -29,8 +29,7 @@ const cards = (summary: TodoStatsProps["summary"]) => [
 
 export function TodoStats({ summary }: Readonly<TodoStatsProps>) {
   return (
-    <div className="overflow-x-auto pb-1">
-      <div className="grid min-w-[720px] grid-cols-3 gap-3">
+    <div className="grid gap-3 md:grid-cols-3">
         {cards(summary).map((item) => (
           <Card
             key={item.label}
@@ -46,7 +45,6 @@ export function TodoStats({ summary }: Readonly<TodoStatsProps>) {
             <p className="text-[13px] text-[#93a4c7]">{item.description}</p>
           </Card>
         ))}
-      </div>
     </div>
   );
 }

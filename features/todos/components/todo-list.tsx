@@ -18,8 +18,15 @@ import { formatDateInput, getTodayDateInputInSeoul } from "@/lib/utils";
 
 export function TodoList({
   todos,
+  currentMonth,
+  selectedDate,
   viewAllHref = "/todos",
-}: Readonly<{ todos: TodoListItem[]; viewAllHref?: string }>) {
+}: Readonly<{
+  todos: TodoListItem[];
+  currentMonth: string;
+  selectedDate?: string;
+  viewAllHref?: string;
+}>) {
   const today = getTodayDateInputInSeoul();
 
   return (
@@ -81,6 +88,7 @@ export function TodoList({
             const isOverdue = Boolean(
               dueDateInput && dueDateInput < today && !todo.completed,
             );
+            const hasNotes = Boolean(todo.notes?.trim());
 
             return (
               <article
@@ -137,6 +145,8 @@ export function TodoList({
 
                           <form action={updateTodoAction} className="mt-6 space-y-4">
                             <input type="hidden" name="id" value={todo.id} />
+                            <input type="hidden" name="redirectMonth" value={currentMonth} />
+                            <input type="hidden" name="redirectDate" value={selectedDate ?? ""} />
                             <input
                               type="hidden"
                               name="completed"
@@ -228,9 +238,76 @@ export function TodoList({
                     </div>
                   </div>
 
-                  <p className="mt-2 text-sm leading-6 text-[#8fb0ec]">
-                    {todo.notes || "메모가 없습니다."}
-                  </p>
+                  {hasNotes ? (
+                    <SettingsDialog
+                      trigger={
+                        <button
+                          type="button"
+                          className="mt-2 block w-full truncate text-left text-[12px] leading-5 text-[#8fb0ec] transition hover:text-[#bfd4ff]"
+                          aria-label={`${todo.title} 메모 자세히 보기`}
+                          style={{ fontSize: "12px", lineHeight: 1.35 }}
+                        >
+                          {todo.notes}
+                        </button>
+                      }
+                    >
+                      <Card surface="dialog" className="p-5 sm:p-6">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
+                            Todo Memo
+                          </p>
+                          <h3 className="mt-3 text-xl font-semibold text-white">
+                            {todo.title}
+                          </h3>
+                        </div>
+                        <form action={updateTodoAction} className="mt-5 space-y-4">
+                          <input type="hidden" name="id" value={todo.id} />
+                          <input type="hidden" name="redirectMonth" value={currentMonth} />
+                          <input type="hidden" name="redirectDate" value={selectedDate ?? ""} />
+                          <input type="hidden" name="title" value={todo.title} />
+                          <input
+                            type="hidden"
+                            name="priority"
+                            value={todo.priority}
+                          />
+                          <input
+                            type="hidden"
+                            name="dueDate"
+                            value={dueDateInput ?? ""}
+                          />
+                          <input
+                            type="hidden"
+                            name="completed"
+                            value={todo.completed ? "true" : "false"}
+                          />
+                          <label className="block space-y-2">
+                            <span className="text-sm font-medium text-white/88">
+                              메모
+                            </span>
+                            <Textarea
+                              name="notes"
+                              defaultValue={todo.notes ?? ""}
+                              tone="dark"
+                              rows={6}
+                            />
+                          </label>
+                          <SubmitButton
+                            className="w-full"
+                            pendingLabel="메모 저장 중..."
+                          >
+                            수정 저장
+                          </SubmitButton>
+                        </form>
+                      </Card>
+                    </SettingsDialog>
+                  ) : (
+                    <p
+                      className="mt-2 text-[12px] leading-5 text-[#8fb0ec]"
+                      style={{ fontSize: "12px", lineHeight: 1.35 }}
+                    >
+                      메모가 없습니다.
+                    </p>
+                  )}
                 </div>
               </div>
               </article>

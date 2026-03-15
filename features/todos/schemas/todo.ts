@@ -3,12 +3,14 @@ import { z } from "zod";
 import { optionalSeoulDateSchema } from "@/lib/validation";
 import { getTodayDateInputInSeoul } from "@/lib/utils";
 
-export const todoInputSchema = z.object({
+const todoBaseSchema = z.object({
   title: z.string().trim().min(1, "제목을 입력하세요.").max(120),
   priority: z.enum(["low", "medium", "high"]),
   dueDate: optionalSeoulDateSchema,
   notes: z.string().trim().max(1000).optional().transform((value) => value || ""),
-}).superRefine((input, ctx) => {
+});
+
+export const todoInputSchema = todoBaseSchema.superRefine((input, ctx) => {
   if (!input.dueDate) {
     return;
   }
@@ -22,7 +24,7 @@ export const todoInputSchema = z.object({
   }
 });
 
-export const todoUpdateSchema = todoInputSchema.extend({
+export const todoUpdateSchema = todoBaseSchema.extend({
   id: z.string().min(1),
   completed: z.enum(["true", "false"]),
 });
