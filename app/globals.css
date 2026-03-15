@@ -99,6 +99,118 @@ textarea {
   backdrop-filter: blur(10px);
 }
 
+.desktop-shell {
+  display: flex;
+  flex-direction: column;
+  min-width: 1180px;
+  min-height: 100vh;
+  padding: 0;
+  overflow: hidden;
+}
+
+.desktop-shell .page-container {
+  width: 100%;
+  max-width: none;
+}
+
+.desktop-topbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 1.25rem;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background:
+    linear-gradient(180deg, rgba(9, 15, 30, 0.98), rgba(8, 14, 28, 0.94)),
+    radial-gradient(circle at top left, rgba(110, 168, 254, 0.08), transparent 30%);
+  box-shadow: 0 14px 30px rgba(2, 8, 23, 0.18);
+}
+
+.desktop-topbar-main {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  min-width: 0;
+}
+
+.desktop-topbar-main .page-title {
+  font-size: clamp(1.7rem, 1.6vw, 2.2rem);
+}
+
+.desktop-topbar-main .page-description {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.desktop-topbar-main section {
+  min-width: 0;
+}
+
+.desktop-topbar-heading,
+.desktop-topbar-main .page-description {
+  min-width: 0;
+}
+
+.desktop-shell-body {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  flex: 1;
+  min-height: 0;
+  padding: 20px 20px 22px;
+}
+
+.desktop-sidebar {
+  min-height: 0;
+}
+
+.desktop-main {
+  min-width: 0;
+  min-height: 0;
+}
+
+.desktop-drag {
+  -webkit-app-region: drag;
+}
+
+.desktop-no-drag {
+  -webkit-app-region: no-drag;
+}
+
+@media (min-width: 1480px) {
+  .desktop-topbar {
+    padding-inline: 22px;
+  }
+
+  .desktop-topbar-main {
+    gap: 22px;
+  }
+
+  .desktop-shell-body {
+    gap: 22px;
+    padding-inline: 22px;
+  }
+}
+
+@media (min-width: 1720px) {
+  .desktop-topbar {
+    padding-inline: 24px;
+  }
+
+  .desktop-topbar-main {
+    grid-template-columns: 248px minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .desktop-shell-body {
+    grid-template-columns: 248px minmax(0, 1fr);
+    gap: 24px;
+    padding-inline: 24px;
+  }
+}
+
 .admin-shell,
 .admin-shell * {
   scrollbar-width: thin;
@@ -161,17 +273,17 @@ textarea {
 }
 
 .page-title {
-  font-size: clamp(1.5rem, 1.7vw, 2.2rem);
+  font-size: clamp(1.45rem, 1.45vw, 2rem);
   font-weight: 700;
-  line-height: 1.08;
-  letter-spacing: -0.04em;
+  line-height: 1.04;
+  letter-spacing: -0.05em;
 }
 
 .page-description {
-  max-width: 50rem;
+  max-width: 64rem;
   color: var(--muted);
-  font-size: 0.86rem;
-  line-height: 1.55;
+  font-size: 0.84rem;
+  line-height: 1.5;
 }
 
 .admin-divider {

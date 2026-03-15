@@ -26,7 +26,7 @@ export async function createJournalEntry(input: JournalInput) {
     throw new Error(`Portfolio account not found: ${input.portfolioAccountId}`);
   }
 
-  await prisma.investmentLog.create({
+  const entry = await prisma.investmentLog.create({
     data: {
       tradeDate: new Date(`${input.tradeDate}T00:00:00+09:00`),
       investmentItemId: item.id,
@@ -43,6 +43,8 @@ export async function createJournalEntry(input: JournalInput) {
 
   revalidatePath("/");
   revalidatePath("/journal");
+
+  return entry;
 }
 
 export async function updateJournalEntry(input: JournalUpdateInput) {

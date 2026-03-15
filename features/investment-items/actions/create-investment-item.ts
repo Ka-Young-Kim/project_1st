@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 
+import { normalizeInvestmentItemCategory } from "@/features/investment-items/lib/category";
 import { investmentItemInputSchema } from "@/features/investment-items/schemas/investment-item";
 import {
   createInvestmentItem,
@@ -10,7 +11,8 @@ import {
 import { logger } from "@/lib/logger";
 
 export async function createInvestmentItemAction(formData: FormData) {
-  const portfolioId = String(formData.get("portfolioId") ?? "");
+  const portfolioId = getString(formData, "portfolioId");
+  const redirectCategory = getString(formData, "redirectCategory");
   const parsed = investmentItemInputSchema.safeParse({
     portfolioId,
     name: formData.get("name"),
@@ -25,26 +27,69 @@ export async function createInvestmentItemAction(formData: FormData) {
 
   if (!parsed.success) {
     logger.warn("investment_item.create.validation_failed", parsed.error.flatten());
-    redirect(`/items?status=item-invalid${portfolioId ? `&portfolio=${portfolioId}` : ""}`);
+    redirect(buildItemsRedirectPath(formData, "item-invalid"));
   }
 
   try {
-    await createInvestmentItem(parsed.data);
+    const item = await createInvestmentItem(parsed.data);
+    const createdCategory = normalizeInvestmentItemCategory(parsed.data.category);
+    const nextCategory =
+      redirectCategory && redirectCategory !== "all" && redirectCategory !== createdCategory
+        ? createdCategory
+        : redirectCategory;
+
+    redirect(buildItemsRedirectPath(formData, "item-created", {
+      category: nextCategory,
+      itemId: item.id,
+    }));
   } catch (error) {
     if (error instanceof DuplicateInvestmentItemError) {
       const status =
         error.field === "code" ? "item-duplicate-code" : "item-duplicate-name";
-      redirect(`/items?status=${status}${portfolioId ? `&portfolio=${portfolioId}` : ""}`);
+      redirect(buildItemsRedirectPath(formData, status));
     }
 
     throw error;
   }
-
-  redirect(`/items?status=item-created${portfolioId ? `&portfolio=${portfolioId}` : ""}`);
 }
 
 function getOptionalFormValue(formData: FormData, key: string) {
   const value = formData.get(key);
 
   return typeof value === "string" ? value : undefined;
+}
+
+function getString(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return typeof value === "string" ? value : "";
+}
+
+function buildItemsRedirectPath(
+  formData: FormData,
+  status: string,
+  options?: {
+    category?: string;
+    itemId?: string;
+    includeSelectedItem?: boolean;
+  },
+) {
+  const params = new URLSearchParams({ status });
+  const portfolioId = getString(formData, "portfolioId");
+  const category = options?.category ?? getString(formData, "redirectCategory");
+  const selectedItemId = options?.itemId ?? getString(formData, "redirectItem");
+  const includeSelectedItem = options?.includeSelectedItem ?? true;
+
+  if (portfolioId) {
+    params.set("portfolio", portfolioId);
+  }
+
+  if (category && category !== "all") {
+    params.set("category", category);
+  }
+
+  if (includeSelectedItem && selectedItemId) {
+    params.set("item", selectedItemId);
+  }
+
+  return `/items?${params.toString()}`;
 }

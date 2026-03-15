@@ -8,7 +8,7 @@ function toDateOrNull(value?: string) {
 }
 
 export async function createTodo(input: TodoInput) {
-  await prisma.todo.create({
+  const todo = await prisma.todo.create({
     data: {
       title: input.title,
       priority: input.priority,
@@ -19,6 +19,8 @@ export async function createTodo(input: TodoInput) {
 
   revalidatePath("/");
   revalidatePath("/todos");
+
+  return todo;
 }
 
 export async function updateTodo(input: TodoUpdateInput) {

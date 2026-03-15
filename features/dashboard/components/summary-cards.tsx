@@ -75,23 +75,35 @@ export function SummaryCards({ summary }: Readonly<SummaryProps>) {
             key={item.label}
             surface="glass"
             className={cx(
-              "relative overflow-hidden border border-[var(--border)] bg-gradient-to-br p-3.5",
+              "relative overflow-hidden border border-[var(--border)] bg-gradient-to-br px-3.5 py-3",
               item.accent,
               item.text,
               item.glow,
             )}
           >
-            <div className="absolute right-[-18px] top-[-18px] h-20 w-20 rounded-full bg-white/8 blur-2xl" />
-            <p className="relative text-xs font-semibold uppercase tracking-[0.24em] opacity-75">
-              {item.label}
-            </p>
-            <p className="relative mt-2.5 text-[1.75rem] font-bold tracking-tight">
-              {item.value}
-            </p>
-            <p className="relative mt-2.5 text-[13px] leading-5 opacity-90">
+            <div className="absolute right-[-24px] top-[-24px] h-20 w-20 rounded-full bg-white/8 blur-2xl" />
+            <div className="relative flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] opacity-75">
+                  {item.label}
+                </p>
+                <p className="mt-2 text-[1.45rem] font-bold tracking-tight">
+                  {item.value}
+                </p>
+              </div>
+              <div className="min-w-[72px] text-right">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] opacity-70">
+                  Flow
+                </p>
+                <p className="mt-1 text-[13px] font-semibold">
+                  {Math.max(12, item.progress)}%
+                </p>
+              </div>
+            </div>
+            <p className="relative mt-3 text-[12px] leading-5 opacity-85">
               {item.insight}
             </p>
-            <div className="relative mt-3.5 h-1.5 rounded-full bg-black/20">
+            <div className="relative mt-3 h-1.5 rounded-full bg-black/20">
               <div
                 className="h-full rounded-full bg-current/70"
                 style={{ width: `${Math.max(12, item.progress)}%` }}

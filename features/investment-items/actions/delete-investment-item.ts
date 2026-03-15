@@ -5,18 +5,47 @@ import { redirect } from "next/navigation";
 import { deleteInvestmentItem } from "@/features/investment-items/services/investment-item-service";
 
 export async function deleteInvestmentItemAction(formData: FormData) {
-  const id = String(formData.get("id") ?? "");
-  const portfolioId = String(formData.get("portfolioId") ?? "");
+  const id = getString(formData, "id");
 
   if (!id) {
-    redirect(`/items?status=item-invalid${portfolioId ? `&portfolio=${portfolioId}` : ""}`);
+    redirect(buildItemsRedirectPath(formData, "item-invalid", true));
   }
 
   const result = await deleteInvestmentItem(id);
 
   if (!result.ok) {
-    redirect(`/items?status=item-linked${portfolioId ? `&portfolio=${portfolioId}` : ""}`);
+    redirect(buildItemsRedirectPath(formData, "item-linked", true));
   }
 
-  redirect(`/items?status=item-deleted${portfolioId ? `&portfolio=${portfolioId}` : ""}`);
+  redirect(buildItemsRedirectPath(formData, "item-deleted"));
+}
+
+function getString(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return typeof value === "string" ? value : "";
+}
+
+function buildItemsRedirectPath(
+  formData: FormData,
+  status: string,
+  includeSelectedItem = false,
+) {
+  const params = new URLSearchParams({ status });
+  const portfolioId = getString(formData, "portfolioId");
+  const category = getString(formData, "redirectCategory");
+  const selectedItemId = getString(formData, "redirectItem");
+
+  if (portfolioId) {
+    params.set("portfolio", portfolioId);
+  }
+
+  if (category && category !== "all") {
+    params.set("category", category);
+  }
+
+  if (includeSelectedItem && selectedItemId) {
+    params.set("item", selectedItemId);
+  }
+
+  return `/items?${params.toString()}`;
 }

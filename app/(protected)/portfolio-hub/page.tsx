@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import { StatusToast } from "@/components/ui/status-toast";
 import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/ui/page-header";
 import { PortfolioForm } from "@/features/portfolios/components/portfolio-form";
 import { PortfolioList } from "@/features/portfolios/components/portfolio-list";
 import { resolvePortfolioId } from "@/features/portfolios/queries/get-portfolios";
@@ -25,12 +24,6 @@ export default async function PortfolioHubPage(props: {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        eyebrow="Portfolio Hub"
-        title="포트폴리오 허브"
-        description="포트폴리오 목록 확인, 신규 생성, 이름 수정, 삭제를 이 페이지에서 관리하고 구성 페이지로 자연스럽게 이어지게 정리합니다."
-      />
-
       {banner ? <StatusToast tone={banner.tone}>{banner.message}</StatusToast> : null}
 
       {activePortfolio ? (

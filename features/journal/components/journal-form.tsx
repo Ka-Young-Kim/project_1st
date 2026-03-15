@@ -32,11 +32,15 @@ export function JournalForm({
   accounts,
   portfolioId,
   embedded = false,
+  redirectMonth,
+  redirectDate,
 }: Readonly<{
   items: JournalFormItemOption[];
   accounts: JournalFormAccountOption[];
   portfolioId: string;
   embedded?: boolean;
+  redirectMonth?: string;
+  redirectDate?: string;
 }>) {
   const today = getTodayDateInputInSeoul();
   const itemsHref = `/items?${new URLSearchParams({ portfolio: portfolioId }).toString()}`;
@@ -109,6 +113,8 @@ export function JournalForm({
 
       <form action={createJournal} className="mt-5 space-y-4">
         <input type="hidden" name="portfolioId" value={portfolioId} />
+        <input type="hidden" name="redirectMonth" value={redirectMonth ?? ""} />
+        <input type="hidden" name="redirectDate" value={redirectDate ?? ""} />
         <div className="grid gap-3 md:grid-cols-3">
           <label className="space-y-1.5">
             <span className="text-sm font-medium text-white/88">거래일</span>

@@ -16,9 +16,40 @@ export async function createTodoAction(formData: FormData) {
 
   if (!parsed.success) {
     logger.warn("todo.create.validation_failed", parsed.error.flatten());
-    redirect("/todos?status=todo-invalid");
+    redirect(buildTodoRedirectPath(formData, "todo-invalid"));
   }
 
-  await createTodo(parsed.data);
-  redirect("/todos?status=todo-created");
+  const todo = await createTodo(parsed.data);
+  redirect(buildTodoRedirectPath(formData, "todo-created", { todoId: todo.id }));
+}
+
+function buildTodoRedirectPath(
+  formData: FormData,
+  status: string,
+  options?: { todoId?: string; includeSelectedTodo?: boolean },
+) {
+  const params = new URLSearchParams({ status });
+  const month = getString(formData, "redirectMonth");
+  const date = getString(formData, "redirectDate");
+  const todoId = options?.todoId ?? getString(formData, "redirectTodo");
+  const includeSelectedTodo = options?.includeSelectedTodo ?? true;
+
+  if (month) {
+    params.set("month", month);
+  }
+
+  if (date) {
+    params.set("date", date);
+  }
+
+  if (includeSelectedTodo && todoId) {
+    params.set("todo", todoId);
+  }
+
+  return `/todos?${params.toString()}`;
+}
+
+function getString(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return typeof value === "string" ? value : "";
 }

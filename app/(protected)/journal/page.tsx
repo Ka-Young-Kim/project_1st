@@ -1,7 +1,8 @@
+import { DesktopSplitLayout } from "@/components/layout/desktop-split-layout";
 import { StatusToast } from "@/components/ui/status-toast";
-import { PageHeader } from "@/components/ui/page-header";
 import { BuySellStatsDialog } from "@/features/journal/components/buy-sell-stats-dialog";
 import { JournalCalendar } from "@/features/journal/components/journal-calendar";
+import { JournalInspector } from "@/features/journal/components/journal-inspector";
 import { JournalList } from "@/features/journal/components/journal-list";
 import { getInvestmentItems } from "@/features/investment-items/queries/get-investment-items";
 import { getPortfolioAccounts } from "@/features/portfolios/queries/get-portfolio-accounts";
@@ -25,6 +26,9 @@ export default async function JournalPage(props: {
   const selectedDate = Array.isArray(searchParams.date)
     ? searchParams.date[0]
     : searchParams.date;
+  const selectedEntryId = Array.isArray(searchParams.entry)
+    ? searchParams.entry[0]
+    : searchParams.entry;
   const portfolioId = Array.isArray(searchParams.portfolio)
     ? searchParams.portfolio[0]
     : searchParams.portfolio;
@@ -39,10 +43,14 @@ export default async function JournalPage(props: {
   const visibleEntries = selectedDate
     ? entries.filter((entry) => formatDateInput(entry.tradeDate) === selectedDate)
     : entries;
-  const selectedYear = Number(currentMonth.slice(0, 4));
   const monthlyEntries = entries.filter(
     (entry) => formatDateInput(entry.tradeDate).slice(0, 7) === currentMonth,
   );
+  const selectedEntry =
+    visibleEntries.find((entry) => entry.id === selectedEntryId) ??
+    monthlyEntries.find((entry) => entry.id === selectedEntryId) ??
+    entries.find((entry) => entry.id === selectedEntryId);
+  const selectedYear = Number(currentMonth.slice(0, 4));
   const buyCount = monthlyEntries.filter((entry) => entry.action === "buy").length;
   const sellCount = monthlyEntries.length - buyCount;
   const monthlyBuyAmount = monthlyEntries
@@ -90,17 +98,7 @@ export default async function JournalPage(props: {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        eyebrow="Investment Journal"
-        title="투자일지"
-        description={
-          activePortfolio
-            ? `${activePortfolio.name} 포트폴리오의 매수·매도 거래와 회고를 기록하고, 캘린더와 리스트로 흐름을 빠르게 복기합니다.`
-            : "포트폴리오를 먼저 생성한 뒤 거래 기록과 회고를 연결하세요."
-        }
-      />
-
-      <div className="grid gap-3 lg:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-3">
           <div className="glass-panel flex min-h-[7.75rem] flex-col rounded-[16px] p-3.5">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
               이번 달 기록
@@ -137,23 +135,53 @@ export default async function JournalPage(props: {
 
       {banner ? <StatusToast tone={banner.tone}>{banner.message}</StatusToast> : null}
 
-      <div className="grid gap-5">
-        <div className="grid gap-5 2xl:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)]">
-          <JournalCalendar
-            activeMonth={selectedMonth}
-            portfolioId={activePortfolio?.id}
-            selectedDate={selectedDate}
-            entries={entries.map((entry) => ({
-              id: entry.id,
-              tradeDate: formatDateInput(entry.tradeDate),
-              symbol: entry.itemName ?? entry.symbol,
-              action: entry.action,
-              quantity: entry.quantity,
-              price: entry.price,
-            }))}
-          />
-          <JournalList
-            entries={visibleEntries}
+      <DesktopSplitLayout
+        primary={
+          <div className="grid gap-5 2xl:grid-cols-[340px_minmax(0,1fr)]">
+            <JournalCalendar
+              activeMonth={selectedMonth}
+              portfolioId={activePortfolio?.id}
+              selectedDate={selectedDate}
+              entries={entries.map((entry) => ({
+                id: entry.id,
+                tradeDate: formatDateInput(entry.tradeDate),
+                symbol: entry.itemName ?? entry.symbol,
+                action: entry.action,
+                quantity: entry.quantity,
+                price: entry.price,
+              }))}
+            />
+            <JournalList
+              entries={visibleEntries}
+              currentMonth={currentMonth}
+              selectedDate={selectedDate}
+              selectedEntryId={selectedEntry?.id}
+              items={itemOptions.map((item) => ({
+                id: item.id,
+                name: item.name,
+                code: item.code,
+                category: item.category,
+              }))}
+              accounts={accountOptions.map((account) => ({
+                id: account.id,
+                name: account.name,
+                displayId: account.displayId,
+              }))}
+              portfolioId={activePortfolio?.id ?? ""}
+              viewAllHref={`/journal?${new URLSearchParams(
+                Object.fromEntries(
+                  Object.entries({
+                    portfolio: activePortfolio?.id ?? "",
+                    month: currentMonth,
+                  }).filter(([, value]) => value),
+                ),
+              ).toString()}`}
+            />
+          </div>
+        }
+        secondary={
+          <JournalInspector
+            entry={selectedEntry}
             items={itemOptions.map((item) => ({
               id: item.id,
               name: item.name,
@@ -166,17 +194,11 @@ export default async function JournalPage(props: {
               displayId: account.displayId,
             }))}
             portfolioId={activePortfolio?.id ?? ""}
-            viewAllHref={`/journal?${new URLSearchParams(
-              Object.fromEntries(
-                Object.entries({
-                  portfolio: activePortfolio?.id ?? "",
-                  month: currentMonth,
-                }).filter(([, value]) => value),
-              ),
-            ).toString()}`}
+            currentMonth={currentMonth}
+            selectedDate={selectedDate}
           />
-        </div>
-      </div>
+        }
+      />
     </div>
   );
 }

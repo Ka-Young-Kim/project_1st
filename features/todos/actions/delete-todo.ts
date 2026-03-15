@@ -10,9 +10,30 @@ export async function deleteTodoAction(formData: FormData) {
 
   if (typeof id !== "string" || !id) {
     logger.warn("todo.delete.validation_failed");
-    redirect("/todos?status=todo-invalid");
+    redirect(buildTodoRedirectPath(formData, "todo-invalid"));
   }
 
   await deleteTodo(id);
-  redirect("/todos?status=todo-deleted");
+  redirect(buildTodoRedirectPath(formData, "todo-deleted"));
+}
+
+function buildTodoRedirectPath(formData: FormData, status: string) {
+  const params = new URLSearchParams({ status });
+  const month = getString(formData, "redirectMonth");
+  const date = getString(formData, "redirectDate");
+
+  if (month) {
+    params.set("month", month);
+  }
+
+  if (date) {
+    params.set("date", date);
+  }
+
+  return `/todos?${params.toString()}`;
+}
+
+function getString(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return typeof value === "string" ? value : "";
 }

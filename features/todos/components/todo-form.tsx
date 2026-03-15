@@ -8,7 +8,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { createTodoAction } from "@/features/todos/actions/create-todo";
 import { getTodayDateInputInSeoul } from "@/lib/utils";
 
-export function TodoForm({ embedded = false }: Readonly<{ embedded?: boolean }>) {
+export function TodoForm({
+  embedded = false,
+  redirectMonth,
+  redirectDate,
+}: Readonly<{
+  embedded?: boolean;
+  redirectMonth?: string;
+  redirectDate?: string;
+}>) {
   const today = getTodayDateInputInSeoul();
   const Wrapper = embedded ? Fragment : Card;
   const wrapperProps = embedded ? {} : { className: "h-fit" };
@@ -36,6 +44,8 @@ export function TodoForm({ embedded = false }: Readonly<{ embedded?: boolean }>)
       </div>
 
       <form action={createTodoAction} className="mt-6 space-y-4.5">
+        <input type="hidden" name="redirectMonth" value={redirectMonth ?? ""} />
+        <input type="hidden" name="redirectDate" value={redirectDate ?? ""} />
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-white/88">제목</span>
           <Input

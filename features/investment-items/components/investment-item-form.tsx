@@ -8,9 +8,11 @@ import { InvestmentItemFields } from "@/features/investment-items/components/inv
 export function InvestmentItemForm({
   portfolioId,
   embedded = false,
+  redirectCategory,
 }: Readonly<{
   portfolioId: string;
   embedded?: boolean;
+  redirectCategory?: string;
 }>) {
   const fieldClassName =
     "appearance-none border-white/12 !bg-[rgba(255,255,255,0.04)] !text-white placeholder:!text-[#6f83aa] shadow-none [color-scheme:dark] focus:border-[#6ea8fe] focus:ring-[rgba(110,168,254,0.16)]";
@@ -43,6 +45,7 @@ export function InvestmentItemForm({
 
       <form action={createInvestmentItemAction} className="mt-4 space-y-4">
         <input type="hidden" name="portfolioId" value={portfolioId} />
+        <input type="hidden" name="redirectCategory" value={redirectCategory ?? "all"} />
         <div className="rounded-[1rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.015))] p-3.5">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8ea4cf]">
             Core Fields

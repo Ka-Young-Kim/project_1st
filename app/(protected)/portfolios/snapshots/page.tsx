@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { EmptyState } from "@/components/ui/empty-state";
-import { PageHeader } from "@/components/ui/page-header";
 import { StatusToast } from "@/components/ui/status-toast";
 import { Card } from "@/components/ui/card";
 import { PortfolioSnapshotHistory } from "@/features/portfolios/components/portfolio-snapshot-history";
@@ -29,23 +28,18 @@ export default async function PortfolioSnapshotsPage(props: {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        eyebrow="Snapshot View"
-        title="스냅샷 관리"
-        description="선택한 포트폴리오의 누적 스냅샷을 시계열로 확인하고, 구성 페이지로 다시 돌아가 흐름을 이어갑니다."
-        actions={
-          activePortfolio ? (
-            <Link
-              href={`/portfolios?${new URLSearchParams({ portfolio: activePortfolio.id }).toString()}`}
-              className="inline-flex min-h-11 items-center justify-center rounded-[1rem] border border-[rgba(110,168,254,0.32)] bg-[rgba(110,168,254,0.14)] px-5 py-3 text-sm font-semibold text-[#dce7ff] transition hover:bg-[rgba(110,168,254,0.22)]"
-            >
-              포트폴리오 구성으로 돌아가기
-            </Link>
-          ) : null
-        }
-      />
-
       {banner ? <StatusToast tone={banner.tone}>{banner.message}</StatusToast> : null}
+
+      {activePortfolio ? (
+        <div className="flex justify-end">
+          <Link
+            href={`/portfolios?${new URLSearchParams({ portfolio: activePortfolio.id }).toString()}`}
+            className="inline-flex min-h-11 items-center justify-center rounded-[1rem] border border-[rgba(110,168,254,0.32)] bg-[rgba(110,168,254,0.14)] px-5 py-3 text-sm font-semibold text-[#dce7ff] transition hover:bg-[rgba(110,168,254,0.22)]"
+          >
+            포트폴리오 구성으로 돌아가기
+          </Link>
+        </div>
+      ) : null}
 
       {managementData ? (
         <div className="space-y-4">

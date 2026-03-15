@@ -10,6 +10,7 @@ function buildTodoRedirectPath(formData: FormData, status: string) {
   const month = formData.get("redirectMonth");
   const date = formData.get("redirectDate");
   const params = new URLSearchParams({ status });
+  const todoId = formData.get("redirectTodo");
 
   if (typeof month === "string" && month.length > 0) {
     params.set("month", month);
@@ -17,6 +18,10 @@ function buildTodoRedirectPath(formData: FormData, status: string) {
 
   if (typeof date === "string" && date.length > 0) {
     params.set("date", date);
+  }
+
+  if (typeof todoId === "string" && todoId.length > 0) {
+    params.set("todo", todoId);
   }
 
   return `/todos?${params.toString()}`;

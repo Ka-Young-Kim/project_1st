@@ -1,8 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
-import { SettingsDialog } from "@/features/settings/components/settings-dialog";
 import { InvestmentItemCategory, isCodeManagedCategory } from "@/features/investment-items/lib/category";
 import { cx } from "@/lib/utils";
 
@@ -14,7 +14,8 @@ type InvestmentItemRowProps = {
   name: string;
   logCount: number;
   isHolding: boolean;
-  children: React.ReactNode;
+  selectionHref: string;
+  isSelected?: boolean;
 };
 
 export function InvestmentItemRow({
@@ -25,7 +26,8 @@ export function InvestmentItemRow({
   name,
   logCount,
   isHolding,
-  children,
+  selectionHref,
+  isSelected = false,
 }: Readonly<InvestmentItemRowProps>) {
   const [copiedToast, setCopiedToast] = useState<string | null>(null);
   const showsCode = isCodeManagedCategory(category);
@@ -71,7 +73,14 @@ export function InvestmentItemRow({
 
   return (
     <>
-      <div className="flex items-center justify-between gap-3 rounded-[0.95rem] border border-transparent bg-[linear-gradient(180deg,rgba(255,255,255,0.015),rgba(255,255,255,0.02))] px-3.5 py-2.5 transition hover:border-[rgba(143,176,236,0.18)] hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.03))]">
+      <div
+        className={cx(
+          "flex items-center justify-between gap-3 rounded-[0.95rem] border px-3.5 py-2.5 transition",
+          isSelected
+            ? "border-[#8fb6ff]/24 bg-[linear-gradient(180deg,rgba(110,168,254,0.1),rgba(255,255,255,0.035))] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+            : "border-transparent bg-[linear-gradient(180deg,rgba(255,255,255,0.015),rgba(255,255,255,0.02))] hover:border-[rgba(143,176,236,0.18)] hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.03))]",
+        )}
+      >
         <button
           type="button"
           onClick={showsCode ? handleCopyCode : undefined}
@@ -121,19 +130,19 @@ export function InvestmentItemRow({
           </div>
         </button>
 
-        <SettingsDialog
-          trigger={
-            <button
-              type="button"
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/8 bg-white/4 text-sm leading-none text-[#7d93bf] transition hover:border-[#8fb0ec]/22 hover:bg-[#6ea8fe]/10 hover:text-[#d9e8ff]"
-              aria-label={`${name} 수정 열기`}
-            >
-              ›
-            </button>
-          }
+        <Link
+          href={selectionHref}
+          aria-label={`${name} 선택`}
+          aria-current={isSelected ? "page" : undefined}
+          className={cx(
+            "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-sm leading-none transition",
+            isSelected
+              ? "border-[#8fb6ff]/26 bg-[#6ea8fe]/16 text-[#d9e8ff]"
+              : "border-white/8 bg-white/4 text-[#7d93bf] hover:border-[#8fb0ec]/22 hover:bg-[#6ea8fe]/10 hover:text-[#d9e8ff]",
+          )}
         >
-          {children}
-        </SettingsDialog>
+          ›
+        </Link>
       </div>
 
       {showsCode && copiedToast ? (

@@ -6,7 +6,7 @@ const path = require("node:path");
 const fs = require("node:fs");
 const { spawn } = require("node:child_process");
 const { createRequire } = require("node:module");
-const { app, BrowserWindow, shell } = require("electron");
+const { app, BrowserWindow, ipcMain, shell } = require("electron");
 
 const {
   buildPortableEnv,
@@ -14,6 +14,11 @@ const {
   getPortablePaths,
   writePortableLog,
 } = require("./runtime.cjs");
+const {
+  WINDOW_CHANNELS,
+  getMainWindowOptions,
+  getWindowStatePayload,
+} = require("./window-shell.cjs");
 
 const requireFromHere = createRequire(__filename);
 const DESKTOP_TITLE = "Finance Dashboard";
@@ -204,6 +209,53 @@ function recordRuntimeError(scope, error) {
   return writePortableLog(activePaths, scope, error);
 }
 
+function registerDesktopWindowIpc(window) {
+  const emitState = () => {
+    if (!window.isDestroyed()) {
+      window.webContents.send(
+        WINDOW_CHANNELS.stateChange,
+        getWindowStatePayload(window),
+      );
+    }
+  };
+
+  window.on("maximize", emitState);
+  window.on("unmaximize", emitState);
+  window.on("enter-full-screen", emitState);
+  window.on("leave-full-screen", emitState);
+
+  ipcMain.removeHandler(WINDOW_CHANNELS.stateChange);
+  ipcMain.handle(WINDOW_CHANNELS.stateChange, () => getWindowStatePayload(window));
+
+  ipcMain.removeAllListeners(WINDOW_CHANNELS.minimize);
+  ipcMain.on(WINDOW_CHANNELS.minimize, () => {
+    if (!window.isDestroyed()) {
+      window.minimize();
+    }
+  });
+
+  ipcMain.removeAllListeners(WINDOW_CHANNELS.toggleMaximize);
+  ipcMain.on(WINDOW_CHANNELS.toggleMaximize, () => {
+    if (window.isDestroyed()) {
+      return;
+    }
+
+    if (window.isMaximized()) {
+      window.unmaximize();
+      return;
+    }
+
+    window.maximize();
+  });
+
+  ipcMain.removeAllListeners(WINDOW_CHANNELS.close);
+  ipcMain.on(WINDOW_CHANNELS.close, () => {
+    if (!window.isDestroyed()) {
+      window.close();
+    }
+  });
+}
+
 function attachServerLogging(child) {
   if (!child.stdout || !child.stderr) {
     return;
@@ -326,21 +378,8 @@ function stopDesktopServer() {
 }
 
 function createMainWindow(url) {
-  const window = new BrowserWindow({
-    width: 1480,
-    height: 960,
-    minWidth: 1180,
-    minHeight: 760,
-    autoHideMenuBar: true,
-    backgroundColor: "#0a1222",
-    title: DESKTOP_TITLE,
-    show: false,
-    webPreferences: {
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: false,
-    },
-  });
+  const preloadPath = path.join(__dirname, "preload.cjs");
+  const window = new BrowserWindow(getMainWindowOptions(preloadPath));
 
   window.webContents.setWindowOpenHandler(({ url: nextUrl }) => {
     shell.openExternal(nextUrl);
@@ -352,6 +391,7 @@ function createMainWindow(url) {
     window.show();
   });
 
+  registerDesktopWindowIpc(window);
   window.loadURL(url);
 
   if (isDesktopDev) {
