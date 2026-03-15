@@ -12,6 +12,18 @@ function ensureDirectory(targetPath) {
   fs.mkdirSync(targetPath, { recursive: true });
 }
 
+function ensureFile(targetPath) {
+  if (fs.existsSync(targetPath)) {
+    return;
+  }
+
+  fs.closeSync(fs.openSync(targetPath, "a"));
+}
+
+function appendLogFile(targetPath, content) {
+  fs.appendFileSync(targetPath, content, "utf8");
+}
+
 function readJsonFile(targetPath) {
   if (!fs.existsSync(targetPath)) {
     return null;
@@ -120,6 +132,7 @@ function buildPortableConfig(existingConfig, seedEnv) {
 function ensurePortableConfig(paths) {
   ensureDirectory(paths.dataDir);
   ensureDirectory(paths.logsDir);
+  ensureFile(paths.dbPath);
 
   const seedEnv = readDotEnvFile(paths.dotEnvPath);
   const existingConfig = readJsonFile(paths.configPath);
@@ -130,14 +143,21 @@ function ensurePortableConfig(paths) {
   return nextConfig;
 }
 
+function writePortableLog(paths, scope, error) {
+  ensureDirectory(paths.logsDir);
+
+  const logPath = path.join(paths.logsDir, "desktop-runtime.log");
+  const timestamp = new Date().toISOString();
+  const message = error instanceof Error ? error.stack || error.message : String(error);
+
+  appendLogFile(logPath, `[${timestamp}] ${scope}\n${message}\n\n`);
+
+  return logPath;
+}
+
 function toPrismaSqliteUrl(filePath) {
   const normalized = path.resolve(filePath).replace(/\\/g, "/");
-
-  if (normalized.startsWith("/")) {
-    return `file:${normalized}`;
-  }
-
-  return `file:/${normalized}`;
+  return `file:${normalized}`;
 }
 
 function buildPortableEnv(paths, config, baseEnv = process.env) {
@@ -167,4 +187,5 @@ module.exports = {
   ensurePortableConfig,
   getPortablePaths,
   toPrismaSqliteUrl,
+  writePortableLog,
 };

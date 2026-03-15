@@ -1,6 +1,18 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, rmSync } from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
+
+const require = createRequire(import.meta.url);
+const nodeBinary = process.execPath;
+
+function getPackageRoot(packageName) {
+  return path.dirname(require.resolve(`${packageName}/package.json`));
+}
+
+function getPackageEntry(packageName, relativePath) {
+  return path.join(getPackageRoot(packageName), relativePath);
+}
 
 function run(command, args, extraEnv = {}) {
   execFileSync(command, args, {
@@ -10,6 +22,10 @@ function run(command, args, extraEnv = {}) {
       ...extraEnv,
     },
   });
+}
+
+function runNodeScript(scriptPath, args = [], extraEnv = {}) {
+  run(nodeBinary, [scriptPath, ...args], extraEnv);
 }
 
 function downloadWindowsPrismaEngines() {
@@ -23,16 +39,16 @@ function downloadWindowsPrismaEngines() {
     "postinstall.js",
   );
 
-  run("node", [postinstallScriptPath], {
+  runNodeScript(postinstallScriptPath, [], {
     PRISMA_CLI_BINARY_TARGETS: "windows",
   });
 }
 
 rmSync(path.join(process.cwd(), "dist-electron"), { recursive: true, force: true });
 
-run("npx", ["prisma", "generate"]);
+runNodeScript(getPackageEntry("prisma", "build/index.js"), ["generate"]);
 downloadWindowsPrismaEngines();
-run("npx", ["next", "build"], {
+runNodeScript(getPackageEntry("next", "dist/bin/next"), ["build"], {
   NEXT_BUILD_TARGET: "desktop",
 });
 
@@ -42,6 +58,6 @@ if (!existsSync(standaloneServerPath)) {
   throw new Error("Next standalone server output was not generated.");
 }
 
-run("npx", ["electron-builder", "--win", "dir"], {
+runNodeScript(getPackageEntry("electron-builder", "cli.js"), ["--win", "dir"], {
   CSC_IDENTITY_AUTO_DISCOVERY: "false",
 });

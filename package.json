@@ -60,9 +60,7 @@
       "package.json"
     ],
     "asarUnpack": [
-      "node_modules/.prisma/**/*",
-      "node_modules/@prisma/engines/**/*",
-      "node_modules/prisma/**/*",
+      "node_modules/**/*",
       "**/*.node"
     ],
     "extraResources": [

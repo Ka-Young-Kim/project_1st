@@ -3,21 +3,47 @@
 
 const http = require("node:http");
 const path = require("node:path");
+const fs = require("node:fs");
 const { spawn } = require("node:child_process");
+const { createRequire } = require("node:module");
 const { app, BrowserWindow, shell } = require("electron");
 
 const {
   buildPortableEnv,
   ensurePortableConfig,
   getPortablePaths,
+  writePortableLog,
 } = require("./runtime.cjs");
 
+const requireFromHere = createRequire(__filename);
 const DESKTOP_TITLE = "Finance Dashboard";
 const isDesktopDev = process.env.DESKTOP_DEV === "1";
 
 let mainWindow = null;
 let serverProcess = null;
 let activeServerUrl = null;
+let activePaths = null;
+
+function getPackageRoot(packageName) {
+  if (app.isPackaged) {
+    const unpackedRoot = path.join(
+      process.resourcesPath,
+      "app.asar.unpacked",
+      "node_modules",
+      packageName,
+    );
+
+    if (fs.existsSync(unpackedRoot)) {
+      return unpackedRoot;
+    }
+  }
+
+  return path.dirname(requireFromHere.resolve(`${packageName}/package.json`));
+}
+
+function getPackageEntry(packageName, relativePath) {
+  return path.join(getPackageRoot(packageName), relativePath);
+}
 
 function delay(ms) {
   return new Promise((resolve) => {
@@ -170,6 +196,14 @@ function createRecoveryWindow(error) {
   window.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(renderRecoveryHtml(error))}`);
 }
 
+function recordRuntimeError(scope, error) {
+  if (!activePaths) {
+    return null;
+  }
+
+  return writePortableLog(activePaths, scope, error);
+}
+
 function attachServerLogging(child) {
   if (!child.stdout || !child.stderr) {
     return;
@@ -229,7 +263,7 @@ function runNodeCommand(args, options) {
 }
 
 async function runPortableMigrations(paths, runtimeEnv) {
-  const prismaCliPath = require.resolve("prisma/build/index.js");
+  const prismaCliPath = getPackageEntry("prisma", "build/index.js");
 
   await runNodeCommand(
     [prismaCliPath, "migrate", "deploy", "--schema", paths.schemaPath],
@@ -242,7 +276,7 @@ async function runPortableMigrations(paths, runtimeEnv) {
 
 function startDesktopServer(paths, runtimeEnv, port) {
   if (isDesktopDev) {
-    const nextCliPath = require.resolve("next/dist/bin/next");
+    const nextCliPath = getPackageEntry("next", "dist/bin/next");
 
     return spawnNodeProcess(
       [
@@ -329,6 +363,7 @@ function createMainWindow(url) {
 
 async function bootstrapDesktopApp() {
   const paths = getPortablePaths(app.isPackaged);
+  activePaths = paths;
   const config = ensurePortableConfig(paths);
   const runtimeEnv = buildPortableEnv(paths, config, process.env);
 
@@ -344,6 +379,7 @@ async function bootstrapDesktopApp() {
     }
 
     const error = new Error(`내장 서버가 종료되었습니다. (exit code: ${code ?? 1})`);
+    recordRuntimeError("server-exit", error);
 
     if (!mainWindow || mainWindow.isDestroyed()) {
       createRecoveryWindow(error);
@@ -382,6 +418,7 @@ app.whenReady().then(async () => {
   try {
     await bootstrapDesktopApp();
   } catch (error) {
+    recordRuntimeError("bootstrap-failure", error);
     createRecoveryWindow(error);
   }
 });
