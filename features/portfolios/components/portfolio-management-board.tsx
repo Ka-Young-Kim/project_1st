@@ -1,24 +1,20 @@
 "use client";
 
+import Link from "next/link";
 import { useState, type ReactNode } from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
-import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
-import { createPortfolioAccountAction } from "@/features/portfolios/actions/create-portfolio-account";
 import { createPortfolioAssetGroupAction } from "@/features/portfolios/actions/create-portfolio-asset-group";
 import { createPortfolioItemAction } from "@/features/portfolios/actions/create-portfolio-item";
-import { deletePortfolioAccountAction } from "@/features/portfolios/actions/delete-portfolio-account";
 import { deletePortfolioAssetGroupAction } from "@/features/portfolios/actions/delete-portfolio-asset-group";
 import { deletePortfolioItemAction } from "@/features/portfolios/actions/delete-portfolio-item";
 import { recordPortfolioSnapshotAction } from "@/features/portfolios/actions/record-portfolio-snapshot";
 import { updatePortfolioAction } from "@/features/portfolios/actions/update-portfolio";
-import { updatePortfolioAccountAction } from "@/features/portfolios/actions/update-portfolio-account";
 import { updatePortfolioAssetGroupAction } from "@/features/portfolios/actions/update-portfolio-asset-group";
 import { updatePortfolioItemAction } from "@/features/portfolios/actions/update-portfolio-item";
 import { isResidualAssetGroupName } from "@/features/portfolios/lib/asset-group";
@@ -28,7 +24,6 @@ import { SettingsDialog } from "@/features/settings/components/settings-dialog";
 import type { PortfolioManagementData } from "@/features/portfolios/services/portfolio-management-service";
 import { formatWon } from "@/lib/utils";
 
-type ManagementView = "asset-groups" | "accounts";
 type PortfolioItemSummary = PortfolioManagementData["portfolioItems"][number];
 type AssetGroupSummary = PortfolioManagementData["assetGroups"][number];
 type AccountSummary = PortfolioManagementData["accounts"][number];
@@ -191,39 +186,6 @@ function SummaryBox({
   );
 }
 
-function ManagementViewToggle({
-  activeView,
-  onChange,
-}: Readonly<{
-  activeView: ManagementView;
-  onChange: (view: ManagementView) => void;
-}>) {
-  const options: Array<{ id: ManagementView; label: string }> = [
-    { id: "asset-groups", label: "자산군" },
-    { id: "accounts", label: "계좌" },
-  ];
-
-  return (
-    <div className="inline-flex h-7 w-[108px] rounded-full border border-white/10 bg-[rgba(10,19,39,0.92)] p-[2px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] sm:h-8 sm:w-[122px]">
-      {options.map((option) => (
-        <button
-          key={option.id}
-          type="button"
-          onClick={() => onChange(option.id)}
-          className={`flex min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-full px-1.5 py-[0.38rem] text-[10px] font-semibold leading-none transition sm:px-2 sm:text-[11px] ${
-            activeView === option.id
-              ? "bg-[#5f97ef] text-white shadow-[0_8px_18px_rgba(72,127,223,0.34)]"
-              : "bg-transparent text-[#c5d4f2] hover:bg-white/6 hover:text-white"
-          }`}
-          style={{ fontSize: "10px", lineHeight: 1, paddingTop: "0.25rem", paddingBottom: "0.25rem" }}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 function PortfolioItemCreateForm({
   portfolioId,
   portfolioAssetGroupId,
@@ -244,6 +206,11 @@ function PortfolioItemCreateForm({
   const supportsExistingMode = availableInvestmentItems.length > 0;
   const [mode, setMode] = useState<"existing" | "manual">(
     supportsExistingMode ? "existing" : "manual",
+  );
+  const [selectedAccountId, setSelectedAccountId] = useState(portfolioAccountId ?? "");
+  const [selectedInvestmentItemId, setSelectedInvestmentItemId] = useState("");
+  const filteredInvestmentItems = availableInvestmentItems.filter((item) =>
+    selectedAccountId ? item.accountIds.includes(selectedAccountId) : false,
   );
 
   return (
@@ -297,22 +264,6 @@ function PortfolioItemCreateForm({
             </label>
           )}
           <label className="space-y-1.5">
-            <span className="text-sm font-medium">투자 항목</span>
-            <Select
-              name="linkedInvestmentItemId"
-              required
-              defaultValue=""
-              className={`${fieldClassName} py-2.5 [&>option]:bg-[#15203a] [&>option]:text-white`}
-            >
-              <option value="">선택</option>
-              {availableInvestmentItems.map((item) => (
-                <option key={item.id} value={item.id} className="bg-[#15203a] text-white">
-                  {item.name} ({item.code})
-                </option>
-              ))}
-            </Select>
-          </label>
-          <label className="space-y-1.5">
             <span className="text-sm font-medium">계좌</span>
             {portfolioAccountId ? (
               <>
@@ -324,10 +275,15 @@ function PortfolioItemCreateForm({
             ) : (
               <Select
                 name="portfolioAccountId"
-                defaultValue=""
+                value={selectedAccountId}
+                required
+                onChange={(event) => {
+                  setSelectedAccountId(event.target.value);
+                  setSelectedInvestmentItemId("");
+                }}
                 className={`${fieldClassName} py-2.5 [&>option]:bg-[#15203a] [&>option]:text-white`}
               >
-                <option value="">미지정</option>
+                <option value="">선택</option>
                 {accountOptions.map((account) => (
                   <option key={account.id} value={account.id} className="bg-[#15203a] text-white">
                     {buildAccountLabel(account)}
@@ -335,6 +291,32 @@ function PortfolioItemCreateForm({
                 ))}
               </Select>
             )}
+          </label>
+          <label className="space-y-1.5">
+            <span className="text-sm font-medium">투자 항목</span>
+            <Select
+              name="linkedInvestmentItemId"
+              required
+              value={selectedInvestmentItemId}
+              onChange={(event) => setSelectedInvestmentItemId(event.target.value)}
+              className={`${fieldClassName} py-2.5 [&>option]:bg-[#15203a] [&>option]:text-white`}
+            >
+              <option value="">
+                {selectedAccountId
+                  ? filteredInvestmentItems.length > 0
+                    ? "선택"
+                    : "선택한 계좌에 연결된 항목이 없습니다"
+                  : "계좌를 먼저 선택하세요"}
+              </option>
+              {filteredInvestmentItems.map((item) => (
+                <option key={item.id} value={item.id} className="bg-[#15203a] text-white">
+                  {item.name} ({item.code})
+                </option>
+              ))}
+            </Select>
+            <p className="text-xs text-[#93a4c7]">
+              선택한 계좌에 현재 연결된 투자 항목만 표시합니다.
+            </p>
           </label>
           <input type="hidden" name="name" value="" />
           <input type="hidden" name="code" value="" />
@@ -823,72 +805,17 @@ function PortfolioItemListHeader() {
   );
 }
 
-function AccountEditorDialog({
-  portfolioId,
-  account,
-}: Readonly<{
-  portfolioId: string;
-  account: AccountSummary;
-}>) {
-  return (
-    <Card className="rounded-[22px] bg-[linear-gradient(180deg,rgba(20,29,53,.98),rgba(17,26,48,.98))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
-      <h4 className="text-xl font-semibold">계좌 수정</h4>
-      <form action={updatePortfolioAccountAction} className="mt-5 space-y-4">
-        <input type="hidden" name="id" value={account.id} />
-        <input type="hidden" name="portfolioId" value={portfolioId} />
-        <input type="hidden" name="sortOrder" value={0} />
-        <input type="hidden" name="cashBalance" value={String(account.cashBalance)} />
-        <input
-          type="hidden"
-          name="cashTrackingEnabled"
-          value={account.cashTrackingEnabled ? "on" : "off"}
-        />
-        <label className="space-y-1.5">
-          <span className="text-sm font-medium">이름</span>
-          <Input
-            name="name"
-            defaultValue={account.name}
-            required
-            className={`${fieldClassName} py-2.5`}
-          />
-        </label>
-        <div className="grid gap-4 md:grid-cols-2">
-          <label className="space-y-1.5">
-            <span className="text-sm font-medium">은행</span>
-            <Input
-              name="bank"
-              defaultValue={account.bank}
-              required
-              className={`${fieldClassName} py-2.5`}
-            />
-          </label>
-          <label className="space-y-1.5">
-            <span className="text-sm font-medium">계좌 번호</span>
-            <Input
-              name="displayId"
-              defaultValue={account.displayId}
-              required
-              className={`${fieldClassName} py-2.5`}
-            />
-          </label>
-        </div>
-        <SubmitButton className="w-full" pendingLabel="저장 중...">
-          계좌 저장
-        </SubmitButton>
-      </form>
-    </Card>
-  );
-}
-
 export function PortfolioManagementBoard({
   data,
 }: Readonly<{
   data: PortfolioManagementData;
 }>) {
-  const [activeView, setActiveView] = useState<ManagementView>("asset-groups");
   const editableAssetGroups = data.assetGroups.filter((group) => !group.isSynthetic);
   const realAccounts = data.accounts.filter((account) => !account.id.startsWith("__"));
-  const cashAccounts = realAccounts.filter((account) => account.cashTrackingEnabled);
+  const cashAccounts = realAccounts.filter((account) => account.cashBalance > 0);
+  const accountManagementHref = `/accounts?${new URLSearchParams({
+    portfolio: data.portfolio.id,
+  }).toString()}`;
 
   return (
     <div className="space-y-6">
@@ -995,435 +922,225 @@ export function PortfolioManagementBoard({
       </Card>
 
       <Card className="text-white">
-        <div className="flex min-w-0 items-start justify-between gap-4">
+        <div className="flex min-w-0 flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
               Portfolio Dashboard
             </p>
             <div className="mt-2 flex h-auto flex-wrap items-center gap-3">
               <h3 className="text-2xl font-semibold tracking-tight text-white">포트폴리오 상세</h3>
+              <Link
+                href={accountManagementHref}
+                className="inline-flex h-8 items-center rounded-full border border-[rgba(110,168,254,0.28)] bg-[rgba(110,168,254,0.12)] px-3 text-[12px] font-semibold text-[#cfe1ff] transition hover:bg-[rgba(110,168,254,0.18)]"
+              >
+                계좌 관리
+              </Link>
               <SettingsDialog
                 trigger={
                   <button
                     type="button"
                     className={boardInlineAddButtonClassName}
-                    aria-label={activeView === "asset-groups" ? "자산군 추가 열기" : "계좌 추가 열기"}
+                    aria-label="자산군 추가 열기"
                   >
                     +
                   </button>
                 }
               >
-                {activeView === "asset-groups" ? (
-                  <Card className="rounded-[22px] bg-[linear-gradient(180deg,rgba(20,29,53,.98),rgba(17,26,48,.98))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
-                    <h4 className="text-xl font-semibold">자산군 추가</h4>
-                    <form action={createPortfolioAssetGroupAction} className="mt-5 space-y-4">
-                      <input type="hidden" name="portfolioId" value={data.portfolio.id} />
-                      <input type="hidden" name="sortOrder" value={editableAssetGroups.length} />
-                      <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_9.5rem] md:items-start">
-                        <PortfolioAssetGroupSelector fieldClassName={fieldClassName} />
-                        <label className="space-y-1.5">
-                          <span className="text-sm font-medium">초기 비중</span>
-                          <Input
-                            name="targetWeight"
-                            type="number"
-                            min="0"
-                            max="100"
-                            step="0.01"
-                            defaultValue={editableAssetGroups.length === 0 ? "100" : "0"}
-                            className={`${fieldClassName} py-2.5`}
-                          />
-                        </label>
-                      </div>
-                      <SubmitButton className="w-full" pendingLabel="자산군 저장 중...">
-                        자산군 추가
-                      </SubmitButton>
-                    </form>
-                  </Card>
-                ) : (
-                  <Card className="rounded-[22px] bg-[linear-gradient(180deg,rgba(20,29,53,.98),rgba(17,26,48,.98))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
-                    <h4 className="text-xl font-semibold">새 계좌 추가</h4>
-                    <form action={createPortfolioAccountAction} className="mt-5 space-y-4">
-                      <input type="hidden" name="portfolioId" value={data.portfolio.id} />
-                      <input type="hidden" name="sortOrder" value={realAccounts.length} />
-                      <input type="hidden" name="cashBalance" value="0" />
-                      <input type="hidden" name="cashTrackingEnabled" value="off" />
-                      <div className="grid gap-4 md:grid-cols-3 md:items-start">
-                        <label className="space-y-1.5">
-                          <span className="text-sm font-medium">이름</span>
-                          <Input name="name" required className={`${fieldClassName} py-2.5`} />
-                        </label>
-                        <label className="space-y-1.5">
-                          <span className="text-sm font-medium">은행</span>
-                          <Input name="bank" required className={`${fieldClassName} py-2.5`} />
-                        </label>
-                        <label className="space-y-1.5">
-                          <span className="text-sm font-medium">계좌 번호</span>
-                          <Input name="displayId" required className={`${fieldClassName} py-2.5`} />
-                        </label>
-                      </div>
-                      <div className="pt-1">
-                        <SubmitButton className="w-full" pendingLabel="계좌 저장 중...">
-                          계좌 추가
-                        </SubmitButton>
-                      </div>
-                    </form>
-                  </Card>
-                )}
+                <Card className="rounded-[22px] bg-[linear-gradient(180deg,rgba(20,29,53,.98),rgba(17,26,48,.98))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
+                  <h4 className="text-xl font-semibold">자산군 추가</h4>
+                  <form action={createPortfolioAssetGroupAction} className="mt-5 space-y-4">
+                    <input type="hidden" name="portfolioId" value={data.portfolio.id} />
+                    <input type="hidden" name="sortOrder" value={editableAssetGroups.length} />
+                    <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_9.5rem] md:items-start">
+                      <PortfolioAssetGroupSelector fieldClassName={fieldClassName} />
+                      <label className="space-y-1.5">
+                        <span className="text-sm font-medium">초기 비중</span>
+                        <Input
+                          name="targetWeight"
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.01"
+                          defaultValue={editableAssetGroups.length === 0 ? "100" : "0"}
+                          className={`${fieldClassName} py-2.5`}
+                        />
+                      </label>
+                    </div>
+                    <SubmitButton className="w-full" pendingLabel="자산군 저장 중...">
+                      자산군 추가
+                    </SubmitButton>
+                  </form>
+                </Card>
               </SettingsDialog>
             </div>
-          </div>
-
-          <div className="flex h-7 w-[86px] shrink-0 items-center justify-end">
-            <ManagementViewToggle activeView={activeView} onChange={setActiveView} />
+            <p className="mt-2 text-sm leading-6 text-[#93a4c7]">
+              자산군 비중과 포트폴리오 항목 배치를 이 화면에서 관리하고, 계좌 등록과 불러오기는 별도 계좌 관리로 분리했습니다.
+            </p>
           </div>
         </div>
 
+        {realAccounts.length === 0 ? (
+          <div className="mt-5 rounded-[1rem] border border-dashed border-[#8fb6ff]/24 bg-[#8fb6ff]/8 px-4 py-4 text-sm leading-6 text-[#cfe1ff]">
+            등록된 실계좌가 없습니다. 포트폴리오 항목은 계좌 없이도 배치할 수 있지만, 거래 기록과 계좌별 집계는
+            <Link href={accountManagementHref} className="ml-1 font-semibold underline underline-offset-4">
+              계좌 관리
+            </Link>
+            에서 계좌를 등록한 뒤 사용하는 것이 더 자연스럽습니다.
+          </div>
+        ) : null}
+
         <div className="mt-6">
-          {activeView === "asset-groups" ? (
-            <div className="grid grid-cols-1 gap-6">
-              {data.assetGroups.map((group) => {
-                const isCashGroup = group.name === "현금";
-                const isResidualGroup = isResidualAssetGroupName(group.name);
-                const visibleItemCount = isCashGroup ? cashAccounts.length : group.items.length;
+          <div className="grid grid-cols-1 gap-6">
+            {data.assetGroups.map((group) => {
+              const isCashGroup = group.name === "현금";
+              const isResidualGroup = isResidualAssetGroupName(group.name);
+              const visibleItemCount = isCashGroup ? cashAccounts.length : group.items.length;
 
-                return (
-                  <article
-                    key={group.id}
-                    className="overflow-hidden rounded-[2rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] shadow-[0_8px_30px_rgba(0,0,0,0.18)]"
-                  >
-                    <div className="border-b border-white/8 px-5 py-2.5">
-                      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                        <div className="flex min-w-0 items-center gap-4">
-                          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-[1rem] border border-white/8 bg-[rgba(255,255,255,0.09)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-                            <AssetGroupIcon name={group.name} />
-                          </div>
-                          <div className="min-w-0 self-center">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h4 className="text-[1.15rem] font-semibold leading-none tracking-tight text-white">
-                                {group.name}
-                              </h4>
-                              {isResidualGroup ? (
-                                <span className="rounded-full border border-[#8fb6ff]/22 bg-[#8fb6ff]/12 px-3 py-1 text-xs font-semibold text-[#dce7ff]">
-                                  잔여 비중
-                                </span>
-                              ) : null}
-                              {group.isSynthetic ? (
-                                <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-[#cdd9f2]">
-                                  자동 계산
-                                </span>
-                              ) : null}
-                            </div>
-                          </div>
+              return (
+                <article
+                  key={group.id}
+                  className="overflow-hidden rounded-[2rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] shadow-[0_8px_30px_rgba(0,0,0,0.18)]"
+                >
+                  <div className="border-b border-white/8 px-5 py-2.5">
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="flex min-w-0 items-center gap-4">
+                        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-[1rem] border border-white/8 bg-[rgba(255,255,255,0.09)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                          <AssetGroupIcon name={group.name} />
                         </div>
-                        <div className="flex items-center gap-2 self-start lg:self-center">
-                          <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-[#cdd9f2]">
-                            {visibleItemCount}개 항목
-                          </span>
-                          {!group.isSynthetic && !isResidualGroup ? (
-                            <form action={deletePortfolioAssetGroupAction}>
-                              <input type="hidden" name="id" value={group.id} />
-                              <input type="hidden" name="portfolioId" value={data.portfolio.id} />
-                              <ConfirmSubmitButton
-                                confirmMessage="이 자산군을 삭제하시겠습니까? 연결된 항목은 미분류 상태로 유지됩니다."
-                                className={itemDeleteButtonClassName}
-                              >
-                                ×
-                              </ConfirmSubmitButton>
-                            </form>
-                          ) : null}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4 px-5 py-4">
-                      <div className="desktop-kpi-grid-5">
-                        {group.isSynthetic || isResidualGroup ? (
-                          <div className={assetGroupMetricCardClassName}>
-                            <p className="text-[10px] text-[#93a4c7]">비중</p>
-                            <p className="mt-1.5 break-all text-[0.92rem] font-bold tracking-tight text-white sm:whitespace-nowrap">
-                              {formatPercent(group.targetWeight)} / {formatPercent(group.currentWeight)}
-                            </p>
-                          </div>
-                        ) : (
-                          <SettingsDialog
-                            trigger={
-                              <button
-                                type="button"
-                                className={`${assetGroupMetricCardClassName} w-full text-left transition hover:bg-black/20`}
-                              >
-                                <p className="text-[10px] text-[#93a4c7]">비중</p>
-                                <p className="mt-1.5 break-all text-[0.92rem] font-bold tracking-tight text-white sm:whitespace-nowrap">
-                                  {formatPercent(group.targetWeight)} / {formatPercent(group.currentWeight)}
-                                </p>
-                              </button>
-                            }
-                          >
-                            <Card className="rounded-[22px] bg-[linear-gradient(180deg,rgba(20,29,53,.98),rgba(17,26,48,.98))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
-                              <div className="border-b border-white/8 pb-4">
-                                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8ea4cf]">
-                                  Asset Group
-                                </p>
-                                <h4 className="mt-2 text-[1.4rem] font-semibold tracking-tight">
-                                  자산군 수정
-                                </h4>
-                              </div>
-                              <form action={updatePortfolioAssetGroupAction} className="mt-5 space-y-4">
-                                <input type="hidden" name="id" value={group.id} />
-                                <input type="hidden" name="portfolioId" value={data.portfolio.id} />
-                                <input type="hidden" name="sortOrder" value={0} />
-                                <input type="hidden" name="name" value={group.name} />
-                                <label className="space-y-1.5">
-                                  <span className="text-sm font-medium">목표 비중</span>
-                                  <Input
-                                    name="targetWeight"
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    step="0.01"
-                                    defaultValue={String(group.targetWeight)}
-                                    className={`${fieldClassName} py-2.5`}
-                                  />
-                                </label>
-                                <SubmitButton className="w-full" pendingLabel="저장 중...">
-                                  저장
-                                </SubmitButton>
-                              </form>
-                            </Card>
-                          </SettingsDialog>
-                        )}
-                        <div className={assetGroupMetricCardClassName}>
-                          <p className="text-[10px] text-[#93a4c7]">투자금</p>
-                          <p className="mt-1.5 break-all text-[0.92rem] font-semibold tracking-tight text-white sm:whitespace-nowrap">
-                            {formatWon(String(group.investedAmount))}
-                          </p>
-                        </div>
-                        <div className={assetGroupMetricCardClassName}>
-                          <p className="text-[10px] text-[#93a4c7]">평가금</p>
-                          <p className="mt-1.5 break-all text-[0.92rem] font-semibold tracking-tight text-white sm:whitespace-nowrap">
-                            {formatWon(String(group.marketValue))}
-                          </p>
-                        </div>
-                        <div className={assetGroupMetricCardClassName}>
-                          <p className="text-[10px] text-[#93a4c7]">수익률</p>
-                          <p className="mt-1.5 break-all text-[0.92rem] font-semibold tracking-tight sm:whitespace-nowrap">
-                            <ProfitTone value={group.profitRate} />
-                          </p>
-                        </div>
-                          <div className={assetGroupMetricCardClassName}>
-                            <p className="text-[10px] text-[#93a4c7]">리밸런싱</p>
-                            <p className="mt-1.5 break-all text-[0.92rem] font-semibold tracking-tight sm:whitespace-nowrap">
-                              {group.buyAmount > 0 ? (
-                                <span className="text-[#ff8e8e]">+{formatWon(String(group.buyAmount))}</span>
-                              ) : group.sellAmount > 0 ? (
-                                <span className="text-[#8fb6ff]">-{formatWon(String(group.sellAmount))}</span>
-                              ) : (
-                                <span className="text-white">-</span>
-                              )}
-                            </p>
-                          </div>
-                      </div>
-
-                      <details open className="rounded-2xl border border-white/8">
-                        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-2">
-                          <div className="flex items-center gap-2">
-                            <h4 className="text-sm font-semibold text-white">항목</h4>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-xs text-[#93a4c7]">{visibleItemCount}개</span>
-                            {!group.isSynthetic ? (
-                              <SettingsDialog
-                                stopPropagationOnTriggerClick
-                                trigger={
-                                  <button
-                                    type="button"
-                                    className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-white/5 text-xs font-semibold leading-none text-[#dce7ff] transition hover:bg-white/10"
-                                    aria-label="항목 추가"
-                                  >
-                                    +
-                                  </button>
-                                }
-                              >
-                                <Card className="rounded-[22px] bg-[linear-gradient(180deg,rgba(20,29,53,.98),rgba(17,26,48,.98))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
-                                  <div className="border-b border-white/8 pb-4">
-                                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8ea4cf]">
-                                      Portfolio Item
-                                    </p>
-                                    <h4 className="mt-2 text-[1.4rem] font-semibold tracking-tight">
-                                      항목 추가
-                                    </h4>
-                                    <p className="mt-2 text-sm text-[#93a4c7]">
-                                      {group.name} 자산군에 포트폴리오 항목을 추가합니다.
-                                    </p>
-                                  </div>
-                                  <PortfolioItemCreateForm
-                                    portfolioId={data.portfolio.id}
-                                    portfolioAssetGroupId={group.id}
-                                    accountOptions={realAccounts}
-                                    assetGroupOptions={editableAssetGroups}
-                                    availableInvestmentItems={data.availableInvestmentItems}
-                                    sortOrder={data.portfolioItems.length}
-                                  />
-                                </Card>
-                              </SettingsDialog>
+                        <div className="min-w-0 self-center">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h4 className="text-[1.15rem] font-semibold leading-none tracking-tight text-white">
+                              {group.name}
+                            </h4>
+                            {isResidualGroup ? (
+                              <span className="rounded-full border border-[#8fb6ff]/22 bg-[#8fb6ff]/12 px-3 py-1 text-xs font-semibold text-[#dce7ff]">
+                                잔여 비중
+                              </span>
+                            ) : null}
+                            {group.isSynthetic ? (
+                              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-[#cdd9f2]">
+                                자동 계산
+                              </span>
                             ) : null}
                           </div>
-                        </summary>
-                        <div className="border-t border-white/8 p-4">
-                          {isCashGroup ? (
-                            cashAccounts.length === 0 ? (
-                              <div className="rounded-2xl bg-black/15 p-4 text-sm text-[#93a4c7]">
-                                현금 추적이 켜진 계좌가 없습니다.
-                              </div>
-                            ) : (
-                              <div className="space-y-3">
-                                {cashAccounts.map((account) => (
-                                  <div
-                                    key={`cash-${account.id}`}
-                                    className="rounded-[1rem] bg-black/15 px-3 py-3 text-sm"
-                                  >
-                                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                                      <div className="min-w-0">
-                                        <p className="line-clamp-1 max-w-[22rem] text-[13px] font-medium leading-5 text-white">
-                                          {getAccountTitle(account)} 현금
-                                        </p>
-                                        <div className="mt-0.5 line-clamp-2 text-[11px] leading-4 text-[#93a4c7]">
-                                          {[getAccountMeta(account), "현금 추적 계좌"].filter(Boolean).join(" · ")}
-                                        </div>
-                                      </div>
-                                      <div className="flex flex-wrap items-center gap-4 lg:justify-end">
-                                        <div className="text-right">
-                                          <p className="text-[10px] text-[#93a4c7]">평가금</p>
-                                          <p className="text-[13px] font-medium text-white">
-                                            {formatWon(String(account.cashBalance))}
-                                          </p>
-                                        </div>
-                                        <div className="text-right">
-                                          <p className="text-[10px] text-[#93a4c7]">현재비중</p>
-                                          <p className="text-[13px] font-medium text-white">
-                                            {formatPercent(account.currentWeight)}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )
-                          ) : group.items.length === 0 ? (
-                            <div className="rounded-2xl bg-black/15 p-4 text-sm text-[#93a4c7]">
-                              현재 연결된 항목 데이터가 없습니다.
-                            </div>
-                          ) : (
-                            <div className="space-y-3">
-                              <PortfolioItemListHeader />
-                              {group.items.map((item) => (
-                                <PortfolioItemRow
-                                  key={item.id}
-                                  portfolioId={data.portfolio.id}
-                                  item={item}
-                                  assetGroupOptions={editableAssetGroups}
-                                  accountOptions={realAccounts}
-                                  availableInvestmentItems={data.availableInvestmentItems}
-                                  variant="asset-group"
-                                />
-                              ))}
-                            </div>
-                          )}
                         </div>
-                      </details>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {data.accounts.length === 0 ? (
-                <EmptyState
-                  title="등록된 계좌가 없습니다"
-                  description="상단 버튼으로 첫 계좌를 추가하세요."
-                />
-              ) : (
-                data.accounts.map((account) => (
-                  <article
-                    key={account.id}
-                    className="rounded-[1.2rem] border border-[var(--border)] bg-white/4 p-4"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        {account.id.startsWith("__") ? (
-                          <>
-                            <div className="flex items-center gap-2">
-                              <p className="text-lg font-semibold">{getAccountTitle(account)}</p>
-                              <Badge tone="info" compact>
-                                자동 구분
-                              </Badge>
-                            </div>
-                            {getAccountMeta(account) ? (
-                              <p className="mt-1 text-xs text-[#93a4c7]">{getAccountMeta(account)}</p>
-                            ) : null}
-                          </>
-                        ) : (
-                          <SettingsDialog
-                            trigger={
-                              <button
-                                type="button"
-                                className="group rounded-[0.9rem] border border-transparent bg-transparent px-0 py-0 text-left transition"
-                                aria-label={`${getAccountTitle(account)} 계좌 수정 열기`}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <p className="text-lg font-semibold transition group-hover:text-[#8fb0ec]">
-                                    {getAccountTitle(account)}
-                                  </p>
-                                  <span className="text-xs font-semibold text-[#8ea4cf] opacity-0 transition group-hover:opacity-100">
-                                    수정
-                                  </span>
-                                </div>
-                                {getAccountMeta(account) ? (
-                                  <p className="mt-1 text-xs text-[#93a4c7] transition group-hover:text-[#bfd2f8]">
-                                    {getAccountMeta(account)}
-                                  </p>
-                                ) : null}
-                              </button>
-                            }
-                          >
-                            <AccountEditorDialog portfolioId={data.portfolio.id} account={account} />
-                          </SettingsDialog>
-                        )}
                       </div>
-                      {!account.id.startsWith("__") ? (
-                        <div className="flex items-center gap-2">
-                          <form action={deletePortfolioAccountAction}>
-                            <input type="hidden" name="id" value={account.id} />
+                      <div className="flex items-center gap-2 self-start lg:self-center">
+                        <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-[#cdd9f2]">
+                          {visibleItemCount}개 항목
+                        </span>
+                        {!group.isSynthetic && !isResidualGroup ? (
+                          <form action={deletePortfolioAssetGroupAction}>
+                            <input type="hidden" name="id" value={group.id} />
                             <input type="hidden" name="portfolioId" value={data.portfolio.id} />
                             <ConfirmSubmitButton
-                              confirmMessage="이 계좌를 삭제하시겠습니까? 연결된 항목은 미지정으로 이동됩니다."
+                              confirmMessage="이 자산군을 삭제하시겠습니까? 연결된 항목은 미분류 상태로 유지됩니다."
                               className={itemDeleteButtonClassName}
                             >
                               ×
                             </ConfirmSubmitButton>
                           </form>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 px-5 py-4">
+                    <div className="desktop-kpi-grid-5">
+                      {group.isSynthetic || isResidualGroup ? (
+                        <div className={assetGroupMetricCardClassName}>
+                          <p className="text-[10px] text-[#93a4c7]">비중</p>
+                          <p className="mt-1.5 break-all text-[0.92rem] font-bold tracking-tight text-white sm:whitespace-nowrap">
+                            {formatPercent(group.targetWeight)} / {formatPercent(group.currentWeight)}
+                          </p>
                         </div>
-                      ) : null}
+                      ) : (
+                        <SettingsDialog
+                          trigger={
+                            <button
+                              type="button"
+                              className={`${assetGroupMetricCardClassName} w-full text-left transition hover:bg-black/20`}
+                            >
+                              <p className="text-[10px] text-[#93a4c7]">비중</p>
+                              <p className="mt-1.5 break-all text-[0.92rem] font-bold tracking-tight text-white sm:whitespace-nowrap">
+                                {formatPercent(group.targetWeight)} / {formatPercent(group.currentWeight)}
+                              </p>
+                            </button>
+                          }
+                        >
+                          <Card className="rounded-[22px] bg-[linear-gradient(180deg,rgba(20,29,53,.98),rgba(17,26,48,.98))] text-white shadow-[0_14px_40px_rgba(0,0,0,.28)]">
+                            <div className="border-b border-white/8 pb-4">
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8ea4cf]">
+                                Asset Group
+                              </p>
+                              <h4 className="mt-2 text-[1.4rem] font-semibold tracking-tight">
+                                자산군 수정
+                              </h4>
+                            </div>
+                            <form action={updatePortfolioAssetGroupAction} className="mt-5 space-y-4">
+                              <input type="hidden" name="id" value={group.id} />
+                              <input type="hidden" name="portfolioId" value={data.portfolio.id} />
+                              <input type="hidden" name="sortOrder" value={0} />
+                              <input type="hidden" name="name" value={group.name} />
+                              <label className="space-y-1.5">
+                                <span className="text-sm font-medium">목표 비중</span>
+                                <Input
+                                  name="targetWeight"
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  step="0.01"
+                                  defaultValue={String(group.targetWeight)}
+                                  className={`${fieldClassName} py-2.5`}
+                                />
+                              </label>
+                              <SubmitButton className="w-full" pendingLabel="저장 중...">
+                                저장
+                              </SubmitButton>
+                            </form>
+                          </Card>
+                        </SettingsDialog>
+                      )}
+                      <div className={assetGroupMetricCardClassName}>
+                        <p className="text-[10px] text-[#93a4c7]">투자금</p>
+                        <p className="mt-1.5 break-all text-[0.92rem] font-semibold tracking-tight text-white sm:whitespace-nowrap">
+                          {formatWon(String(group.investedAmount))}
+                        </p>
+                      </div>
+                      <div className={assetGroupMetricCardClassName}>
+                        <p className="text-[10px] text-[#93a4c7]">평가금</p>
+                        <p className="mt-1.5 break-all text-[0.92rem] font-semibold tracking-tight text-white sm:whitespace-nowrap">
+                          {formatWon(String(group.marketValue))}
+                        </p>
+                      </div>
+                      <div className={assetGroupMetricCardClassName}>
+                        <p className="text-[10px] text-[#93a4c7]">수익률</p>
+                        <p className="mt-1.5 break-all text-[0.92rem] font-semibold tracking-tight sm:whitespace-nowrap">
+                          <ProfitTone value={group.profitRate} />
+                        </p>
+                      </div>
+                      <div className={assetGroupMetricCardClassName}>
+                        <p className="text-[10px] text-[#93a4c7]">리밸런싱</p>
+                        <p className="mt-1.5 break-all text-[0.92rem] font-semibold tracking-tight sm:whitespace-nowrap">
+                          {group.buyAmount > 0 ? (
+                            <span className="text-[#ff8e8e]">+{formatWon(String(group.buyAmount))}</span>
+                          ) : group.sellAmount > 0 ? (
+                            <span className="text-[#8fb6ff]">-{formatWon(String(group.sellAmount))}</span>
+                          ) : (
+                            <span className="text-white">-</span>
+                          )}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                        <SummaryBox label="평가금" value={formatWon(String(account.marketValue))} />
-                        <SummaryBox label="투자금" value={formatWon(String(account.investedAmount))} />
-                        <SummaryBox
-                          label="수익률"
-                          value={<ProfitTone value={account.profitRate} />}
-                        />
-                    </div>
-
-                    <div className="mt-4 overflow-hidden rounded-[1rem] border border-white/8 bg-black/15">
-                      <div className="flex items-center justify-between border-b border-white/8 px-4 py-3">
-                        <p className="text-sm font-semibold text-[#dce7ff]">항목</p>
+                    <details open className="rounded-2xl border border-white/8">
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-2">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-semibold text-white">항목</h4>
+                        </div>
                         <div className="flex items-center gap-3">
-                          <span className="text-xs text-[#93a4c7]">
-                            {account.items.length}개
-                          </span>
-                          {!account.id.startsWith("__") ? (
+                          <span className="text-xs text-[#93a4c7]">{visibleItemCount}개</span>
+                          {!group.isSynthetic ? (
                             <SettingsDialog
                               stopPropagationOnTriggerClick
                               trigger={
@@ -1445,12 +1162,12 @@ export function PortfolioManagementBoard({
                                     항목 추가
                                   </h4>
                                   <p className="mt-2 text-sm text-[#93a4c7]">
-                                    {getAccountTitle(account)} 계좌에 포트폴리오 항목을 추가합니다.
+                                    {group.name} 자산군에 포트폴리오 항목을 추가합니다.
                                   </p>
                                 </div>
                                 <PortfolioItemCreateForm
                                   portfolioId={data.portfolio.id}
-                                  portfolioAccountId={account.id}
+                                  portfolioAssetGroupId={group.id}
                                   accountOptions={realAccounts}
                                   assetGroupOptions={editableAssetGroups}
                                   availableInvestmentItems={data.availableInvestmentItems}
@@ -1460,16 +1177,58 @@ export function PortfolioManagementBoard({
                             </SettingsDialog>
                           ) : null}
                         </div>
-                      </div>
-                      <div className="space-y-3 p-4">
-                        {account.items.length === 0 ? (
+                      </summary>
+                      <div className="border-t border-white/8 p-4">
+                        {isCashGroup ? (
+                          cashAccounts.length === 0 ? (
+                            <div className="rounded-2xl bg-black/15 p-4 text-sm text-[#93a4c7]">
+                              현금 잔액이 등록된 계좌가 없습니다.
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              {cashAccounts.map((account) => (
+                                <div
+                                  key={`cash-${account.id}`}
+                                  className="rounded-[1rem] bg-black/15 px-3 py-3 text-sm"
+                                >
+                                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                                    <div className="min-w-0">
+                                      <p className="line-clamp-1 max-w-[22rem] text-[13px] font-medium leading-5 text-white">
+                                        {getAccountTitle(account)} 현금
+                                      </p>
+                                      {getAccountMeta(account) ? (
+                                        <div className="mt-0.5 line-clamp-2 text-[11px] leading-4 text-[#93a4c7]">
+                                          {getAccountMeta(account)}
+                                        </div>
+                                      ) : null}
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-4 lg:justify-end">
+                                      <div className="text-right">
+                                        <p className="text-[10px] text-[#93a4c7]">평가금</p>
+                                        <p className="text-[13px] font-medium text-white">
+                                          {formatWon(String(account.cashBalance))}
+                                        </p>
+                                      </div>
+                                      <div className="text-right">
+                                        <p className="text-[10px] text-[#93a4c7]">현재비중</p>
+                                        <p className="text-[13px] font-medium text-white">
+                                          {formatPercent(account.currentWeight)}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )
+                        ) : group.items.length === 0 ? (
                           <div className="rounded-2xl bg-black/15 p-4 text-sm text-[#93a4c7]">
-                            연결된 항목이 없습니다.
+                            현재 연결된 항목 데이터가 없습니다.
                           </div>
                         ) : (
-                          <>
+                          <div className="space-y-3">
                             <PortfolioItemListHeader />
-                            {account.items.map((item) => (
+                            {group.items.map((item) => (
                               <PortfolioItemRow
                                 key={item.id}
                                 portfolioId={data.portfolio.id}
@@ -1477,31 +1236,18 @@ export function PortfolioManagementBoard({
                                 assetGroupOptions={editableAssetGroups}
                                 accountOptions={realAccounts}
                                 availableInvestmentItems={data.availableInvestmentItems}
-                                variant="account"
+                                variant="asset-group"
                               />
                             ))}
-                          </>
-                        )}
-                        {account.cashTrackingEnabled && account.cashBalance > 0 ? (
-                          <div className="rounded-[1rem] bg-white/[0.03] px-3 py-3 text-sm">
-                            <div className="flex items-center justify-between gap-3">
-                              <div>
-                                <p className="font-medium text-white">현금</p>
-                                <p className="mt-1 text-xs text-[#93a4c7]">현금 추적 잔액</p>
-                              </div>
-                              <p className="font-medium text-white">
-                                {formatWon(String(account.cashBalance))}
-                              </p>
-                            </div>
                           </div>
-                        ) : null}
+                        )}
                       </div>
-                    </div>
-                  </article>
-                ))
-              )}
-            </div>
-          )}
+                    </details>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
         </div>
       </Card>
     </div>

@@ -50,6 +50,20 @@ function NavIcon({ href, active }: Readonly<{ href: string; active: boolean }>) 
     );
   }
 
+  if (href === "/accounts") {
+    return (
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
+        <path
+          d="M4.5 8.5h15M6.5 6h11a1.5 1.5 0 0 1 1.5 1.5v9A1.5 1.5 0 0 1 17.5 18h-11A1.5 1.5 0 0 1 5 16.5v-9A1.5 1.5 0 0 1 6.5 6Z"
+          stroke={tone}
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <path d="M8 13h3" stroke={tone} strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
   return (
     <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
       <path

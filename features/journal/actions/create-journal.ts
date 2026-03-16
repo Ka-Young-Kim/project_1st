@@ -7,7 +7,6 @@ import { createJournalEntry } from "@/features/journal/services/journal-service"
 import { logger } from "@/lib/logger";
 
 export async function createJournal(formData: FormData) {
-  const portfolioId = getString(formData, "portfolioId");
   const parsed = journalInputSchema.safeParse({
     tradeDate: formData.get("tradeDate"),
     portfolioAccountId: formData.get("portfolioAccountId"),

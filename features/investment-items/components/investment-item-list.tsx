@@ -73,6 +73,9 @@ export function InvestmentItemList({
           <h2 className="mt-2 text-[1.35rem] font-semibold tracking-tight">
             상세 항목
           </h2>
+          <p className="mt-2 text-[13px] leading-6 text-[#9fb4d8]">
+            수동으로 등록한 종목과 계좌 유입 항목의 이름, 코드, 시세 메타데이터를 같은 화면에서 관리합니다.
+          </p>
         </div>
         {portfolioId ? (
           <SettingsDialog

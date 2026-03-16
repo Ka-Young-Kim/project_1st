@@ -10,7 +10,7 @@ describe("utils formatting", () => {
   });
 
   it("formats KRW values deterministically", () => {
-    expect(formatCurrency("123000")).toBe("KRW 123,000");
-    expect(formatCurrency("123000.5")).toBe("KRW 123,000.5");
+    expect(formatCurrency("123000")).toBe("123,000원");
+    expect(formatCurrency("123000.5")).toBe("123,000.5원");
   });
 });

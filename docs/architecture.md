@@ -8,6 +8,7 @@
 flowchart LR
   Login[로그인] --> Dashboard[대시보드]
   Dashboard --> Portfolios[포트폴리오 구성]
+  Dashboard --> Accounts[계좌 관리]
   Dashboard --> Journal[투자일지]
   Dashboard --> Items[투자 항목 관리]
   Dashboard --> Todos[할 일 관리]
@@ -97,7 +98,7 @@ erDiagram
 - `Portfolio`: 투자 관리의 최상위 집계 단위이며 계좌, 자산군, 종목, 스냅샷의 기준이 됩니다.
 - `InvestmentItem`: 종목 마스터 데이터입니다. 코드, 거래소, 통화, 카테고리 같은 메타데이터를 보관합니다.
 - `InvestmentLog`: 매수/매도 거래 기록입니다. 포트폴리오, 계좌, 종목과 느슨하게 연결되어 과거 이력을 유지합니다.
-- `PortfolioAccount`: 증권사 계좌 또는 관리 계정 단위입니다. 현금 추적 여부와 현금 잔고를 함께 관리합니다.
+- `PortfolioAccount`: 증권사 계좌 또는 관리 계정 단위입니다. 계좌 현금 잔고와 연결 항목의 기준 정보를 함께 관리합니다.
 - `PortfolioAssetGroup`: 자산 배분 그룹입니다. 목표 비중과 정렬 순서를 가집니다.
 - `PortfolioItem`: 현재 화면에서 관리하는 포트폴리오 편성 항목입니다. 계좌, 자산군, 종목 마스터와 선택적으로 연결됩니다.
 - `PortfolioHolding`: 포트폴리오 내 실제 보유 종목 상태입니다. `Portfolio + InvestmentItem` 조합이 유일합니다.

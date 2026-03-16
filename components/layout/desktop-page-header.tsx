@@ -35,7 +35,15 @@ export function DesktopPageHeader({
           eyebrow: "Portfolio Setup",
           title: "포트폴리오 구성",
           description:
-            "선택한 포트폴리오의 계좌, 자산군, 목표 비율, 리밸런싱, 스냅샷 흐름을 한 화면에서 관리합니다.",
+            "선택한 포트폴리오의 자산군, 목표 비율, 리밸런싱, 스냅샷 흐름을 한 화면에서 관리합니다.",
+        };
+      case "/accounts":
+        return {
+          eyebrow: "Account Desk",
+          title: "계좌 관리",
+          description: activePortfolioName
+            ? `${activePortfolioName} 포트폴리오 기준으로 계좌를 직접 등록하고, 향후 연동 불러오기 흐름까지 같은 자리에서 관리합니다.`
+            : "포트폴리오를 먼저 선택한 뒤 계좌를 등록하거나 불러오세요.",
         };
       case "/portfolios/snapshots":
         return {
@@ -64,7 +72,7 @@ export function DesktopPageHeader({
           eyebrow: "Investment Items",
           title: "투자 항목 관리",
           description: activePortfolioName
-            ? `${activePortfolioName} 포트폴리오 기준으로 종목 정보를 정리하고, 거래 기록과 시세 조회에 사용할 기본 메타데이터를 관리합니다.`
+            ? `${activePortfolioName} 포트폴리오 기준으로 수동 등록한 종목과 계좌 유입 항목의 이름, 코드, 시세 메타데이터를 함께 관리합니다.`
             : "포트폴리오를 먼저 생성한 뒤 투자 항목을 등록하세요.",
         };
       case "/todos":

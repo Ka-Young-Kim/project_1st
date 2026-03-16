@@ -2,7 +2,6 @@ import { cookies } from "next/headers";
 
 import { PORTFOLIO_SELECTION_COOKIE } from "@/features/portfolios/lib/selection";
 import { prisma } from "@/lib/prisma";
-import { ensurePortfolioAccounts } from "@/features/portfolios/services/portfolio-management-service";
 
 export async function getPortfolios() {
   let portfolios = await prisma.portfolio.findMany({
@@ -57,8 +56,6 @@ export async function getPortfolios() {
       data: { portfolioId: defaultPortfolioId },
     }),
   ]);
-
-  await Promise.all(portfolios.map((portfolio) => ensurePortfolioAccounts(portfolio.id)));
 
   return portfolios.map((portfolio) => ({
     id: portfolio.id,

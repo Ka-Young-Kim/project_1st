@@ -1,12 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import { ensurePortfolioAccounts } from "@/features/portfolios/services/portfolio-management-service";
 
 export async function getPortfolioAccounts(portfolioId?: string) {
   if (!portfolioId) {
     return [];
   }
-
-  await ensurePortfolioAccounts(portfolioId);
 
   const accounts = await prisma.portfolioAccount.findMany({
     where: { portfolioId },
@@ -18,7 +15,7 @@ export async function getPortfolioAccounts(portfolioId?: string) {
     name: account.name,
     bank: account.bank ?? "",
     displayId: account.displayId ?? "",
-    cashTrackingEnabled: account.cashTrackingEnabled,
+    cashTrackingEnabled: true,
     cashBalance: account.cashBalance.toString(),
   }));
 }

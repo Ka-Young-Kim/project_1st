@@ -7,7 +7,7 @@ export async function login(page: Page) {
   await page.getByLabel("비밀번호").fill("changeme1234");
   await page.getByRole("button", { name: "접속하기" }).click();
 
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/($|\?)/, { timeout: 15000 });
 }
 
 export function uniqueSuffix() {

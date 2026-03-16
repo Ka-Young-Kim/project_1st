@@ -205,6 +205,10 @@ textarea {
   grid-template-columns: minmax(0, 1fr) clamp(360px, 25vw, 500px);
 }
 
+.desktop-split-layout.accounts-management-layout {
+  grid-template-columns: clamp(360px, 38vw, 760px) minmax(520px, 1fr);
+}
+
 .desktop-secondary-grid {
   display: grid;
   gap: 1.25rem;

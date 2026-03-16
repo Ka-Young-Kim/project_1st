@@ -18,7 +18,7 @@ export const portfolioAccountInputSchema = z.object({
   bank: z.string().trim().min(1, "은행을 입력하세요.").max(80),
   displayId: z.string().trim().min(1, "계좌 번호를 입력하세요.").max(80),
   sortOrder: z.coerce.number().int().min(0).default(0),
-  cashTrackingEnabled: z.boolean().default(false),
+  cashTrackingEnabled: z.boolean().default(true),
   cashBalance: decimalOrZeroSchema.default("0"),
 });
 

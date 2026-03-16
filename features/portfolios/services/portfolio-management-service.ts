@@ -56,6 +56,7 @@ function toKrw(value: number, currency: string, usdToKrwRate: number | null) {
 
 function revalidatePortfolioViews() {
   revalidatePath("/");
+  revalidatePath("/accounts");
   revalidatePath("/items");
   revalidatePath("/journal");
   revalidatePath("/portfolios");
@@ -272,44 +273,7 @@ async function getStoredMetricsForLinkedItem(
   };
 }
 
-export async function ensurePortfolioAccounts(portfolioId: string) {
-  const existing = await prisma.portfolioAccount.findFirst({
-    where: { portfolioId },
-    select: { id: true },
-  });
-
-  if (existing) {
-    return;
-  }
-
-  try {
-    await prisma.portfolioAccount.create({
-      data: {
-        portfolioId,
-        name: "기본 계좌",
-        bank: null,
-        nickname: null,
-        displayId: "",
-        sortOrder: 0,
-        cashTrackingEnabled: false,
-        cashBalance: toDecimal(0),
-      },
-    });
-  } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
-      return;
-    }
-
-    throw error;
-  }
-}
-
 export async function ensurePortfolioItems(portfolioId: string) {
-  await ensurePortfolioAccounts(portfolioId);
-
   const [items, holdings, logs, existingPortfolioItems] = await Promise.all([
     prisma.investmentItem.findMany({
       where: { portfolioId },
@@ -481,7 +445,7 @@ export async function createPortfolioAccount(input: PortfolioAccountInput) {
       nickname: null,
       displayId: input.displayId || null,
       sortOrder: input.sortOrder,
-      cashTrackingEnabled: input.cashTrackingEnabled,
+      cashTrackingEnabled: true,
       cashBalance: toDecimal(input.cashBalance),
     },
   });
@@ -498,7 +462,7 @@ export async function updatePortfolioAccount(input: PortfolioAccountUpdateInput)
       nickname: null,
       displayId: input.displayId || null,
       sortOrder: input.sortOrder,
-      cashTrackingEnabled: input.cashTrackingEnabled,
+      cashTrackingEnabled: true,
       cashBalance: toDecimal(input.cashBalance),
     },
   });
@@ -509,24 +473,9 @@ export async function updatePortfolioAccount(input: PortfolioAccountUpdateInput)
 export async function deletePortfolioAccount(id: string) {
   const account = await prisma.portfolioAccount.findUnique({
     where: { id },
-    include: {
-      portfolio: {
-        include: {
-          _count: {
-            select: {
-              accounts: true,
-            },
-          },
-        },
-      },
-    },
   });
 
   if (!account) {
-    return { ok: false as const };
-  }
-
-  if (account.portfolio._count.accounts <= 1) {
     return { ok: false as const };
   }
 
@@ -844,7 +793,7 @@ export async function getPortfolioManagementData(portfolioId: string) {
   await ensurePortfolioItems(portfolioId);
   await ensureResidualAssetGroupForPortfolio(portfolioId);
 
-  const [portfolio, logs, snapshots, availableInvestmentItems] = await Promise.all([
+  const [portfolio, logs, snapshots, investmentItems] = await Promise.all([
     prisma.portfolio.findUniqueOrThrow({
       where: { id: portfolioId },
       include: {
@@ -906,6 +855,23 @@ export async function getPortfolioManagementData(portfolioId: string) {
       price: log.price,
     })),
   );
+  const accountIdsByInvestmentItemId = new Map<string, Set<string>>();
+
+  for (const bucket of accountBuckets.values()) {
+    if (!bucket.accountId || bucket.quantity <= 0) {
+      continue;
+    }
+
+    const current =
+      accountIdsByInvestmentItemId.get(bucket.investmentItemId) ?? new Set<string>();
+
+    current.add(bucket.accountId);
+    accountIdsByInvestmentItemId.set(bucket.investmentItemId, current);
+  }
+  const availableInvestmentItems = investmentItems.map((item) => ({
+    ...item,
+    accountIds: Array.from(accountIdsByInvestmentItemId.get(item.id) ?? []),
+  }));
 
   const linkedItems = portfolio.portfolioItems
     .map((item) => item.linkedInvestmentItem)
@@ -998,13 +964,10 @@ export async function getPortfolioManagementData(portfolioId: string) {
     };
   });
 
-  const totalTrackedCash = portfolio.accounts.reduce((sum, account) => {
-    if (!account.cashTrackingEnabled) {
-      return sum;
-    }
-
-    return sum + Number(account.cashBalance);
-  }, 0);
+  const totalTrackedCash = portfolio.accounts.reduce(
+    (sum, account) => sum + Number(account.cashBalance),
+    0,
+  );
 
   const portfolioInvestedAmount =
     itemSummaries.reduce((sum, item) => sum + item.investedAmount, 0) +
@@ -1120,10 +1083,10 @@ export async function getPortfolioManagementData(portfolioId: string) {
     const accountItems = itemSummaries.filter((item) => item.accountId === account.id);
     const investedAmount =
       accountItems.reduce((sum, item) => sum + item.investedAmount, 0) +
-      (account.cashTrackingEnabled ? Number(account.cashBalance) : 0);
+      Number(account.cashBalance);
     const marketValue =
       accountItems.reduce((sum, item) => sum + item.marketValue, 0) +
-      (account.cashTrackingEnabled ? Number(account.cashBalance) : 0);
+      Number(account.cashBalance);
     const profitAmount = marketValue - investedAmount;
     const profitRate =
       investedAmount > 0 ? round2((profitAmount / investedAmount) * 100) : 0;
@@ -1133,7 +1096,8 @@ export async function getPortfolioManagementData(portfolioId: string) {
       name: account.name,
       bank: account.bank ?? "",
       displayId: account.displayId ?? "",
-      cashTrackingEnabled: account.cashTrackingEnabled,
+      sortOrder: account.sortOrder,
+      cashTrackingEnabled: true,
       cashBalance: Number(account.cashBalance),
       investedAmount: round2(investedAmount),
       marketValue: round2(marketValue),
@@ -1153,6 +1117,7 @@ export async function getPortfolioManagementData(portfolioId: string) {
             name: "미지정",
             bank: "",
             displayId: "",
+            sortOrder: -1,
             cashTrackingEnabled: false,
             cashBalance: 0,
             investedAmount: round2(

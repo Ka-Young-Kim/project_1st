@@ -7,7 +7,12 @@ export const NAV_ITEMS = [
   {
     href: "/portfolios",
     label: "포트폴리오 구성",
-    description: "계좌와 자산군 설정",
+    description: "자산군과 목표 비중",
+  },
+  {
+    href: "/accounts",
+    label: "계좌 관리",
+    description: "직접 등록과 불러오기",
   },
   {
     href: "/journal",
@@ -17,7 +22,7 @@ export const NAV_ITEMS = [
   {
     href: "/items",
     label: "투자 항목 관리",
-    description: "등록 항목과 기본 정보",
+    description: "수동 등록과 기본 정보",
   },
   {
     href: "/todos",

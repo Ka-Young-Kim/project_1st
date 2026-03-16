@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
@@ -38,6 +40,30 @@ export function JournalInspector({
   currentMonth: string;
   selectedDate?: string;
 }>) {
+  const accountsHref = `/accounts?${new URLSearchParams({ portfolio: portfolioId }).toString()}`;
+
+  if (accounts.length === 0) {
+    return (
+      <Card className="sticky top-5 border-white/8 bg-[linear-gradient(180deg,rgba(18,28,52,.98),rgba(14,22,42,.98))] p-5 text-white">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
+          Inspector
+        </p>
+        <h2 className="mt-3 text-[1.15rem] font-semibold tracking-tight">
+          계좌를 먼저 등록하세요
+        </h2>
+        <p className="mt-2 text-[13px] leading-6 text-[#9fb4d8]">
+          거래 수정과 신규 기록은 계좌가 있어야 진행할 수 있습니다. 계좌를 등록한 뒤 다시 이 패널로 돌아오면 기존 거래도 이어서 수정할 수 있습니다.
+        </p>
+        <Link
+          href={accountsHref}
+          className="mt-5 inline-flex h-10 items-center rounded-full border border-[rgba(110,168,254,0.28)] bg-[rgba(110,168,254,0.12)] px-4 text-sm font-semibold text-[#cfe1ff] transition hover:bg-[rgba(110,168,254,0.18)]"
+        >
+          계좌 관리로 이동
+        </Link>
+      </Card>
+    );
+  }
+
   if (!entry) {
     return (
       <Card className="sticky top-5 border-white/8 bg-[linear-gradient(180deg,rgba(18,28,52,.98),rgba(14,22,42,.98))] p-5 text-white">

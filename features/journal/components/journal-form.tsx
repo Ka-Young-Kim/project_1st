@@ -45,8 +45,51 @@ export function JournalForm({
 }>) {
   const today = getTodayDateInputInSeoul();
   const itemsHref = `/items?${new URLSearchParams({ portfolio: portfolioId }).toString()}`;
+  const accountsHref = `/accounts?${new URLSearchParams({ portfolio: portfolioId }).toString()}`;
   const Wrapper = embedded ? Fragment : Card;
   const wrapperProps = embedded ? {} : { className: "h-fit" };
+
+  if (accounts.length === 0) {
+    return (
+      <Wrapper {...wrapperProps}>
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className={embedded ? "pr-14" : ""}>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93a4c7]">
+              Composer
+            </p>
+            <h2 className="mt-2 text-[1.35rem] font-semibold tracking-tight">
+              새 투자일지 추가
+            </h2>
+            <p className="mt-1.5 text-[13px] leading-5 text-[#93a4c7]">
+              투자일지는 계좌와 투자 항목이 모두 준비된 뒤 작성할 수 있습니다.
+            </p>
+          </div>
+
+          {embedded ? null : (
+            <div className="inline-flex h-9 items-center rounded-full border border-[rgba(110,168,254,0.22)] bg-[rgba(110,168,254,0.1)] px-3.5 text-[13px] font-semibold text-[#cfe1ff]">
+              Quick Log
+            </div>
+          )}
+        </div>
+
+        <div className="mt-5 rounded-[1rem] border border-dashed border-white/10 bg-black/10 px-4 py-5">
+          <h3 className="text-lg font-semibold text-white">
+            먼저 계좌를 등록하세요
+          </h3>
+          <p className="mt-2 text-sm leading-6 text-[#93a4c7]">
+            현재 포트폴리오에 선택할 계좌가 없습니다. 계좌를 먼저 등록하거나 불러오면
+            거래 로그를 바로 연결할 수 있습니다.
+          </p>
+          <Link
+            href={accountsHref}
+            className="mt-4 inline-flex h-10 items-center rounded-full border border-[rgba(110,168,254,0.28)] bg-[rgba(110,168,254,0.12)] px-4 text-sm font-semibold text-[#cfe1ff] transition hover:bg-[rgba(110,168,254,0.18)]"
+          >
+            계좌 관리로 이동
+          </Link>
+        </div>
+      </Wrapper>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -224,7 +267,7 @@ export function JournalForm({
 
         <div className="flex items-center justify-between gap-3 rounded-[1rem] border border-white/8 bg-black/10 px-3.5 py-2.5">
           <p className="text-[11px] leading-5 text-[#93a4c7]">
-            먼저 항목을 등록한 뒤 선택해서 거래 로그를 연결하세요.
+            계좌와 항목을 선택한 뒤 거래 로그를 연결하세요.
           </p>
           <SubmitButton
             className="min-w-[9rem]"
