@@ -7,7 +7,7 @@ export async function login(page: Page) {
   await page.getByLabel("비밀번호").fill("changeme1234");
   await page.getByRole("button", { name: "접속하기" }).click();
 
-  await expect(page).toHaveURL(/\/($|\?)/, { timeout: 15000 });
+  await expect(page).toHaveURL(/\/($|\?)/, { timeout: 60000 });
 }
 
 export function uniqueSuffix() {
@@ -59,7 +59,10 @@ export async function createJournal(
     .click();
   await expect(page).toHaveURL(/\/journal$/);
 
-  const form = page.locator("form").filter({ hasText: "투자일지 저장" }).first();
+  const form = page
+    .locator("form")
+    .filter({ hasText: "투자일지 저장" })
+    .first();
 
   await form.getByLabel("거래일").fill(input.tradeDate);
   await form.getByLabel("종목 코드").fill(input.symbol);

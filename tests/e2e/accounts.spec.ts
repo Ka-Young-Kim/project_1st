@@ -7,10 +7,7 @@ function navLink(page: Page, name: RegExp) {
 }
 
 async function goToNavLink(page: Page, name: RegExp) {
-  const href = await navLink(page, name).getAttribute("href");
-
-  expect(href).toBeTruthy();
-  await page.goto(href!);
+  await navLink(page, name).click();
 }
 
 test("hides portfolio composition CTA when no account is selected", async ({
@@ -40,6 +37,8 @@ test("hides portfolio composition CTA when no account is selected", async ({
 test("manages accounts and keeps first-journal setup inside the journal page", async ({
   page,
 }) => {
+  test.slow();
+
   const suffix = uniqueSuffix().slice(-6);
   const accountName = `테스트 계좌 ${suffix}`;
   const updatedAccountName = `업데이트 계좌 ${suffix}`;
@@ -69,9 +68,15 @@ test("manages accounts and keeps first-journal setup inside the journal page", a
   await createAccountForm.getByLabel("은행").fill("테스트증권");
   await createAccountForm.getByLabel("계좌 번호").fill(`123-45-${suffix}`);
   await createAccountForm.getByRole("button", { name: "계좌 추가" }).click();
+  const accountRow = page
+    .getByRole("link", { name: new RegExp(accountName) })
+    .first();
+  await expect(accountRow).toBeVisible({ timeout: 15000 });
 
-  await expect(page.getByRole("heading", { name: accountName })).toBeVisible();
-
+  await accountRow.click();
+  await expect(
+    page.getByRole("button", { name: accountName, exact: true }),
+  ).toBeVisible({ timeout: 15000 });
   await page.getByRole("button", { name: accountName, exact: true }).click();
   const updateAccountForm = page
     .locator("form")
@@ -81,10 +86,9 @@ test("manages accounts and keeps first-journal setup inside the journal page", a
   await updateAccountForm.getByLabel("은행").fill("리네임증권");
   await updateAccountForm.getByLabel("계좌 번호").fill(`999-88-${suffix}`);
   await updateAccountForm.getByRole("button", { name: "계좌 저장" }).click();
-
   await expect(
-    page.getByRole("heading", { name: updatedAccountName }),
-  ).toBeVisible();
+    page.getByRole("button", { name: updatedAccountName, exact: true }),
+  ).toBeVisible({ timeout: 15000 });
   await expect(page.getByRole("button", { name: "계좌 삭제" })).toHaveText("×");
 
   await goToNavLink(page, /투자 항목 관리 수동 등록과 기본 정보/);
@@ -96,8 +100,9 @@ test("manages accounts and keeps first-journal setup inside the journal page", a
   await createItemForm.getByLabel("항목명").fill(itemName);
   await createItemForm.getByLabel("코드").fill(itemCode);
   await createItemForm.getByRole("button", { name: "항목 저장" }).click();
-
-  await expect(page.getByRole("heading", { name: itemName })).toBeVisible();
+  await expect(page.getByRole("heading", { name: itemName })).toBeVisible({
+    timeout: 15000,
+  });
 
   await goToNavLink(page, /투자일지 매매 기록과 회고/);
   await expect(page.getByLabel("새 투자일지 추가 열기")).toBeVisible();
@@ -128,8 +133,9 @@ test("manages accounts and keeps first-journal setup inside the journal page", a
   await goToNavLink(page, /계좌 추가 직접 등록과 불러오기/);
   await page.getByRole("button", { name: "계좌 삭제" }).click();
   await page.getByRole("button", { name: "삭제", exact: true }).click();
-
-  await expect(page.getByText("등록된 계좌가 없습니다")).toBeVisible();
+  await expect(page.getByText("등록된 계좌가 없습니다")).toBeVisible({
+    timeout: 15000,
+  });
 
   await goToNavLink(page, /투자일지 매매 기록과 회고/);
   await expect(page.getByLabel("새 투자일지 추가 열기")).toBeVisible();

@@ -33,7 +33,12 @@ export function JournalList({
     code: string;
     category: InvestmentItemCategory;
   }>;
-  accounts: Array<{ id: string; name: string; bank: string; displayId: string }>;
+  accounts: Array<{
+    id: string;
+    name: string;
+    bank: string;
+    displayId: string;
+  }>;
   portfolioId: string;
   viewAllHref?: string;
 }>) {
@@ -50,8 +55,6 @@ export function JournalList({
 
     return `/journal?${params.toString()}`;
   }
-
-  const accountsHref = `/accounts?${new URLSearchParams({ portfolio: portfolioId }).toString()}`;
 
   return (
     <Card className="min-w-0 text-white">
@@ -71,49 +74,40 @@ export function JournalList({
           >
             전체 보기
           </Link>
-          {accounts.length === 0 ? (
-            <Link
-              href={accountsHref}
-              className="inline-flex h-9 items-center rounded-full border border-white/10 bg-white/6 px-3.5 text-[13px] font-semibold text-white transition hover:bg-white/10"
-            >
-              계좌 등록
-            </Link>
-          ) : (
-            <SettingsDialog
-              trigger={
-                <button
-                  type="button"
-                  aria-label="새 투자일지 추가 열기"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#84adff]/35 bg-[#203764]/70 text-white transition hover:bg-[#274577]"
+          <SettingsDialog
+            trigger={
+              <button
+                type="button"
+                aria-label="새 투자일지 추가 열기"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#84adff]/35 bg-[#203764]/70 text-white transition hover:bg-[#274577]"
+              >
+                <svg
+                  viewBox="0 0 20 20"
+                  className="h-4 w-4"
+                  fill="none"
+                  aria-hidden="true"
                 >
-                  <svg
-                    viewBox="0 0 20 20"
-                    className="h-4 w-4"
-                    fill="none"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M10 4.5v11M4.5 10h11"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </button>
-              }
-            >
-              <Card surface="dialog" className="p-5 sm:p-6">
-                <JournalForm
-                  items={items}
-                  accounts={accounts}
-                  portfolioId={portfolioId}
-                  redirectMonth={currentMonth}
-                  redirectDate={selectedDate}
-                  embedded
-                />
-              </Card>
-            </SettingsDialog>
-          )}
+                  <path
+                    d="M10 4.5v11M4.5 10h11"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            }
+          >
+            <Card surface="dialog" className="p-5 sm:p-6">
+              <JournalForm
+                items={items}
+                accounts={accounts}
+                portfolioId={portfolioId}
+                redirectMonth={currentMonth}
+                redirectDate={selectedDate}
+                embedded
+              />
+            </Card>
+          </SettingsDialog>
         </div>
       </div>
       <div className="desktop-scroll-region space-y-3 overflow-y-auto pr-1">
@@ -121,8 +115,8 @@ export function JournalList({
           <EmptyState
             title="투자일지가 없습니다"
             description={
-              accounts.length === 0
-                ? "계좌를 먼저 등록한 뒤 첫 거래 기록을 남기면 이 영역에서 바로 흐름을 확인할 수 있습니다."
+              accounts.length === 0 || items.length === 0
+                ? "오른쪽 작성기에서 계좌, 항목, 첫 거래를 순서대로 이어서 추가할 수 있습니다."
                 : "첫 거래 기록을 남기면 이 영역에서 바로 흐름을 확인할 수 있습니다."
             }
           />
@@ -147,7 +141,9 @@ export function JournalList({
 
                       <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-[#93a4c7]">
                         <span>{formatDisplayDate(entry.tradeDate)}</span>
-                        {entry.portfolioAccountName ? <span>{entry.portfolioAccountName}</span> : null}
+                        {entry.portfolioAccountName ? (
+                          <span>{entry.portfolioAccountName}</span>
+                        ) : null}
                         {entry.itemName ? <span>{entry.symbol}</span> : null}
                         <span>{entry.quantity}주</span>
                         <span>{formatCurrency(entry.price)}</span>
