@@ -6,7 +6,10 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { NAV_ITEMS } from "@/lib/constants";
 import { cx } from "@/lib/utils";
 
-function NavIcon({ href, active }: Readonly<{ href: string; active: boolean }>) {
+function NavIcon({
+  href,
+  active,
+}: Readonly<{ href: string; active: boolean }>) {
   const tone =
     href === "/todos"
       ? active
@@ -18,15 +21,28 @@ function NavIcon({ href, active }: Readonly<{ href: string; active: boolean }>) 
 
   if (href === "/") {
     return (
-      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
-        <path d="M5 5h6v6H5zM13 5h6v6h-6zM5 13h6v6H5zM13 13h6v6h-6z" fill={tone} />
+      <svg
+        viewBox="0 0 24 24"
+        className="h-4 w-4"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M5 5h6v6H5zM13 5h6v6h-6zM5 13h6v6H5zM13 13h6v6h-6z"
+          fill={tone}
+        />
       </svg>
     );
   }
 
   if (href === "/todos") {
     return (
-      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
+      <svg
+        viewBox="0 0 24 24"
+        className="h-4 w-4"
+        fill="none"
+        aria-hidden="true"
+      >
         <path
           d="M7 6.5h10M7 12h10M7 17.5h10M4.5 6.5h.01M4.5 12h.01M4.5 17.5h.01"
           stroke={tone}
@@ -39,7 +55,12 @@ function NavIcon({ href, active }: Readonly<{ href: string; active: boolean }>) 
 
   if (href === "/items") {
     return (
-      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
+      <svg
+        viewBox="0 0 24 24"
+        className="h-4 w-4"
+        fill="none"
+        aria-hidden="true"
+      >
         <path
           d="M6.5 7.5h11M6.5 12h11M6.5 16.5h7M4 7.5h.01M4 12h.01M4 16.5h.01"
           stroke={tone}
@@ -52,7 +73,12 @@ function NavIcon({ href, active }: Readonly<{ href: string; active: boolean }>) 
 
   if (href === "/accounts") {
     return (
-      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
+      <svg
+        viewBox="0 0 24 24"
+        className="h-4 w-4"
+        fill="none"
+        aria-hidden="true"
+      >
         <path
           d="M4.5 8.5h15M6.5 6h11a1.5 1.5 0 0 1 1.5 1.5v9A1.5 1.5 0 0 1 17.5 18h-11A1.5 1.5 0 0 1 5 16.5v-9A1.5 1.5 0 0 1 6.5 6Z"
           stroke={tone}
@@ -71,7 +97,12 @@ function NavIcon({ href, active }: Readonly<{ href: string; active: boolean }>) 
         stroke={tone}
         strokeWidth="2"
       />
-      <path d="M8.5 9.5h7M8.5 12h7M8.5 14.5h4" stroke={tone} strokeWidth="2" strokeLinecap="round" />
+      <path
+        d="M8.5 9.5h7M8.5 12h7M8.5 14.5h4"
+        stroke={tone}
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -84,7 +115,9 @@ export function SidebarNav({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const portfolioId = searchParams.get("portfolio") ?? defaultPortfolioId;
-  const visibleItems = NAV_ITEMS.filter((item) => item.href !== "/");
+  const visibleItems = NAV_ITEMS.filter(
+    (item) => item.href !== "/" && item.href !== "/portfolios",
+  );
 
   return (
     <nav className="space-y-1.5">
@@ -119,7 +152,7 @@ export function SidebarNav({
                     : "bg-[rgba(110,168,254,0.16)]"
                   : isGlobalMenu
                     ? "bg-[rgba(255,203,107,0.08)]"
-                  : "bg-transparent",
+                    : "bg-transparent",
               )}
             >
               <NavIcon href={item.href} active={isActive} />

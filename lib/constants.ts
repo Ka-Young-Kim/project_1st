@@ -10,14 +10,14 @@ export const NAV_ITEMS = [
     description: "자산군과 목표 비중",
   },
   {
-    href: "/accounts",
-    label: "계좌 관리",
-    description: "직접 등록과 불러오기",
-  },
-  {
     href: "/journal",
     label: "투자일지",
     description: "매매 기록과 회고",
+  },
+  {
+    href: "/accounts",
+    label: "계좌 추가",
+    description: "직접 등록과 불러오기",
   },
   {
     href: "/items",

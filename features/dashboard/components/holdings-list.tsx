@@ -1,36 +1,20 @@
 import { cx, formatDisplayDate, formatMoney, formatWon } from "@/lib/utils";
 import { HoldingDetailDialog } from "@/features/dashboard/components/holding-detail-dialog";
-
-type HoldingItem = {
-  code: string;
-  name: string;
-  averagePrice: string;
-  currentPrice: string;
-  quantity: string;
-  profitRate: string;
-  currency: string;
-  usdToKrwRate: number | null;
-  priceSource: "last-trade" | "live" | "delayed";
-  priceUpdatedAt: string | null;
-  entries: Array<{
-    id: string;
-    tradeDate: string;
-    action: "buy" | "sell";
-    quantity: string;
-    price: string;
-    reason: string;
-    review: string | null;
-  }>;
-};
+import type { PortfolioHoldingSummary } from "@/features/portfolios/lib/holdings";
 
 type HoldingsListProps = {
-  items: HoldingItem[];
+  items: PortfolioHoldingSummary[];
 };
 
 export function HoldingsList({ items }: Readonly<HoldingsListProps>) {
-  const usdToKrwRate = items.find((item) => item.usdToKrwRate)?.usdToKrwRate ?? null;
+  const usdToKrwRate =
+    items.find((item) => item.usdToKrwRate)?.usdToKrwRate ?? null;
 
-  function getKrwConversion(value: string, currency: string, usdToKrwRate: number | null) {
+  function getKrwConversion(
+    value: string,
+    currency: string,
+    usdToKrwRate: number | null,
+  ) {
     if (currency !== "USD" || !usdToKrwRate) {
       return null;
     }
@@ -55,7 +39,8 @@ export function HoldingsList({ items }: Readonly<HoldingsListProps>) {
             보유항목
           </h2>
           <p className="mt-1.5 text-[13px] leading-5 text-[var(--muted)]">
-            보유 종목의 수량, 평단가, 현재가, 수익률을 한 행에서 읽을 수 있게 정리했습니다.
+            보유 종목의 수량, 평단가, 현재가, 수익률을 한 행에서 읽을 수 있게
+            정리했습니다.
           </p>
         </div>
         {usdToKrwRate ? (
@@ -119,13 +104,17 @@ export function HoldingsList({ items }: Readonly<HoldingsListProps>) {
                         : ""}
                     </p>
                   </div>
-                  <span className="text-center text-[var(--foreground)]">{item.quantity}</span>
+                  <span className="text-center text-[var(--foreground)]">
+                    {item.quantity}
+                  </span>
                   <div className="text-right">
                     <p className="text-[var(--foreground)]">
                       {formatMoney(item.averagePrice, item.currency)}
                     </p>
                     {averagePriceKrw ? (
-                      <p className="mt-1 text-[11px] text-[var(--muted)]">{averagePriceKrw}</p>
+                      <p className="mt-1 text-[11px] text-[var(--muted)]">
+                        {averagePriceKrw}
+                      </p>
                     ) : null}
                   </div>
                   <div className="text-right">
@@ -133,7 +122,9 @@ export function HoldingsList({ items }: Readonly<HoldingsListProps>) {
                       {formatMoney(item.currentPrice, item.currency)}
                     </p>
                     {currentPriceKrw ? (
-                      <p className="mt-1 text-[11px] text-[var(--muted)]">{currentPriceKrw}</p>
+                      <p className="mt-1 text-[11px] text-[var(--muted)]">
+                        {currentPriceKrw}
+                      </p>
                     ) : null}
                   </div>
                   <span

@@ -24,11 +24,11 @@ export function DesktopPageHeader({
     switch (pathname) {
       case "/":
         return {
-          eyebrow: "Today",
-          title: "오늘의 재테크",
+          eyebrow: "Portfolio Workspace",
+          title: "포트폴리오 홈",
           description: activePortfolioName
-            ? `현재 포트폴리오 ${activePortfolioName} 기준으로 보유 종목, 거래 흐름, 오늘 처리할 할 일을 한 번에 확인합니다.`
-            : "현재 포트폴리오 기준 보유 종목, 거래 흐름, 오늘 처리할 할 일을 한 번에 확인합니다.",
+            ? `현재 포트폴리오 ${activePortfolioName} 기준으로 보유항목, 자산군 배치, 리밸런싱 상태를 한 화면에서 이어서 관리합니다.`
+            : "현재 포트폴리오 기준으로 보유항목, 자산군 배치, 리밸런싱 상태를 한 화면에서 이어서 관리합니다.",
         };
       case "/portfolios":
         return {
@@ -39,11 +39,11 @@ export function DesktopPageHeader({
         };
       case "/accounts":
         return {
-          eyebrow: "Account Desk",
-          title: "계좌 관리",
+          eyebrow: "Account Setup",
+          title: "계좌 추가",
           description: activePortfolioName
-            ? `${activePortfolioName} 포트폴리오 기준으로 계좌를 직접 등록하고, 향후 연동 불러오기 흐름까지 같은 자리에서 관리합니다.`
-            : "포트폴리오를 먼저 선택한 뒤 계좌를 등록하거나 불러오세요.",
+            ? `${activePortfolioName} 포트폴리오 기준으로 계좌를 직접 추가하고, 향후 연동 불러오기 흐름까지 같은 자리에서 이어서 진행합니다.`
+            : "포트폴리오를 먼저 선택한 뒤 계좌를 추가하거나 불러오세요.",
         };
       case "/portfolios/snapshots":
         return {
@@ -89,7 +89,15 @@ export function DesktopPageHeader({
           description: activeItem?.description ?? "데스크톱 작업 흐름",
         };
     }
-  }, [activeItem?.description, activeItem?.label, activePortfolioName, brandName, pathname]);
+  }, [
+    activeItem?.description,
+    activeItem?.label,
+    activePortfolioName,
+    brandName,
+    pathname,
+  ]);
 
-  return <PageHeader {...pageHeader} className={cx("border-b-0 pb-0", className)} />;
+  return (
+    <PageHeader {...pageHeader} className={cx("border-b-0 pb-0", className)} />
+  );
 }

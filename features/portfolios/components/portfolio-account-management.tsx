@@ -32,10 +32,7 @@ function buildAccountsHref(portfolioId: string, accountId?: string) {
   return `/accounts?${params.toString()}`;
 }
 
-function getAccountMeta(account: {
-  bank?: string;
-  displayId?: string;
-}) {
+function getAccountMeta(account: { bank?: string; displayId?: string }) {
   return [account.bank, account.displayId].filter(Boolean).join(" · ");
 }
 
@@ -88,7 +85,11 @@ function AccountCreateDialogContent({
   return (
     <form action={createPortfolioAccountAction} className="mt-5 space-y-4">
       <input type="hidden" name="portfolioId" value={portfolioId} />
-      <input type="hidden" name="returnTo" value={buildAccountsHref(portfolioId)} />
+      <input
+        type="hidden"
+        name="returnTo"
+        value={buildAccountsHref(portfolioId)}
+      />
       <input type="hidden" name="sortOrder" value={sortOrder} />
       <input type="hidden" name="cashBalance" value="0" />
       <label className="space-y-1.5">
@@ -102,7 +103,11 @@ function AccountCreateDialogContent({
         </label>
         <label className="space-y-1.5">
           <span className="text-sm font-medium">계좌 번호</span>
-          <Input name="displayId" required className={`${fieldClassName} py-2.5`} />
+          <Input
+            name="displayId"
+            required
+            className={`${fieldClassName} py-2.5`}
+          />
         </label>
       </div>
       <SubmitButton className="w-full" pendingLabel="계좌 저장 중...">
@@ -116,11 +121,12 @@ function AccountImportDialogContent() {
   return (
     <>
       <p className="text-sm leading-6 text-[#93a4c7]">
-        외부 증권사 계좌를 연결해 계좌 목록과 보유 항목을 가져오는 흐름을 준비 중입니다.
-        이번 단계에서는 진입 위치와 설명만 먼저 제공합니다.
+        외부 증권사 계좌를 연결해 계좌 목록과 보유 항목을 가져오는 흐름을 준비
+        중입니다. 이번 단계에서는 진입 위치와 설명만 먼저 제공합니다.
       </p>
       <div className="mt-5 rounded-[1rem] border border-[#6ea8fe]/20 bg-[#6ea8fe]/8 px-4 py-3 text-sm leading-6 text-[#cfe1ff]">
-        실제 연동이 추가되면 계좌 선택, 인증, 불러오기 미리보기, 동기화 기록이 이 다이얼로그에 이어집니다.
+        실제 연동이 추가되면 계좌 선택, 인증, 불러오기 미리보기, 동기화 기록이
+        이 다이얼로그에 이어집니다.
       </div>
     </>
   );
@@ -167,7 +173,10 @@ function AccountAddDialogContent({
 
       {mode === "manual" ? (
         <>
-          <AccountCreateDialogContent portfolioId={portfolioId} sortOrder={sortOrder} />
+          <AccountCreateDialogContent
+            portfolioId={portfolioId}
+            sortOrder={sortOrder}
+          />
         </>
       ) : (
         <div className="mt-5">
@@ -197,7 +206,11 @@ function AccountEditDialogContent({
           value={buildAccountsHref(portfolioId, account.id)}
         />
         <input type="hidden" name="sortOrder" value={account.sortOrder} />
-        <input type="hidden" name="cashBalance" value={String(account.cashBalance)} />
+        <input
+          type="hidden"
+          name="cashBalance"
+          value={String(account.cashBalance)}
+        />
         <label className="space-y-1.5">
           <span className="text-sm font-medium">이름</span>
           <Input
@@ -248,7 +261,9 @@ function AccountItemRow({
             {item.name}
           </p>
           <p className="mt-1 text-xs leading-5 text-[#93a4c7]">
-            {[item.code, item.groupName, `수량 ${item.quantity}`].filter(Boolean).join(" · ")}
+            {[item.code, item.groupName, `수량 ${item.quantity}`]
+              .filter(Boolean)
+              .join(" · ")}
           </p>
         </div>
         <div className="grid grid-cols-2 gap-4 text-right sm:min-w-[12rem]">
@@ -292,12 +307,16 @@ function PortfolioAccountListCard({
             계좌 목록
           </h2>
           <p className="mt-2 text-[13px] leading-6 text-[#9fb4d8]">
-            직접 등록과 불러오기를 같은 위치에서 관리하고, 선택한 계좌 상세는 아래 카드에서 확인합니다.
+            직접 등록과 불러오기를 같은 위치에서 관리하고, 선택한 계좌 상세는
+            아래 카드에서 확인합니다.
           </p>
         </div>
       </div>
 
-      <details open={!collapseOnSelection} className="mt-5 rounded-2xl border border-white/8">
+      <details
+        open={!collapseOnSelection}
+        className="mt-5 rounded-2xl border border-white/8"
+      >
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-2">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-semibold text-white">계좌</h3>
@@ -372,7 +391,9 @@ function PortfolioAccountListCard({
                     </div>
                     <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#93a4c7]">
                       <span>{account.items.length}개 항목</span>
-                      <span>투자금 {formatWon(String(account.investedAmount))}</span>
+                      <span>
+                        투자금 {formatWon(String(account.investedAmount))}
+                      </span>
                       <span>수익률 {formatPercent(account.profitRate)}</span>
                     </div>
                   </Link>
@@ -412,7 +433,10 @@ function PortfolioAccountDetailCard({
                   </button>
                 }
               >
-                <AccountEditDialogContent portfolioId={portfolioId} account={account} />
+                <AccountEditDialogContent
+                  portfolioId={portfolioId}
+                  account={account}
+                />
               </SettingsDialog>
             </h2>
           </div>
@@ -443,9 +467,18 @@ function PortfolioAccountDetailCard({
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
-        <SummaryBox label="평가금" value={formatWon(String(account.marketValue))} />
-        <SummaryBox label="투자금" value={formatWon(String(account.investedAmount))} />
-        <SummaryBox label="수익률" value={<ProfitTone value={account.profitRate} />} />
+        <SummaryBox
+          label="평가금"
+          value={formatWon(String(account.marketValue))}
+        />
+        <SummaryBox
+          label="투자금"
+          value={formatWon(String(account.investedAmount))}
+        />
+        <SummaryBox
+          label="수익률"
+          value={<ProfitTone value={account.profitRate} />}
+        />
       </div>
 
       <div className="mt-5 rounded-[1rem] border border-white/8 bg-white/4 px-4 py-3 text-sm leading-6 text-[#9fb4d8]">
@@ -491,7 +524,6 @@ function PortfolioAccountDetailCard({
           </div>
         </div>
       </div>
-
     </Card>
   );
 }
@@ -506,7 +538,8 @@ function EmptyAccountInspector() {
         계좌를 선택하세요
       </h2>
       <p className="mt-2 text-[13px] leading-6 text-[#9fb4d8]">
-        위 계좌 목록에서 계좌를 선택하면 연결 항목, 평가금, 수정 액션을 여기에서 확인할 수 있습니다.
+        위 계좌 목록에서 계좌를 선택하면 연결 항목, 평가금, 수정 액션을 여기에서
+        확인할 수 있습니다.
       </p>
     </Card>
   );
@@ -553,7 +586,9 @@ export function PortfolioAccountsOverview({
   portfolioId: string;
   accounts: AccountSummary[];
 }>) {
-  const realAccounts = accounts.filter((account) => !account.id.startsWith("__"));
+  const realAccounts = accounts.filter(
+    (account) => !account.id.startsWith("__"),
+  );
   const totalMarketValue = realAccounts.reduce(
     (sum, account) => sum + account.marketValue,
     0,
@@ -574,21 +609,28 @@ export function PortfolioAccountsOverview({
             계좌 요약
           </h3>
           <p className="mt-2 text-sm leading-6 text-[#93a4c7]">
-            계좌 등록과 불러오기는 별도 계좌 관리 화면에서 진행하고, 이 페이지에서는 배치 상태만 이어서 확인합니다.
+            계좌 등록과 불러오기는 별도 계좌 추가 화면에서 진행하고, 이
+            페이지에서는 배치 상태만 이어서 확인합니다.
           </p>
         </div>
         <Link
           href={buildAccountsHref(portfolioId)}
           className="inline-flex h-10 items-center rounded-full border border-[rgba(110,168,254,0.28)] bg-[rgba(110,168,254,0.12)] px-4 text-sm font-semibold text-[#cfe1ff] transition hover:bg-[rgba(110,168,254,0.18)]"
         >
-          계좌 관리로 이동
+          계좌 추가로 이동
         </Link>
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         <SummaryBox label="등록 계좌 수" value={`${realAccounts.length}개`} />
-        <SummaryBox label="현금 잔액 합계" value={formatWon(String(totalCashBalance))} />
-        <SummaryBox label="계좌 기준 총 평가금" value={formatWon(String(totalMarketValue))} />
+        <SummaryBox
+          label="현금 잔액 합계"
+          value={formatWon(String(totalCashBalance))}
+        />
+        <SummaryBox
+          label="계좌 기준 총 평가금"
+          value={formatWon(String(totalMarketValue))}
+        />
       </div>
     </Card>
   );
